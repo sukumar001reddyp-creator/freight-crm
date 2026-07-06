@@ -1,0 +1,596 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Clients | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+Clients
+{% endblock %}
+
+{% block page_subtitle %}
+Search, filter and manage complete client lifecycle records.
+{% endblock %}
+
+{% block content %}
+
+<div class="clients-page">
+
+    <section class="clients-hero">
+        <div class="clients-hero-copy">
+            <span class="panel-eyebrow">
+                CRM • CLIENT MANAGEMENT
+            </span>
+
+            <h2>Client Directory</h2>
+
+            <p>
+                Manage relationships, ownership,
+                follow-ups and lifecycle status
+                from one workspace.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('clients.add_client') }}"
+            class="btn btn-primary-red"
+        >
+            <i class="bi bi-person-plus-fill"></i>
+            Add Client
+        </a>
+    </section>
+
+
+    <section class="client-stat-grid">
+
+        <article class="client-stat-card">
+            <span class="client-stat-icon">
+                <i class="bi bi-people-fill"></i>
+            </span>
+
+            <div>
+                <small>Total Clients</small>
+                <strong>{{ total_clients }}</strong>
+            </div>
+        </article>
+
+
+        <article class="client-stat-card">
+            <span class="client-stat-icon">
+                <i class="bi bi-check2-circle"></i>
+            </span>
+
+            <div>
+                <small>Active</small>
+                <strong>{{ active_clients }}</strong>
+            </div>
+        </article>
+
+
+        <article class="client-stat-card">
+            <span class="client-stat-icon">
+                <i class="bi bi-funnel-fill"></i>
+            </span>
+
+            <div>
+                <small>Leads / New</small>
+                <strong>{{ lead_clients }}</strong>
+            </div>
+        </article>
+
+
+        <article class="client-stat-card danger-stat">
+            <span class="client-stat-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </span>
+
+            <div>
+                <small>At Risk</small>
+                <strong>{{ at_risk_clients }}</strong>
+            </div>
+        </article>
+
+    </section>
+
+
+    <section class="client-filter-card">
+
+        <form
+            method="GET"
+            action="{{ url_for('clients.client_list') }}"
+            class="client-filter-form"
+        >
+
+            <div class="client-search-box">
+                <i class="bi bi-search"></i>
+
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ current_search }}"
+                    placeholder="Search company, contact, email, phone or industry..."
+                >
+            </div>
+
+
+            <div class="client-filter-grid">
+
+                <select name="category">
+                    <option value="">
+                        All Categories
+                    </option>
+
+                    {% for value, label in categories %}
+                    <option
+                        value="{{ value }}"
+                        {% if current_category == value %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+
+                <select name="status">
+                    <option value="">
+                        All Statuses
+                    </option>
+
+                    {% for value, label in statuses %}
+                    <option
+                        value="{{ value }}"
+                        {% if current_status == value %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+
+                <select name="assigned_to">
+                    <option value="">
+                        All Owners
+                    </option>
+
+                    {% for owner in owners %}
+                    <option
+                        value="{{ owner.id }}"
+                        {% if current_assigned_to == owner.id %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ owner.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+
+                <select name="priority">
+                    <option value="">
+                        All Priorities
+                    </option>
+
+                    {% for value, label in priorities %}
+                    <option
+                        value="{{ value }}"
+                        {% if current_priority == value %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+
+                <select name="sort">
+                    <option
+                        value="newest"
+                        {% if current_sort == "newest" %}
+                        selected
+                        {% endif %}
+                    >
+                        Newest First
+                    </option>
+
+                    <option
+                        value="oldest"
+                        {% if current_sort == "oldest" %}
+                        selected
+                        {% endif %}
+                    >
+                        Oldest First
+                    </option>
+
+                    <option
+                        value="name_az"
+                        {% if current_sort == "name_az" %}
+                        selected
+                        {% endif %}
+                    >
+                        Name A–Z
+                    </option>
+
+                    <option
+                        value="name_za"
+                        {% if current_sort == "name_za" %}
+                        selected
+                        {% endif %}
+                    >
+                        Name Z–A
+                    </option>
+
+                    <option
+                        value="follow_up"
+                        {% if current_sort == "follow_up" %}
+                        selected
+                        {% endif %}
+                    >
+                        Follow-Up Date
+                    </option>
+                </select>
+
+            </div>
+
+
+            <div class="client-filter-actions">
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-funnel"></i>
+                    Apply Filters
+                </button>
+
+                <a
+                    href="{{ url_for('clients.client_list') }}"
+                    class="btn btn-secondary-soft"
+                >
+                    Reset
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <section class="client-table-card">
+
+        <div class="client-table-head">
+            <div>
+                <span class="panel-eyebrow">
+                    RECORDS
+                </span>
+
+                <h3>Client Records</h3>
+            </div>
+
+            <span class="record-count-pill">
+                {{ pagination.total }} Results
+            </span>
+        </div>
+
+
+        {% if clients %}
+
+        <div class="client-table-scroll">
+
+            <table class="client-data-table">
+
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Contact</th>
+                        <th>Owner</th>
+                        <th>Follow-Up</th>
+                        <th>Priority</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for client in clients %}
+
+                    <tr>
+
+                        <td>
+                            <div class="client-company-cell">
+
+                                <span class="client-avatar">
+                                    {{ client.company_name[:1]|upper }}
+                                </span>
+
+                                <div>
+                                    <a
+                                        href="{{ url_for(
+                                            'clients.view_client',
+                                            client_id=client.id
+                                        ) }}"
+                                        class="client-company-name"
+                                    >
+                                        {{ client.company_name }}
+                                    </a>
+
+                                    <small>
+                                        {{ client.industry_sector or 'No industry set' }}
+                                    </small>
+                                </div>
+
+                            </div>
+                        </td>
+
+
+                        <td>
+                            <span class="category-pill">
+                                {{ client.category
+                                    |replace('_', ' ')
+                                    |title
+                                }}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            <span
+                                class="client-status-badge status-{{ client.status }}"
+                            >
+                                <span class="status-dot"></span>
+                                {{ client.status_label }}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            <div class="client-contact-cell">
+                                <strong>
+                                    {{ client.contact_person_name }}
+                                </strong>
+
+                                <small>
+                                    {{ client.email }}
+                                </small>
+                            </div>
+                        </td>
+
+
+                        <td>
+                            <div class="owner-cell">
+                                <span class="owner-avatar">
+                                    {{ client.assigned_to.full_name[:1]|upper }}
+                                </span>
+
+                                <span>
+                                    {{ client.assigned_to.full_name }}
+                                </span>
+                            </div>
+                        </td>
+
+
+                        <td>
+                            {% if client.next_follow_up_date %}
+
+                            <span class="follow-up-date">
+                                <i class="bi bi-calendar3"></i>
+
+                                {{ client.next_follow_up_date.strftime('%d %b %Y') }}
+                            </span>
+
+                            {% else %}
+
+                            <span class="empty-value">
+                                Not scheduled
+                            </span>
+
+                            {% endif %}
+                        </td>
+
+
+                        <td>
+                            {% if client.priority_level %}
+
+                            <span
+                                class="priority-badge priority-{{ client.priority_level }}"
+                            >
+                                {{ client.priority_label }}
+                            </span>
+
+                            {% else %}
+
+                            <span class="empty-value">
+                                Not set
+                            </span>
+
+                            {% endif %}
+                        </td>
+
+
+                        <td>
+                            <div class="client-row-actions">
+
+                                <a
+                                    href="{{ url_for(
+                                        'clients.view_client',
+                                        client_id=client.id
+                                    ) }}"
+                                    class="row-action-btn"
+                                    title="View"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+
+                                <a
+                                    href="{{ url_for(
+                                        'clients.edit_client',
+                                        client_id=client.id
+                                    ) }}"
+                                    class="row-action-btn"
+                                    title="Edit"
+                                >
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'clients.archive_client',
+                                        client_id=client.id
+                                    ) }}"
+                                    class="inline-action-form"
+                                    onsubmit="return confirm('Archive this client?');"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="row-action-btn row-action-danger"
+                                        title="Archive"
+                                    >
+                                        <i class="bi bi-archive"></i>
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% if pagination.pages > 1 %}
+
+        <div class="client-pagination">
+
+            <div class="pagination-summary">
+                Page
+                <strong>{{ pagination.page }}</strong>
+                of
+                <strong>{{ pagination.pages }}</strong>
+            </div>
+
+
+            <div class="pagination-buttons">
+
+                {% if pagination.has_prev %}
+                <a
+                    href="{{ url_for(
+                        'clients.client_list',
+                        page=pagination.prev_num,
+                        search=current_search,
+                        category=current_category,
+                        status=current_status,
+                        assigned_to=current_assigned_to,
+                        priority=current_priority,
+                        sort=current_sort
+                    ) }}"
+                    class="pagination-btn"
+                >
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                {% endif %}
+
+
+                {% for page_num in pagination.iter_pages() %}
+
+                    {% if page_num %}
+
+                    <a
+                        href="{{ url_for(
+                            'clients.client_list',
+                            page=page_num,
+                            search=current_search,
+                            category=current_category,
+                            status=current_status,
+                            assigned_to=current_assigned_to,
+                            priority=current_priority,
+                            sort=current_sort
+                        ) }}"
+                        class="pagination-btn
+                        {% if page_num == pagination.page %}
+                        active
+                        {% endif %}"
+                    >
+                        {{ page_num }}
+                    </a>
+
+                    {% else %}
+
+                    <span class="pagination-dots">
+                        …
+                    </span>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                {% if pagination.has_next %}
+                <a
+                    href="{{ url_for(
+                        'clients.client_list',
+                        page=pagination.next_num,
+                        search=current_search,
+                        category=current_category,
+                        status=current_status,
+                        assigned_to=current_assigned_to,
+                        priority=current_priority,
+                        sort=current_sort
+                    ) }}"
+                    class="pagination-btn"
+                >
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+
+        {% else %}
+
+        <div class="client-empty-state">
+
+            <span class="client-empty-icon">
+                <i class="bi bi-people"></i>
+            </span>
+
+            <h3>No client records found</h3>
+
+            <p>
+                Try changing filters or create
+                a new client record.
+            </p>
+
+            <a
+                href="{{ url_for('clients.add_client') }}"
+                class="btn btn-primary-red"
+            >
+                Add Client
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

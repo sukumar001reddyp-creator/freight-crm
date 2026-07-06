@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#7f1d1d"
+    >
+
+    <title>Login | Freight CRM</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --red-950: #450a0a;
+            --red-900: #7f1d1d;
+            --red-800: #991b1b;
+            --red-700: #b91c1c;
+            --red-600: #dc2626;
+            --red-500: #ef4444;
+            --red-100: #fee2e2;
+            --red-50: #fef2f2;
+
+            --text-dark: #18181b;
+            --text-medium: #52525b;
+            --text-light: #71717a;
+
+            --border: #e4e4e7;
+            --surface: #ffffff;
+            --surface-soft: #fafafa;
+        }
+
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html {
+            min-height: 100%;
+        }
+
+
+        body {
+            min-height: 100vh;
+
+            padding: 24px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-family:
+                "Inter",
+                Arial,
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(239, 68, 68, 0.18),
+                    transparent 26%
+                ),
+                radial-gradient(
+                    circle at 88% 80%,
+                    rgba(185, 28, 28, 0.22),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    135deg,
+                    #2a0505 0%,
+                    #450a0a 32%,
+                    #7f1d1d 68%,
+                    #991b1b 100%
+                );
+
+            -webkit-font-smoothing: antialiased;
+        }
+
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 1120px;
+            min-height: 640px;
+
+            display: grid;
+
+            grid-template-columns:
+                1.08fr 0.92fr;
+
+            overflow: hidden;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.14);
+
+            border-radius: 30px;
+
+            background: var(--surface);
+
+            box-shadow:
+                0 35px 90px
+                rgba(24, 0, 0, 0.38);
+        }
+
+
+        .brand-panel {
+            position: relative;
+
+            padding: 58px;
+
+            overflow: hidden;
+
+            color: #ffffff;
+
+            background:
+                radial-gradient(
+                    circle at 85% 12%,
+                    rgba(255, 255, 255, 0.16),
+                    transparent 24%
+                ),
+                radial-gradient(
+                    circle at 18% 92%,
+                    rgba(239, 68, 68, 0.35),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    145deg,
+                    #3b0707 0%,
+                    #681313 45%,
+                    #991b1b 100%
+                );
+        }
+
+
+        .brand-panel::before {
+            content: "";
+
+            position: absolute;
+            top: -130px;
+            right: -120px;
+
+            width: 330px;
+            height: 330px;
+
+            border:
+                55px solid
+                rgba(255, 255, 255, 0.055);
+
+            border-radius: 50%;
+        }
+
+
+        .brand-panel::after {
+            content: "";
+
+            position: absolute;
+            right: -100px;
+            bottom: -150px;
+
+            width: 360px;
+            height: 360px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.09);
+
+            border-radius: 50%;
+
+            box-shadow:
+                0 0 0 55px
+                rgba(255, 255, 255, 0.025);
+        }
+
+
+        .brand-content {
+            position: relative;
+            z-index: 2;
+
+            height: 100%;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 15px;
+
+            color: var(--red-900);
+
+            background: #ffffff;
+
+            font-size: 23px;
+            font-weight: 800;
+
+            box-shadow:
+                0 14px 30px
+                rgba(0, 0, 0, 0.18);
+        }
+
+
+        .brand-name {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+
+        .brand-name strong {
+            font-size: 18px;
+            letter-spacing: -0.4px;
+        }
+
+
+        .brand-name span {
+            color:
+                rgba(255, 255, 255, 0.58);
+
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+
+        .brand-main {
+            margin-top: 86px;
+        }
+
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 9px 14px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.16);
+
+            border-radius: 999px;
+
+            color:
+                rgba(255, 255, 255, 0.82);
+
+            background:
+                rgba(255, 255, 255, 0.08);
+
+            font-size: 11px;
+            font-weight: 800;
+
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 0 0 5px
+                rgba(255, 255, 255, 0.1);
+        }
+
+
+        .brand-panel h1 {
+            max-width: 500px;
+
+            margin-top: 24px;
+
+            font-size:
+                clamp(
+                    38px,
+                    4vw,
+                    52px
+                );
+
+            line-height: 1.05;
+
+            letter-spacing: -2px;
+        }
+
+
+        .brand-panel p {
+            max-width: 490px;
+
+            margin-top: 22px;
+
+            color:
+                rgba(255, 255, 255, 0.7);
+
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+
+        .feature-list {
+            margin-top: 42px;
+
+            display: grid;
+            gap: 13px;
+        }
+
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            color:
+                rgba(255, 255, 255, 0.9);
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+
+        .feature-icon {
+            width: 34px;
+            height: 34px;
+
+            flex: 0 0 34px;
+
+            display: grid;
+            place-items: center;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.12);
+
+            border-radius: 11px;
+
+            background:
+                rgba(255, 255, 255, 0.09);
+
+            font-size: 14px;
+        }
+
+
+        .brand-footer {
+            margin-top: auto;
+            padding-top: 38px;
+
+            color:
+                rgba(255, 255, 255, 0.42);
+
+            font-size: 10px;
+            font-weight: 600;
+
+            letter-spacing: 0.5px;
+        }
+
+
+        .form-panel {
+            position: relative;
+
+            padding: 64px 58px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #ffffff 0%,
+                    #ffffff 72%,
+                    #fffafa 100%
+                );
+        }
+
+
+        .form-top-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            width: fit-content;
+
+            padding: 7px 11px;
+
+            border-radius: 999px;
+
+            color: var(--red-800);
+
+            background: var(--red-50);
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+
+        .lock-icon {
+            width: 22px;
+            height: 22px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 7px;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--red-800),
+                    var(--red-500)
+                );
+
+            font-size: 11px;
+        }
+
+
+        .form-panel h2 {
+            margin-top: 18px;
+
+            color: var(--text-dark);
+
+            font-size: 35px;
+
+            letter-spacing: -1.1px;
+        }
+
+
+        .subtitle {
+            margin-top: 10px;
+            margin-bottom: 32px;
+
+            color: var(--text-light);
+
+            font-size: 14px;
+            line-height: 1.65;
+        }
+
+
+        .flash {
+            padding: 13px 15px;
+            margin-bottom: 18px;
+
+            border-radius: 12px;
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+
+        .flash-danger {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+
+        .flash-success {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+
+        .flash-info {
+            color: #075985;
+            background: #e0f2fe;
+        }
+
+
+        .flash-warning {
+            color: #92400e;
+            background: #fef3c7;
+        }
+
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+
+        label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #3f3f46;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+
+        .input-wrap {
+            position: relative;
+        }
+
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+
+            transform:
+                translateY(-50%);
+
+            color: #a1a1aa;
+
+            font-size: 15px;
+
+            pointer-events: none;
+        }
+
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+
+            padding:
+                15px 16px
+                15px 44px;
+
+            border:
+                1px solid
+                var(--border);
+
+            border-radius: 13px;
+
+            color: var(--text-dark);
+
+            background: #fafafa;
+
+            font-size: 14px;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+
+        input::placeholder {
+            color: #a1a1aa;
+        }
+
+
+        input:focus {
+            border-color: var(--red-600);
+
+            background: #ffffff;
+
+            box-shadow:
+                0 0 0 4px
+                rgba(220, 38, 38, 0.1);
+        }
+
+
+        .remember-row {
+            margin:
+                4px 0
+                24px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+
+        .remember-label {
+            margin: 0;
+
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            color: #71717a;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+
+        .remember-label input {
+            width: 16px;
+            height: 16px;
+
+            accent-color: var(--red-700);
+        }
+
+
+        .login-button {
+            width: 100%;
+            min-height: 50px;
+
+            padding: 14px 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+
+            border: 0;
+            border-radius: 13px;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--red-800),
+                    var(--red-600)
+                );
+
+            font-size: 13px;
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 14px 30px
+                rgba(185, 28, 28, 0.25);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .login-button:hover {
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 18px 36px
+                rgba(185, 28, 28, 0.34);
+        }
+
+
+        .login-button:active {
+            transform:
+                translateY(0);
+        }
+
+
+        .security-note {
+            margin-top: 25px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+
+            color: #a1a1aa;
+
+            font-size: 10px;
+            line-height: 1.6;
+
+            text-align: center;
+        }
+
+
+        .security-shield {
+            color: var(--red-700);
+            font-size: 12px;
+        }
+
+
+        @media (
+            max-width: 900px
+        ) {
+            body {
+                padding: 16px;
+            }
+
+            .login-wrapper {
+                max-width: 560px;
+
+                grid-template-columns: 1fr;
+            }
+
+            .brand-panel {
+                display: none;
+            }
+
+            .form-panel {
+                min-height: 610px;
+
+                padding:
+                    52px 42px;
+            }
+        }
+
+
+        @media (
+            max-width: 520px
+        ) {
+            body {
+                padding: 0;
+
+                align-items: stretch;
+
+                background: #ffffff;
+            }
+
+            .login-wrapper {
+                min-height: 100vh;
+
+                border: 0;
+                border-radius: 0;
+
+                box-shadow: none;
+            }
+
+            .form-panel {
+                min-height: 100vh;
+
+                padding:
+                    42px 24px;
+            }
+
+            .form-panel h2 {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <section class="brand-panel">
+
+        <div class="brand-content">
+
+            <div class="brand-header">
+
+                <div class="brand-logo">
+                    F
+                </div>
+
+                <div class="brand-name">
+                    <strong>FreightCRM</strong>
+                    <span>Client & Shipment Hub</span>
+                </div>
+
+            </div>
+
+
+            <div class="brand-main">
+
+                <div class="brand-badge">
+                    <span class="badge-dot"></span>
+                    Unified Freight Workspace
+                </div>
+
+                <h1>
+                    Move freight.<br>
+                    Manage clients.<br>
+                    Track everything.
+                </h1>
+
+                <p>
+                    One secure workspace for client relationships,
+                    enquiries, quotations, shipment operations and
+                    delivery visibility.
+                </p>
+
+
+                <div class="feature-list">
+
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Client lifecycle management
+                    </div>
+
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Enquiry to shipment workflow
+                    </div>
+
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Shipment milestone visibility
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="brand-footer">
+                FREIGHT FORWARDING CRM • SECURE INTERNAL ACCESS
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="form-panel">
+
+        <div class="form-top-badge">
+            <span class="lock-icon">◆</span>
+            Secure Workspace
+        </div>
+
+        <h2>Welcome back</h2>
+
+        <p class="subtitle">
+            Sign in with your authorized account
+            to access the Freight CRM dashboard.
+        </p>
+
+
+        {% with messages =
+            get_flashed_messages(
+                with_categories=true
+            )
+        %}
+
+            {% for category, message in messages %}
+
+                <div
+                    class="flash flash-{{ category }}"
+                >
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <form method="POST">
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email Address
+                </label>
+
+                <div class="input-wrap">
+
+                    <span class="input-icon">
+                        @
+                    </span>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="admin@freightcrm.com"
+                        required
+                        autocomplete="email"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="input-wrap">
+
+                    <span class="input-icon">
+                        ●
+                    </span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="remember-row">
+
+                <label class="remember-label">
+
+                    <input
+                        type="checkbox"
+                        name="remember"
+                    >
+
+                    Remember me
+
+                </label>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="login-button"
+            >
+                Sign In to CRM
+                <span>→</span>
+            </button>
+
+        </form>
+
+
+        <p class="security-note">
+            <span class="security-shield">◆</span>
+            Protected internal system.
+            Access is restricted to authorized users.
+        </p>
+
+    </section>
+
+</div>
+
+</body>
+</html>

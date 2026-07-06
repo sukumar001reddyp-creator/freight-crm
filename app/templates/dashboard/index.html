@@ -1,0 +1,568 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Dashboard | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+Operations Dashboard
+{% endblock %}
+
+{% block page_subtitle %}
+Monitor clients, enquiries, quotations and shipments.
+{% endblock %}
+
+{% block content %}
+
+<section class="welcome-banner">
+
+    <div class="welcome-content">
+
+        <span class="welcome-eyebrow">
+            <i class="bi bi-stars"></i>
+            Freight Operations Command Center
+        </span>
+
+        <h2>
+            Good to see you,
+            {{ current_user.full_name.split()[0] }}.
+        </h2>
+
+        <p>
+            Track client relationships, pending decisions,
+            follow-ups and shipment movement from one workspace.
+        </p>
+
+    </div>
+
+    <div class="welcome-actions">
+
+        <a
+            href="#"
+            class="btn btn-light"
+        >
+            <i class="bi bi-person-plus-fill"></i>
+            Add Client
+        </a>
+
+        <a
+            href="#"
+            class="btn btn-dark-red"
+        >
+            <i class="bi bi-plus-circle-fill"></i>
+            New Enquiry
+        </a>
+
+    </div>
+
+</section>
+
+
+<section class="stats-grid">
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <div class="stat-icon stat-icon-red">
+                <i class="bi bi-people-fill"></i>
+            </div>
+
+            <span class="trend-badge neutral">
+                Live
+            </span>
+
+        </div>
+
+        <div class="stat-value">
+            0
+        </div>
+
+        <div class="stat-label">
+            Total Clients
+        </div>
+
+        <div class="stat-footer">
+            All lifecycle records
+        </div>
+
+    </article>
+
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <div class="stat-icon stat-icon-orange">
+                <i class="bi bi-inbox-fill"></i>
+            </div>
+
+            <span class="trend-badge warning">
+                Pending
+            </span>
+
+        </div>
+
+        <div class="stat-value">
+            0
+        </div>
+
+        <div class="stat-label">
+            Open Enquiries
+        </div>
+
+        <div class="stat-footer">
+            Awaiting workflow action
+        </div>
+
+    </article>
+
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <div class="stat-icon stat-icon-purple">
+                <i class="bi bi-file-earmark-text-fill"></i>
+            </div>
+
+            <span class="trend-badge neutral">
+                Review
+            </span>
+
+        </div>
+
+        <div class="stat-value">
+            0
+        </div>
+
+        <div class="stat-label">
+            Pending Quotations
+        </div>
+
+        <div class="stat-footer">
+            Awaiting client decision
+        </div>
+
+    </article>
+
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <div class="stat-icon stat-icon-green">
+                <i class="bi bi-truck"></i>
+            </div>
+
+            <span class="trend-badge success">
+                Active
+            </span>
+
+        </div>
+
+        <div class="stat-value">
+            0
+        </div>
+
+        <div class="stat-label">
+            Active Shipments
+        </div>
+
+        <div class="stat-footer">
+            Currently in progress
+        </div>
+
+    </article>
+
+</section>
+
+
+<section class="dashboard-grid">
+
+    <article class="panel pipeline-panel">
+
+        <div class="panel-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    Shipment Operations
+                </span>
+
+                <h3>
+                    Shipment Status Flow
+                </h3>
+
+                <p>
+                    Live visibility across the required
+                    shipment milestones.
+                </p>
+            </div>
+
+            <a
+                href="#"
+                class="text-link"
+            >
+                View shipments
+                <i class="bi bi-arrow-right"></i>
+            </a>
+
+        </div>
+
+        <div class="shipment-flow">
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-journal-check"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Booked</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    01
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Cargo Picked Up</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    02
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-airplane"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>In Transit</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    03
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Arrived</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    04
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Customs Clearance</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    05
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-truck-flatbed"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Out for Delivery</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    06
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Delivered</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    07
+                </div>
+
+            </div>
+
+
+            <div class="flow-item">
+
+                <div class="flow-icon">
+                    <i class="bi bi-archive-fill"></i>
+                </div>
+
+                <div class="flow-copy">
+                    <strong>Closed / Completed</strong>
+                    <span>0 shipments</span>
+                </div>
+
+                <div class="flow-number">
+                    08
+                </div>
+
+            </div>
+
+        </div>
+
+    </article>
+
+
+    <article class="panel followup-panel">
+
+        <div class="panel-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    Attention Required
+                </span>
+
+                <h3>
+                    Follow-ups
+                </h3>
+
+                <p>
+                    Upcoming client actions and reminders.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="icon-square-btn"
+            >
+                <i class="bi bi-plus-lg"></i>
+            </button>
+
+        </div>
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                <i class="bi bi-calendar2-check"></i>
+            </div>
+
+            <h4>
+                No follow-ups yet
+            </h4>
+
+            <p>
+                Client tasks and next follow-up dates
+                will appear here.
+            </p>
+
+            <a
+                href="#"
+                class="btn btn-primary-red btn-small"
+            >
+                Add Follow-up
+            </a>
+
+        </div>
+
+    </article>
+
+</section>
+
+
+<section class="dashboard-bottom-grid">
+
+    <article class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    Client Health
+                </span>
+
+                <h3>
+                    Lifecycle Overview
+                </h3>
+
+                <p>
+                    Monitor relationship status across records.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="lifecycle-list">
+
+            <div class="lifecycle-row">
+                <span class="status-dot lead"></span>
+                <span class="lifecycle-name">
+                    Lead / Prospect
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot new-client"></span>
+                <span class="lifecycle-name">
+                    New Client
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot active-client"></span>
+                <span class="lifecycle-name">
+                    Active / Existing
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot key-client"></span>
+                <span class="lifecycle-name">
+                    Key / Strategic
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot at-risk"></span>
+                <span class="lifecycle-name">
+                    At-Risk
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot dormant"></span>
+                <span class="lifecycle-name">
+                    Dormant / Inactive
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot churned"></span>
+                <span class="lifecycle-name">
+                    Churned / Lost
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot reactivated"></span>
+                <span class="lifecycle-name">
+                    Reactivated / Win-Back
+                </span>
+                <strong>0</strong>
+            </div>
+
+            <div class="lifecycle-row">
+                <span class="status-dot referral"></span>
+                <span class="lifecycle-name">
+                    Referral Client
+                </span>
+                <strong>0</strong>
+            </div>
+
+        </div>
+
+    </article>
+
+
+    <article class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    Recent Movement
+                </span>
+
+                <h3>
+                    Activity Timeline
+                </h3>
+
+                <p>
+                    Calls, emails, meetings and record updates.
+                </p>
+            </div>
+
+            <a
+                href="#"
+                class="text-link"
+            >
+                View all
+                <i class="bi bi-arrow-right"></i>
+            </a>
+
+        </div>
+
+        <div class="empty-state compact">
+
+            <div class="empty-icon">
+                <i class="bi bi-clock-history"></i>
+            </div>
+
+            <h4>
+                No activity recorded
+            </h4>
+
+            <p>
+                Logged communication and CRM changes
+                will appear in chronological order.
+            </p>
+
+        </div>
+
+    </article>
+
+</section>
+
+{% endblock %}

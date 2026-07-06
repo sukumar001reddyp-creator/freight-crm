@@ -1,0 +1,644 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Edit {{ client.company_name }} | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+Edit Client
+{% endblock %}
+
+{% block page_subtitle %}
+Update account, contact, ownership and lifecycle details.
+{% endblock %}
+
+{% block content %}
+
+<div class="edit-client-page">
+
+    <section class="edit-client-hero">
+
+        <div class="edit-client-identity">
+
+            <div class="edit-client-avatar">
+                {{ client.company_name[:1]|upper }}
+            </div>
+
+            <div>
+                <span class="panel-eyebrow">
+                    CRM • CLIENT RECORD
+                </span>
+
+                <h2>
+                    Edit {{ client.company_name }}
+                </h2>
+
+                <p>
+                    Update the complete client record.
+                    Status changes are automatically tracked.
+                </p>
+            </div>
+
+        </div>
+
+        <a
+            href="{{ url_for(
+                'clients.view_client',
+                client_id=client.id
+            ) }}"
+            class="btn btn-secondary-soft"
+        >
+            <i class="bi bi-arrow-left"></i>
+            Back to Profile
+        </a>
+
+    </section>
+
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        class="edit-client-form"
+    >
+
+        <!-- COMPANY -->
+
+        <section class="edit-form-card">
+
+            <div class="edit-form-heading">
+
+                <span>
+                    <i class="bi bi-building"></i>
+                </span>
+
+                <div>
+                    <h3>Company Information</h3>
+                    <p>
+                        Core account and lifecycle details.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="crm-field full-field">
+                    <label>
+                        Company Name
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="company_name"
+                        value="{{ client.company_name }}"
+                        required
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>
+                        Category
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        name="category"
+                        required
+                    >
+                        {% for value, label in categories %}
+                        <option
+                            value="{{ value }}"
+                            {% if client.category == value %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="crm-field">
+                    <label>
+                        Lifecycle Status
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        name="status"
+                        id="editClientStatus"
+                        data-current="{{ client.status }}"
+                        required
+                    >
+                        {% for value, label in statuses %}
+                        <option
+                            value="{{ value }}"
+                            {% if client.status == value %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Industry / Sector</label>
+
+                    <input
+                        type="text"
+                        name="industry_sector"
+                        value="{{ client.industry_sector or '' }}"
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Website URL</label>
+
+                    <input
+                        type="text"
+                        name="website_url"
+                        value="{{ client.website_url or '' }}"
+                    >
+                </div>
+
+
+                <div
+                    class="crm-field full-field status-remarks-field"
+                    id="statusRemarksField"
+                >
+                    <label>
+                        Status Change Remarks
+                    </label>
+
+                    <textarea
+                        name="status_remarks"
+                        rows="3"
+                        placeholder="Reason for changing lifecycle status..."
+                    ></textarea>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CONTACT -->
+
+        <section class="edit-form-card">
+
+            <div class="edit-form-heading">
+
+                <span>
+                    <i class="bi bi-person-vcard"></i>
+                </span>
+
+                <div>
+                    <h3>Contact Information</h3>
+                    <p>
+                        Primary relationship contact details.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="crm-field">
+                    <label>
+                        Contact Person
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="contact_person_name"
+                        value="{{ client.contact_person_name }}"
+                        required
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Designation</label>
+
+                    <input
+                        type="text"
+                        name="designation"
+                        value="{{ client.designation or '' }}"
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>
+                        Primary Phone
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="primary_phone"
+                        value="{{ client.primary_phone }}"
+                        required
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Secondary Phone</label>
+
+                    <input
+                        type="text"
+                        name="secondary_phone"
+                        value="{{ client.secondary_phone or '' }}"
+                    >
+                </div>
+
+
+                <div class="crm-field full-field">
+                    <label>
+                        Email Address
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ client.email }}"
+                        required
+                    >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ADDRESS -->
+
+        <section class="edit-form-card">
+
+            <div class="edit-form-heading">
+
+                <span>
+                    <i class="bi bi-geo-alt"></i>
+                </span>
+
+                <div>
+                    <h3>Address</h3>
+                    <p>
+                        Client office or operational location.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="crm-field full-field">
+                    <label>
+                        Address Line 1
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="address_line_1"
+                        value="{{ client.address_line_1 }}"
+                        required
+                    >
+                </div>
+
+
+                <div class="crm-field full-field">
+                    <label>Address Line 2</label>
+
+                    <input
+                        type="text"
+                        name="address_line_2"
+                        value="{{ client.address_line_2 or '' }}"
+                    >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SERVICES -->
+
+        <section class="edit-form-card">
+
+            <div class="edit-form-heading">
+
+                <span>
+                    <i class="bi bi-boxes"></i>
+                </span>
+
+                <div>
+                    <h3>Services Needed</h3>
+                    <p>
+                        Select one or more logistics services.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-service-grid">
+
+                {% for value, label in services %}
+
+                <label class="edit-service-option">
+
+                    <input
+                        type="checkbox"
+                        name="services_needed"
+                        value="{{ value }}"
+                        {% if value in client.services_needed %}
+                        checked
+                        {% endif %}
+                    >
+
+                    <span class="edit-service-box">
+                        <i class="bi bi-check2-circle"></i>
+                        {{ label }}
+                    </span>
+
+                </label>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <!-- OWNERSHIP -->
+
+        <section class="edit-form-card">
+
+            <div class="edit-form-heading">
+
+                <span>
+                    <i class="bi bi-diagram-3"></i>
+                </span>
+
+                <div>
+                    <h3>Ownership & Follow-Up</h3>
+                    <p>
+                        Assignment, source, dates and priority.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="crm-field">
+                    <label>
+                        Assigned Owner
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        name="assigned_to_id"
+                        required
+                    >
+                        {% for owner in owners %}
+                        <option
+                            value="{{ owner.id }}"
+                            {% if client.assigned_to_id == owner.id %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ owner.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Lead Source</label>
+
+                    <select name="lead_source">
+
+                        <option value="">
+                            Select Source
+                        </option>
+
+                        {% for value, label in lead_sources %}
+                        <option
+                            value="{{ value }}"
+                            {% if client.lead_source == value %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Last Contact Date</label>
+
+                    <input
+                        type="date"
+                        name="last_contact_date"
+                        value="{% if client.last_contact_date %}{{ client.last_contact_date.strftime('%Y-%m-%d') }}{% endif %}"
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Next Follow-Up Date</label>
+
+                    <input
+                        type="date"
+                        name="next_follow_up_date"
+                        value="{% if client.next_follow_up_date %}{{ client.next_follow_up_date.strftime('%Y-%m-%d') }}{% endif %}"
+                    >
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Priority Level</label>
+
+                    <select name="priority_level">
+
+                        <option value="">
+                            Select Priority
+                        </option>
+
+                        {% for value, label in priorities %}
+                        <option
+                            value="{{ value }}"
+                            {% if client.priority_level == value %}
+                            selected
+                            {% endif %}
+                        >
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+
+                <div class="crm-field">
+                    <label>Tags</label>
+
+                    <input
+                        type="text"
+                        name="tags"
+                        value="{{ client.tags|join(', ') }}"
+                        placeholder="VIP, Kuwait, Oil & Gas"
+                    >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- NOTES + ATTACHMENTS -->
+
+        <section class="edit-form-card">
+
+            <div class="edit-form-heading">
+
+                <span>
+                    <i class="bi bi-paperclip"></i>
+                </span>
+
+                <div>
+                    <h3>Notes & Attachments</h3>
+                    <p>
+                        Internal context and additional files.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="crm-field full-field">
+                    <label>Internal Notes</label>
+
+                    <textarea
+                        name="notes"
+                        rows="5"
+                    >{{ client.notes or '' }}</textarea>
+                </div>
+
+
+                <div class="crm-field full-field">
+                    <label>Add New Attachments</label>
+
+                    <input
+                        type="file"
+                        name="attachments"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.docx"
+                    >
+
+                    <small class="edit-field-help">
+                        Existing files remain unchanged.
+                        Allowed: PDF, JPG, JPEG, DOCX.
+                    </small>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SAVE BAR -->
+
+        <section class="edit-save-bar">
+
+            <div>
+                <strong>
+                    Ready to update this client?
+                </strong>
+
+                <small>
+                    Lifecycle changes will be recorded
+                    in status history.
+                </small>
+            </div>
+
+
+            <div class="edit-save-actions">
+
+                <a
+                    href="{{ url_for(
+                        'clients.view_client',
+                        client_id=client.id
+                    ) }}"
+                    class="btn btn-secondary-soft"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-check2-circle"></i>
+                    Save Changes
+                </button>
+
+            </div>
+
+        </section>
+
+    </form>
+
+</div>
+
+
+<script>
+const editStatus = document.getElementById(
+    "editClientStatus"
+);
+
+const remarksField = document.getElementById(
+    "statusRemarksField"
+);
+
+function toggleStatusRemarks() {
+    const originalStatus = editStatus.dataset.current;
+
+    if (editStatus.value !== originalStatus) {
+        remarksField.classList.add("show");
+    } else {
+        remarksField.classList.remove("show");
+    }
+}
+
+editStatus.addEventListener(
+    "change",
+    toggleStatusRemarks
+);
+
+toggleStatusRemarks();
+</script>
+
+{% endblock %}

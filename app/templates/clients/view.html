@@ -1,0 +1,2879 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+{{ client.company_name }} | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+Client Profile
+{% endblock %}
+
+{% block page_subtitle %}
+Complete relationship, lifecycle and account workspace.
+{% endblock %}
+
+{% block content %}
+
+<div class="client-profile-page">
+
+    <!-- PROFILE HERO -->
+
+    <section class="profile-hero-card">
+
+        <div class="profile-identity">
+
+            <div class="profile-main-avatar">
+                {{ client.company_name[:1]|upper }}
+            </div>
+
+            <div class="profile-main-copy">
+
+                <span class="panel-eyebrow">
+                    CRM • CLIENT PROFILE
+                </span>
+
+                <h2>
+                    {{ client.company_name }}
+                </h2>
+
+                <p>
+                    {{ client.contact_person_name }}
+
+                    {% if client.designation %}
+                        • {{ client.designation }}
+                    {% endif %}
+                </p>
+
+                <div class="profile-badge-row">
+
+                    <span class="client-status-badge status-{{ client.status }}">
+                        <span class="status-dot"></span>
+                        {{ client.status_label }}
+                    </span>
+
+                    <span class="category-pill">
+                        {{ categories.get(
+                            client.category,
+                            client.category|replace('_', ' ')|title
+                        ) }}
+                    </span>
+
+                    {% if client.priority_level %}
+                    <span class="priority-badge priority-{{ client.priority_level }}">
+                        {{ client.priority_label }} Priority
+                    </span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="profile-action-row">
+
+            <a
+                href="{{ url_for('clients.client_list') }}"
+                class="btn btn-secondary-soft"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+
+            <a
+                href="{{ url_for(
+                    'clients.edit_client',
+                    client_id=client.id
+                ) }}"
+                class="btn btn-secondary-soft"
+            >
+                <i class="bi bi-pencil-square"></i>
+                Edit Client
+            </a>
+
+            <button
+                type="button"
+                class="btn btn-primary-red"
+                onclick="openStatusModal()"
+            >
+                <i class="bi bi-arrow-repeat"></i>
+                Change Status
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- QUICK INFO -->
+
+    <section class="profile-quick-grid">
+
+        <article class="profile-quick-card">
+            <span>
+                <i class="bi bi-envelope"></i>
+            </span>
+
+            <div>
+                <small>Email</small>
+                <strong>{{ client.email }}</strong>
+            </div>
+        </article>
+
+
+        <article class="profile-quick-card">
+            <span>
+                <i class="bi bi-telephone"></i>
+            </span>
+
+            <div>
+                <small>Primary Phone</small>
+                <strong>{{ client.primary_phone }}</strong>
+            </div>
+        </article>
+
+
+        <article class="profile-quick-card">
+            <span>
+                <i class="bi bi-person-check"></i>
+            </span>
+
+            <div>
+                <small>Assigned Owner</small>
+                <strong>{{ client.assigned_to.full_name }}</strong>
+            </div>
+        </article>
+
+
+        <article class="profile-quick-card">
+            <span>
+                <i class="bi bi-calendar-check"></i>
+            </span>
+
+            <div>
+                <small>Next Follow-Up</small>
+
+                <strong>
+                    {% if client.next_follow_up_date %}
+                        {{ client.next_follow_up_date.strftime('%d %b %Y') }}
+                    {% else %}
+                        Not Scheduled
+                    {% endif %}
+                </strong>
+            </div>
+        </article>
+
+    </section>
+
+
+    <!-- PROFILE TABS -->
+
+    <section class="profile-tabs-card">
+
+        <div class="profile-tabs">
+
+            <button
+                type="button"
+                class="profile-tab active"
+                data-tab="overview"
+            >
+                <i class="bi bi-grid"></i>
+                Overview
+            </button>
+
+            <button
+                type="button"
+                class="profile-tab"
+                data-tab="activities"
+            >
+                <i class="bi bi-activity"></i>
+                Activities
+            </button>
+            <button
+    type="button"
+    class="profile-tab"
+    data-tab="history"
+>
+    <i class="bi bi-clock-history"></i>
+    History
+</button>
+
+            <button
+                type="button"
+                class="profile-tab"
+                data-tab="enquiries"
+            >
+                <i class="bi bi-inbox"></i>
+                Enquiries
+            </button>
+
+            <button
+                type="button"
+                class="profile-tab"
+                data-tab="quotations"
+            >
+                <i class="bi bi-file-earmark-text"></i>
+                Quotations
+            </button>
+
+            <button
+                type="button"
+                class="profile-tab"
+                data-tab="shipments"
+            >
+                <i class="bi bi-truck"></i>
+                Shipments
+            </button>
+
+            <button
+                type="button"
+                class="profile-tab"
+                data-tab="documents"
+            >
+                <i class="bi bi-paperclip"></i>
+                Documents
+            </button>
+            <button
+    type="button"
+    class="profile-tab"
+    data-tab="tasks"
+>
+    <i class="bi bi-check2-square"></i>
+    Tasks
+</button>
+
+            <button
+                type="button"
+                class="profile-tab"
+                data-tab="notes"
+            >
+                <i class="bi bi-chat-left-text"></i>
+                Notes
+            </button>
+
+        </div>
+
+
+        <!-- OVERVIEW -->
+
+        <div
+            class="profile-tab-panel active"
+            id="tab-overview"
+        >
+
+            <div class="profile-content-grid">
+
+                <div class="profile-content-main">
+
+                    <section class="profile-info-card">
+
+                        <div class="profile-section-title">
+                            <span>
+                                <i class="bi bi-building"></i>
+                            </span>
+
+                            <div>
+                                <h3>Company Information</h3>
+                                <p>Core account and business details</p>
+                            </div>
+                        </div>
+
+
+                        <div class="profile-detail-grid">
+
+                            <div class="profile-detail-item">
+                                <small>Company Name</small>
+                                <strong>{{ client.company_name }}</strong>
+                            </div>
+
+                            <div class="profile-detail-item">
+                                <small>Industry / Sector</small>
+                                <strong>
+                                    {{ client.industry_sector or 'Not Set' }}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item">
+                                <small>Website</small>
+                                <strong>
+                                    {{ client.website_url or 'Not Set' }}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item">
+                                <small>Lead Source</small>
+                                <strong>
+                                    {% if client.lead_source %}
+                                        {{ lead_sources.get(
+                                            client.lead_source,
+                                            client.lead_source|replace('_', ' ')|title
+                                        ) }}
+                                    {% else %}
+                                        Not Set
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item full-detail">
+                                <small>Address</small>
+
+                                <strong>
+                                    {{ client.address_line_1 }}
+
+                                    {% if client.address_line_2 %}
+                                        , {{ client.address_line_2 }}
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="profile-info-card">
+
+                        <div class="profile-section-title">
+                            <span>
+                                <i class="bi bi-person-vcard"></i>
+                            </span>
+
+                            <div>
+                                <h3>Contact Information</h3>
+                                <p>Primary relationship contact details</p>
+                            </div>
+                        </div>
+
+
+                        <div class="profile-detail-grid">
+
+                            <div class="profile-detail-item">
+                                <small>Contact Person</small>
+                                <strong>
+                                    {{ client.contact_person_name }}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item">
+                                <small>Designation</small>
+                                <strong>
+                                    {{ client.designation or 'Not Set' }}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item">
+                                <small>Primary Phone</small>
+                                <strong>
+                                    {{ client.primary_phone }}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item">
+                                <small>Secondary Phone</small>
+                                <strong>
+                                    {{ client.secondary_phone or 'Not Set' }}
+                                </strong>
+                            </div>
+
+                            <div class="profile-detail-item full-detail">
+                                <small>Email Address</small>
+                                <strong>
+                                    {{ client.email }}
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="profile-info-card">
+
+                        <div class="profile-section-title">
+                            <span>
+                                <i class="bi bi-boxes"></i>
+                            </span>
+
+                            <div>
+                                <h3>Services Needed</h3>
+                                <p>Selected logistics service requirements</p>
+                            </div>
+                        </div>
+
+
+                        <div class="profile-service-list">
+
+                            {% for service in client.services_needed %}
+
+                                <span class="profile-service-pill">
+                                    <i class="bi bi-check2"></i>
+
+                                    {{ services.get(
+                                        service,
+                                        service|replace('_', ' ')|title
+                                    ) }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+
+                <!-- RIGHT SIDE -->
+
+                <aside class="profile-content-side">
+
+                    <section class="profile-info-card">
+
+                        <div class="profile-section-title compact-title">
+                            <span>
+                                <i class="bi bi-clock-history"></i>
+                            </span>
+
+                            <div>
+                                <h3>Status History</h3>
+                                <p>Timestamped lifecycle changes</p>
+                            </div>
+                        </div>
+
+
+                        <div class="status-timeline">
+
+                            {% for history in client.status_history %}
+
+                                <div class="status-timeline-item">
+
+                                    <span class="timeline-marker"></span>
+
+                                    <div class="timeline-content">
+
+                                        <strong>
+                                            {% if history.old_status %}
+                                                {{ history.old_status
+                                                    |replace('_', ' ')
+                                                    |title
+                                                }}
+                                                →
+                                            {% endif %}
+
+                                            {{ history.new_status
+                                                |replace('_', ' ')
+                                                |title
+                                            }}
+                                        </strong>
+
+                                        <small>
+                                            {{ history.changed_at.strftime(
+                                                '%d %b %Y • %H:%M'
+                                            ) }}
+                                        </small>
+
+                                        <p>
+                                            By {{ history.changed_by.full_name }}
+                                        </p>
+
+                                        {% if history.remarks %}
+                                            <em>
+                                                {{ history.remarks }}
+                                            </em>
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="profile-empty-mini">
+                                    No status history available.
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="profile-info-card">
+
+                        <div class="profile-section-title compact-title">
+                            <span>
+                                <i class="bi bi-tags"></i>
+                            </span>
+
+                            <div>
+                                <h3>Tags</h3>
+                                <p>Custom record labels</p>
+                            </div>
+                        </div>
+
+
+                        <div class="profile-tag-list">
+
+                            {% for tag in client.tags %}
+                                <span>{{ tag }}</span>
+                            {% else %}
+                                <small class="empty-value">
+                                    No tags added
+                                </small>
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+                </aside>
+
+            </div>
+
+        </div>
+
+        <!-- =====================================================
+     ACTIVITIES / COMMUNICATION TIMELINE
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-activities"
+>
+    <div class="activity-panel-header">
+
+        <div>
+            <span class="panel-eyebrow">
+                COMMUNICATION HISTORY
+            </span>
+
+            <h3>Activities & Communication</h3>
+
+            <p>
+                Track calls, emails and meetings
+                with a complete timestamped history.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openActivityModal()"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Log Activity
+        </button>
+
+    </div>
+
+
+    <div class="activity-summary-grid">
+
+        <article class="activity-summary-card">
+            <span>
+                <i class="bi bi-activity"></i>
+            </span>
+
+            <div>
+                <small>Total Activities</small>
+                <strong>
+                    {{ client.activities|length }}
+                </strong>
+            </div>
+        </article>
+
+
+        <article class="activity-summary-card">
+            <span>
+                <i class="bi bi-telephone"></i>
+            </span>
+
+            <div>
+                <small>Calls</small>
+                <strong>
+                    {{
+                        client.activities
+                        |selectattr(
+                            'activity_type',
+                            'equalto',
+                            'call'
+                        )
+                        |list
+                        |length
+                    }}
+                </strong>
+            </div>
+        </article>
+
+
+        <article class="activity-summary-card">
+            <span>
+                <i class="bi bi-envelope"></i>
+            </span>
+
+            <div>
+                <small>Emails</small>
+                <strong>
+                    {{
+                        client.activities
+                        |selectattr(
+                            'activity_type',
+                            'equalto',
+                            'email'
+                        )
+                        |list
+                        |length
+                    }}
+                </strong>
+            </div>
+        </article>
+
+
+        <article class="activity-summary-card">
+            <span>
+                <i class="bi bi-people"></i>
+            </span>
+
+            <div>
+                <small>Meetings</small>
+                <strong>
+                    {{
+                        client.activities
+                        |selectattr(
+                            'activity_type',
+                            'equalto',
+                            'meeting'
+                        )
+                        |list
+                        |length
+                    }}
+                </strong>
+            </div>
+        </article>
+
+    </div>
+
+
+    {% if client.activities %}
+
+    <div class="activity-timeline">
+
+        {% for activity in client.activities %}
+
+        <article class="activity-timeline-item">
+
+            <div
+                class="
+                    activity-type-icon
+                    activity-type-{{ activity.activity_type }}
+                "
+            >
+                {% if activity.activity_type == "call" %}
+                    <i class="bi bi-telephone-fill"></i>
+
+                {% elif activity.activity_type == "email" %}
+                    <i class="bi bi-envelope-fill"></i>
+
+                {% elif activity.activity_type == "meeting" %}
+                    <i class="bi bi-people-fill"></i>
+
+                {% else %}
+                    <i class="bi bi-activity"></i>
+                {% endif %}
+            </div>
+
+
+            <div class="activity-timeline-content">
+
+                <div class="activity-timeline-top">
+
+                    <div>
+                        <span
+                            class="
+                                activity-type-badge
+                                activity-badge-{{ activity.activity_type }}
+                            "
+                        >
+                            {{ activity.activity_type_label }}
+                        </span>
+
+                        <h4>
+                            {{ activity.subject }}
+                        </h4>
+                    </div>
+
+
+                    <time>
+                        <i class="bi bi-clock"></i>
+
+                        {{ activity.activity_date.strftime(
+                            '%d %b %Y • %H:%M'
+                        ) }}
+                    </time>
+
+                </div>
+
+
+                {% if activity.description %}
+
+                <p class="activity-description">
+                    {{ activity.description }}
+                </p>
+
+                {% endif %}
+
+
+                <div class="activity-meta">
+
+                    <span>
+                        <i class="bi bi-person-circle"></i>
+
+                        Logged by
+                        <strong>
+                            {{ activity.created_by.full_name }}
+                        </strong>
+                    </span>
+
+                    <span>
+                        <i class="bi bi-calendar-check"></i>
+
+                        Recorded
+                        {{ activity.created_at.strftime(
+                            '%d %b %Y'
+                        ) }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div class="activity-empty-state">
+
+        <span>
+            <i class="bi bi-activity"></i>
+        </span>
+
+        <h3>No activities logged yet</h3>
+
+        <p>
+            Start building the client communication
+            history by logging a call, email or meeting.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openActivityModal()"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Log First Activity
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<!-- =====================================================
+     NOTES / REMARKS
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-notes"
+>
+    <div class="notes-panel-header">
+
+        <div>
+            <span class="panel-eyebrow">
+                INTERNAL CRM NOTES
+            </span>
+
+            <h3>Notes & Remarks</h3>
+
+            <p>
+                Record internal context, decisions
+                and relationship remarks.
+            </p>
+        </div>
+        
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openNoteModal()"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Add Note
+        </button>
+
+    </div>
+
+
+    {% if client.client_notes %}
+
+    <div class="client-notes-list">
+
+        {% for note in client.client_notes %}
+
+        <article class="client-note-card">
+
+            <div class="client-note-avatar">
+                {{ note.created_by.full_name[:1]|upper }}
+            </div>
+
+
+            <div class="client-note-content">
+
+                <div class="client-note-top">
+
+                    <div>
+                        <strong>
+                            {{ note.created_by.full_name }}
+                        </strong>
+
+                        <span>
+                            <i class="bi bi-clock"></i>
+
+                            {{ note.created_at.strftime(
+                                '%d %b %Y • %H:%M'
+                            ) }}
+                        </span>
+                    </div>
+
+
+                    {% if note.created_by_id == current_user.id %}
+
+                    <form
+                        method="POST"
+                        action="{{ url_for(
+                            'clients.delete_note',
+                            client_id=client.id,
+                            note_id=note.id
+                        ) }}"
+                        onsubmit="return confirm(
+                            'Delete this note?'
+                        );"
+                    >
+                        <button
+                            type="submit"
+                            class="note-delete-btn"
+                            title="Delete Note"
+                        >
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </form>
+
+                    {% endif %}
+
+                </div>
+
+
+                <p>
+                    {{ note.note_text }}
+                </p>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div class="notes-empty-state">
+
+        <span>
+            <i class="bi bi-chat-left-text"></i>
+        </span>
+
+        <h3>No notes added yet</h3>
+
+        <p>
+            Add internal remarks, client context
+            or important relationship information.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openNoteModal()"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Add First Note
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</div>
+    <!-- =====================================================
+     TASKS & FOLLOW-UPS
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-tasks"
+>
+    <div class="tasks-panel-header">
+
+        <div>
+            <span class="panel-eyebrow">
+                REMINDERS • FOLLOW-UPS
+            </span>
+
+            <h3>Tasks & Follow-Ups</h3>
+
+            <p>
+                Manage due dates, ownership,
+                priority and completion status.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openTaskModal()"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Add Follow-Up
+        </button>
+
+    </div>
+
+
+    <div class="task-summary-grid">
+
+        <article class="task-summary-card">
+            <small>Total Tasks</small>
+            <strong>{{ client.tasks|length }}</strong>
+        </article>
+
+        <article class="task-summary-card">
+            <small>Pending</small>
+            <strong>
+                {{
+                    client.tasks
+                    |selectattr(
+                        'status',
+                        'equalto',
+                        'pending'
+                    )
+                    |list
+                    |length
+                }}
+            </strong>
+        </article>
+
+        <article class="task-summary-card">
+            <small>In Progress</small>
+            <strong>
+                {{
+                    client.tasks
+                    |selectattr(
+                        'status',
+                        'equalto',
+                        'in_progress'
+                    )
+                    |list
+                    |length
+                }}
+            </strong>
+        </article>
+
+        <article class="task-summary-card">
+            <small>Completed</small>
+            <strong>
+                {{
+                    client.tasks
+                    |selectattr(
+                        'status',
+                        'equalto',
+                        'completed'
+                    )
+                    |list
+                    |length
+                }}
+            </strong>
+        </article>
+
+    </div>
+
+
+    {% if client.tasks %}
+
+    <div class="client-task-list">
+
+        {% for task in client.tasks %}
+
+        <article
+            class="
+                client-task-card
+                task-card-{{ task.status }}
+            "
+        >
+
+            <div class="task-card-icon">
+
+                {% if task.task_type == "call" %}
+                    <i class="bi bi-telephone-fill"></i>
+
+                {% elif task.task_type == "email" %}
+                    <i class="bi bi-envelope-fill"></i>
+
+                {% elif task.task_type == "meeting" %}
+                    <i class="bi bi-people-fill"></i>
+
+                {% elif task.task_type == "follow_up" %}
+                    <i class="bi bi-arrow-repeat"></i>
+
+                {% else %}
+                    <i class="bi bi-check2-square"></i>
+                {% endif %}
+
+            </div>
+
+
+            <div class="task-card-content">
+
+                <div class="task-card-top">
+
+                    <div>
+                        <div class="task-badge-row">
+
+                            <span class="task-type-badge">
+                                {{ task.task_type_label }}
+                            </span>
+
+                            <span
+                                class="
+                                    task-priority-badge
+                                    task-priority-{{ task.priority }}
+                                "
+                            >
+                                {{ task.priority_label }}
+                            </span>
+
+                            <span
+                                class="
+                                    task-status-badge
+                                    task-status-{{ task.status }}
+                                "
+                            >
+                                {{ task.status_label }}
+                            </span>
+
+                        </div>
+
+                        <h4>{{ task.title }}</h4>
+                    </div>
+
+
+                    <div class="task-due-date">
+                        <i class="bi bi-calendar-event"></i>
+
+                        {{ task.due_date.strftime(
+                            '%d %b %Y • %H:%M'
+                        ) }}
+                    </div>
+
+                </div>
+
+
+                {% if task.description %}
+
+                <p class="task-description">
+                    {{ task.description }}
+                </p>
+
+                {% endif %}
+
+
+                <div class="task-meta-row">
+
+                    <span>
+                        <i class="bi bi-person-check"></i>
+                        Assigned to
+                        <strong>
+                            {{ task.assigned_to.full_name }}
+                        </strong>
+                    </span>
+
+                    <span>
+                        <i class="bi bi-person-plus"></i>
+                        Created by
+                        <strong>
+                            {{ task.created_by.full_name }}
+                        </strong>
+                    </span>
+
+                </div>
+
+
+                <!-- =====================================================
+     TASK STATUS + DELETE ACTIONS
+     ===================================================== -->
+
+<div class="task-card-actions">
+
+    <!-- STATUS UPDATE -->
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'clients.update_task_status',
+            client_id=client.id,
+            task_id=task.id
+        ) }}"
+        class="task-status-form"
+    >
+
+        <select
+            name="status"
+            onchange="this.form.submit()"
+        >
+            <option
+                value="pending"
+                {% if task.status == "pending" %}
+                selected
+                {% endif %}
+            >
+                Pending
+            </option>
+
+            <option
+                value="in_progress"
+                {% if task.status == "in_progress" %}
+                selected
+                {% endif %}
+            >
+                In Progress
+            </option>
+
+            <option
+                value="completed"
+                {% if task.status == "completed" %}
+                selected
+                {% endif %}
+            >
+                Completed
+            </option>
+
+            <option
+                value="cancelled"
+                {% if task.status == "cancelled" %}
+                selected
+                {% endif %}
+            >
+                Cancelled
+            </option>
+        </select>
+
+    </form>
+
+
+    <!-- DELETE TASK -->
+
+    {% if (
+        task.created_by_id == current_user.id
+        or task.assigned_to_id == current_user.id
+    ) %}
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'clients.delete_task',
+            client_id=client.id,
+            task_id=task.id
+        ) }}"
+        onsubmit="return confirm(
+            'Delete this task permanently?'
+        );"
+    >
+
+        <button
+            type="submit"
+            class="task-delete-btn"
+            title="Delete Task"
+        >
+            <i class="bi bi-trash3"></i>
+            Delete
+        </button>
+
+    </form>
+
+    {% endif %}
+
+</div>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div class="tasks-empty-state">
+
+        <span>
+            <i class="bi bi-calendar2-check"></i>
+        </span>
+
+        <h3>No follow-ups scheduled</h3>
+
+        <p>
+            Create a reminder with due date,
+            assignee and priority.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openTaskModal()"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Add First Follow-Up
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</div>
+<!-- =====================================================
+     CLIENT DOCUMENTS
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-documents"
+>
+    <div class="documents-panel-header">
+
+        <div>
+            <span class="panel-eyebrow">
+                FILES • ATTACHMENTS
+            </span>
+
+            <h3>Client Documents</h3>
+
+            <p>
+                Store and manage client-related
+                files in one place.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openDocumentModal()"
+        >
+            <i class="bi bi-cloud-arrow-up"></i>
+            Upload Document
+        </button>
+
+    </div>
+
+
+    <div class="document-summary-grid">
+
+        <article class="document-summary-card">
+            <small>Total Files</small>
+            <strong>
+                {{ client.attachments|length }}
+            </strong>
+        </article>
+
+        <article class="document-summary-card">
+            <small>PDF Files</small>
+            <strong>
+                {{
+                    client.attachments
+                    |selectattr(
+                        'file_type',
+                        'equalto',
+                        'pdf'
+                    )
+                    |list
+                    |length
+                }}
+            </strong>
+        </article>
+
+        <article class="document-summary-card">
+            <small>Images</small>
+            <strong>
+                {{
+                    (
+                        client.attachments
+                        |selectattr(
+                            'file_type',
+                            'equalto',
+                            'jpg'
+                        )
+                        |list
+                        |length
+                    )
+                    +
+                    (
+                        client.attachments
+                        |selectattr(
+                            'file_type',
+                            'equalto',
+                            'jpeg'
+                        )
+                        |list
+                        |length
+                    )
+                }}
+            </strong>
+        </article>
+
+        <article class="document-summary-card">
+            <small>Word Files</small>
+            <strong>
+                {{
+                    client.attachments
+                    |selectattr(
+                        'file_type',
+                        'equalto',
+                        'docx'
+                    )
+                    |list
+                    |length
+                }}
+            </strong>
+        </article>
+
+    </div>
+
+
+    {% if client.attachments %}
+
+    <div class="client-document-list">
+
+        {% for attachment in client.attachments %}
+
+        <article class="client-document-card">
+
+            <div
+                class="
+                    document-file-icon
+                    document-type-{{ attachment.file_type }}
+                "
+            >
+
+                {% if attachment.file_type == "pdf" %}
+
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+
+                {% elif attachment.file_type in ["jpg", "jpeg"] %}
+
+                    <i class="bi bi-file-earmark-image-fill"></i>
+
+                {% elif attachment.file_type == "docx" %}
+
+                    <i class="bi bi-file-earmark-word-fill"></i>
+
+                {% else %}
+
+                    <i class="bi bi-file-earmark-fill"></i>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="document-file-content">
+
+                <div class="document-file-top">
+
+                    <div>
+                        <h4>
+                            {{ attachment.original_filename }}
+                        </h4>
+
+                        <div class="document-meta-row">
+
+                            <span>
+                                <i class="bi bi-person"></i>
+
+                                {{
+                                    attachment.uploaded_by.full_name
+                                }}
+                            </span>
+
+                            <span>
+                                <i class="bi bi-clock"></i>
+
+                                {{
+                                    attachment.uploaded_at.strftime(
+                                        '%d %b %Y • %H:%M'
+                                    )
+                                }}
+                            </span>
+
+                            <span class="document-type-label">
+                                {{
+                                    attachment.file_type|upper
+                                }}
+                            </span>
+
+                        </div>
+                    </div>
+
+
+                    <div class="document-actions">
+
+                        <a
+                            href="{{ url_for(
+                                'clients.download_document',
+                                client_id=client.id,
+                                attachment_id=attachment.id
+                            ) }}"
+                            class="document-download-btn"
+                            title="Download Document"
+                        >
+                            <i class="bi bi-download"></i>
+                            Download
+                        </a>
+
+
+                        {% if (
+                            attachment.uploaded_by_id
+                            == current_user.id
+                        ) %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'clients.delete_document',
+                                client_id=client.id,
+                                attachment_id=attachment.id
+                            ) }}"
+                            onsubmit="return confirm(
+                                'Delete this document permanently?'
+                            );"
+                        >
+                            <button
+                                type="submit"
+                                class="document-delete-btn"
+                                title="Delete Document"
+                            >
+                                <i class="bi bi-trash3"></i>
+                                Delete
+                            </button>
+                        </form>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div class="documents-empty-state">
+
+        <span>
+            <i class="bi bi-folder2-open"></i>
+        </span>
+
+        <h3>No documents uploaded</h3>
+
+        <p>
+            Upload PDF, JPG, JPEG or DOCX files
+            related to this client.
+        </p>
+
+        <button
+            type="button"
+            class="btn btn-primary-red"
+            onclick="openDocumentModal()"
+        >
+            <i class="bi bi-cloud-arrow-up"></i>
+            Upload First Document
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</div>
+<!-- =====================================================
+     COMBINED CLIENT HISTORY / AUDIT TIMELINE
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-history"
+>
+    <div class="history-panel-header">
+
+        <div>
+            <span class="panel-eyebrow">
+                COMPLETE CLIENT AUDIT TRAIL
+            </span>
+
+            <h3>Client History</h3>
+
+            <p>
+                Activities, status changes, notes,
+                follow-ups and documents in one timeline.
+            </p>
+        </div>
+
+        <div class="history-total-badge">
+            <i class="bi bi-clock-history"></i>
+
+            <span>
+                {{ client_history|length }}
+                Events
+            </span>
+        </div>
+
+    </div>
+
+
+    {% if client_history %}
+
+    <div class="combined-history-timeline">
+
+        {% for item in client_history %}
+
+        <article
+            class="
+                combined-history-item
+                history-item-{{ item.type }}
+            "
+        >
+
+            <div class="history-rail">
+
+                <div
+                    class="
+                        history-event-icon
+                        history-icon-{{ item.type }}
+                    "
+                >
+                    <i class="bi bi-{{ item.icon }}"></i>
+                </div>
+
+                {% if not loop.last %}
+                <span class="history-line"></span>
+                {% endif %}
+
+            </div>
+
+
+            <div class="history-event-card">
+
+                <div class="history-event-top">
+
+                    <div class="history-event-main">
+
+                        <span
+                            class="
+                                history-type-badge
+                                history-badge-{{ item.type }}
+                            "
+                        >
+                            {% if item.type == "activity" %}
+                                Activity
+
+                            {% elif item.type == "status" %}
+                                Status Change
+
+                            {% elif item.type == "note" %}
+                                Note
+
+                            {% elif item.type == "task" %}
+                                Task
+
+                            {% elif item.type == "document" %}
+                                Document
+
+                            {% else %}
+                                Event
+                            {% endif %}
+                        </span>
+
+                        <h4>
+                            {{ item.title }}
+                        </h4>
+
+                    </div>
+
+
+                    <time class="history-event-date">
+                        <i class="bi bi-clock"></i>
+
+                        {{
+                            item.date.strftime(
+                                '%d %b %Y • %H:%M'
+                            )
+                        }}
+                    </time>
+
+                </div>
+
+
+                {% if item.description %}
+
+                <p class="history-event-description">
+                    {{ item.description }}
+                </p>
+
+                {% endif %}
+
+
+                <div class="history-event-footer">
+
+                    <span>
+                        <i class="bi bi-person-circle"></i>
+
+                        {{ item.actor }}
+                    </span>
+
+                    <span>
+                        <i class="bi bi-tag"></i>
+
+                        {{ item.meta }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div class="history-empty-state">
+
+        <span>
+            <i class="bi bi-clock-history"></i>
+        </span>
+
+        <h3>No history available</h3>
+
+        <p>
+            Client activities and changes
+            will appear here automatically.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</div>
+        <!-- PLACEHOLDER PANELS -->
+
+     {% for tab_id, icon, title, text in [
+    ('enquiries', 'inbox', 'Enquiries', 'Client-linked enquiry records will appear here.'),
+    ('quotations', 'file-earmark-text', 'Quotations', 'Client quotation history will appear here.'),
+    ('shipments', 'truck', 'Shipments', 'Client shipment records will appear here.')
+] %}
+
+        <div
+            class="profile-tab-panel"
+            id="tab-{{ tab_id }}"
+        >
+            <div class="profile-tab-empty">
+                <i class="bi bi-{{ icon }}"></i>
+                <h3>{{ title }}</h3>
+                <p>{{ text }}</p>
+            </div>
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+</div>
+
+
+<!-- CHANGE STATUS MODAL -->
+
+<div
+    class="crm-modal-backdrop"
+    id="statusModal"
+>
+
+    <div class="crm-modal-card">
+
+        <div class="crm-modal-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    LIFECYCLE UPDATE
+                </span>
+
+                <h3>
+                    Change Client Status
+                </h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeStatusModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.change_status',
+                client_id=client.id
+            ) }}"
+        >
+
+            <div class="crm-modal-body">
+
+                <div class="crm-field">
+
+                    <label for="new_status">
+                        New Status
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        id="new_status"
+                        name="new_status"
+                        required
+                    >
+
+                        <option value="">
+                            Select lifecycle status
+                        </option>
+
+                        {% for value, label in statuses %}
+
+                            <option
+                                value="{{ value }}"
+                                {% if value == client.status %}
+                                    disabled
+                                {% endif %}
+                            >
+                                {{ label }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="crm-field modal-field-gap">
+
+                    <label for="remarks">
+                        Remarks
+                    </label>
+
+                    <textarea
+                        id="remarks"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Reason or context for this status change..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="crm-modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeStatusModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-check2-circle"></i>
+                    Update Status
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     LOG ACTIVITY MODAL
+     ===================================================== -->
+
+<div
+    class="crm-modal-backdrop"
+    id="activityModal"
+>
+    <div class="crm-modal-card activity-modal-card">
+
+        <div class="crm-modal-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    CLIENT COMMUNICATION
+                </span>
+
+                <h3>Log Activity</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeActivityModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.add_activity',
+                client_id=client.id
+            ) }}"
+        >
+
+            <div class="crm-modal-body">
+
+                <div class="activity-type-selector">
+
+                    {% for value, label in activity_types %}
+
+                    <label class="activity-type-option">
+
+                        <input
+                            type="radio"
+                            name="activity_type"
+                            value="{{ value }}"
+                            {% if loop.first %}
+                            checked
+                            {% endif %}
+                            required
+                        >
+
+                        <span>
+                            {% if value == "call" %}
+                                <i class="bi bi-telephone-fill"></i>
+
+                            {% elif value == "email" %}
+                                <i class="bi bi-envelope-fill"></i>
+
+                            {% elif value == "meeting" %}
+                                <i class="bi bi-people-fill"></i>
+                            {% endif %}
+
+                            {{ label }}
+                        </span>
+
+                    </label>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="crm-field activity-modal-gap">
+
+                    <label for="activity_subject">
+                        Subject
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="activity_subject"
+                        name="subject"
+                        maxlength="200"
+                        placeholder="Example: Discussed sea freight rates"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="crm-field activity-modal-gap">
+
+                    <label for="activity_date">
+                        Activity Date & Time
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        id="activity_date"
+                        name="activity_date"
+                    >
+
+                </div>
+
+
+                <div class="crm-field activity-modal-gap">
+
+                    <label for="activity_description">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="activity_description"
+                        name="description"
+                        rows="5"
+                        placeholder="Add communication details, discussion points or outcome..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="crm-modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeActivityModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-check2-circle"></i>
+                    Save Activity
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<!-- =====================================================
+     ADD NOTE MODAL
+     ===================================================== -->
+
+<div
+    class="crm-modal-backdrop"
+    id="noteModal"
+>
+    <div class="crm-modal-card">
+
+        <div class="crm-modal-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    INTERNAL REMARK
+                </span>
+
+                <h3>Add Note</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeNoteModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.add_note',
+                client_id=client.id
+            ) }}"
+        >
+
+            <div class="crm-modal-body">
+
+                <div class="crm-field">
+
+                    <label for="note_text">
+                        Note / Remark
+                        <span class="required">*</span>
+                    </label>
+
+                    <textarea
+                        id="note_text"
+                        name="note_text"
+                        rows="7"
+                        maxlength="5000"
+                        placeholder="Add internal client context, decision, concern or remark..."
+                        required
+                    ></textarea>
+
+                    <small class="edit-field-help">
+                        Maximum 5000 characters.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="crm-modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeNoteModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-check2-circle"></i>
+                    Save Note
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<!-- =====================================================
+     ADD TASK / FOLLOW-UP MODAL
+     ===================================================== -->
+
+<div
+    class="crm-modal-backdrop"
+    id="taskModal"
+>
+    <div class="crm-modal-card activity-modal-card">
+
+        <div class="crm-modal-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    TASK • REMINDER
+                </span>
+
+                <h3>Add Follow-Up</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeTaskModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.add_task',
+                client_id=client.id
+            ) }}"
+        >
+
+            <div class="crm-modal-body">
+
+                <div class="edit-form-grid">
+
+                    <div class="crm-field">
+                        <label>
+                            Task Type
+                            <span class="required">*</span>
+                        </label>
+
+                        <select
+                            name="task_type"
+                            required
+                        >
+                            {% for value, label in task_types %}
+                            <option value="{{ value }}">
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <div class="crm-field">
+                        <label>
+                            Priority
+                            <span class="required">*</span>
+                        </label>
+
+                        <select
+                            name="priority"
+                            required
+                        >
+                            {% for value, label in task_priorities %}
+                            <option
+                                value="{{ value }}"
+                                {% if value == "medium" %}
+                                selected
+                                {% endif %}
+                            >
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <div class="crm-field full-field">
+                        <label>
+                            Title
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            name="title"
+                            maxlength="200"
+                            placeholder="Example: Follow up on sea freight quotation"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="crm-field">
+                        <label>
+                            Due Date & Time
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            name="due_date"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="crm-field">
+                        <label>
+                            Assign To
+                            <span class="required">*</span>
+                        </label>
+
+                        <select
+                            name="assigned_to_id"
+                            required
+                        >
+                            {% for user in task_assignees %}
+
+                            <option
+                                value="{{ user.id }}"
+                                {% if user.id == current_user.id %}
+                                selected
+                                {% endif %}
+                            >
+                                {{ user.full_name }}
+                            </option>
+
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <div class="crm-field full-field">
+                        <label>Description</label>
+
+                        <textarea
+                            name="description"
+                            rows="4"
+                            placeholder="Add follow-up context or instructions..."
+                        ></textarea>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="crm-modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeTaskModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-calendar2-check"></i>
+                    Create Follow-Up
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<!-- =====================================================
+     UPLOAD DOCUMENT MODAL
+     ===================================================== -->
+
+<div
+    class="crm-modal-backdrop"
+    id="documentModal"
+>
+    <div class="crm-modal-card">
+
+        <div class="crm-modal-header">
+
+            <div>
+                <span class="panel-eyebrow">
+                    CLIENT FILES
+                </span>
+
+                <h3>Upload Documents</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeDocumentModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for(
+                'clients.upload_documents',
+                client_id=client.id
+            ) }}"
+        >
+
+            <div class="crm-modal-body">
+
+                <div class="document-upload-zone">
+
+                    <span class="document-upload-icon">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                    </span>
+
+                    <h4>Select Client Files</h4>
+
+                    <p>
+                        PDF, JPG, JPEG and DOCX
+                        files are supported.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="documentFiles"
+                        name="attachments"
+                        accept=".pdf,.jpg,.jpeg,.docx"
+                        multiple
+                        required
+                    >
+
+                    <label
+                        for="documentFiles"
+                        class="document-file-picker"
+                    >
+                        <i class="bi bi-folder2-open"></i>
+                        Choose Files
+                    </label>
+
+                    <div
+                        id="selectedDocumentFiles"
+                        class="selected-document-files"
+                    >
+                        No files selected
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="crm-modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeDocumentModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary-red"
+                >
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    Upload Files
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<script>
+document.querySelectorAll(".profile-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+
+        const tabName = button.dataset.tab;
+
+        document
+            .querySelectorAll(".profile-tab")
+            .forEach((item) => {
+                item.classList.remove("active");
+            });
+
+        document
+            .querySelectorAll(".profile-tab-panel")
+            .forEach((panel) => {
+                panel.classList.remove("active");
+            });
+
+        button.classList.add("active");
+
+        document
+            .getElementById("tab-" + tabName)
+            .classList.add("active");
+    });
+});
+
+
+function openStatusModal() {
+    document
+        .getElementById("statusModal")
+        .classList.add("show");
+
+    document.body.style.overflow = "hidden";
+}
+
+
+function closeStatusModal() {
+    document
+        .getElementById("statusModal")
+        .classList.remove("show");
+
+    document.body.style.overflow = "";
+}
+
+
+document
+    .getElementById("statusModal")
+    .addEventListener("click", function(event) {
+
+        if (event.target === this) {
+            closeStatusModal();
+        }
+    });
+    function openActivityModal() {
+    document
+        .getElementById("activityModal")
+        .classList.add("show");
+
+    document.body.style.overflow = "hidden";
+}
+
+
+function closeActivityModal() {
+    document
+        .getElementById("activityModal")
+        .classList.remove("show");
+
+    document.body.style.overflow = "";
+}
+
+
+document
+    .getElementById("activityModal")
+    .addEventListener("click", function(event) {
+
+        if (event.target === this) {
+            closeActivityModal();
+        }
+    });
+
+
+function openTabFromHash() {
+    const hash = window.location.hash;
+
+    if (hash !== "#activities") {
+        return;
+    }
+
+    const activityButton = document.querySelector(
+        '.profile-tab[data-tab="activities"]'
+    );
+
+    const activityPanel = document.getElementById(
+        "tab-activities"
+    );
+
+    if (!activityButton || !activityPanel) {
+        return;
+    }
+
+    document
+        .querySelectorAll(".profile-tab")
+        .forEach((item) => {
+            item.classList.remove("active");
+        });
+
+    document
+        .querySelectorAll(".profile-tab-panel")
+        .forEach((panel) => {
+            panel.classList.remove("active");
+        });
+
+    activityButton.classList.add("active");
+    activityPanel.classList.add("active");
+}
+
+
+openTabFromHash();
+
+window.addEventListener(
+    "hashchange",
+    openTabFromHash
+);
+</script>
+<script>
+function openActivityModal() {
+    const modal = document.getElementById("activityModal");
+
+    if (!modal) {
+        console.error("activityModal not found");
+        return;
+    }
+
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function closeActivityModal() {
+    const modal = document.getElementById("activityModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("activityModal");
+
+    if (modal) {
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                closeActivityModal();
+            }
+        });
+    }
+});
+function openNoteModal() {
+    const modal = document.getElementById("noteModal");
+
+    if (!modal) {
+        console.error("noteModal not found");
+        return;
+    }
+
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+
+function closeNoteModal() {
+    const modal = document.getElementById("noteModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const noteModal = document.getElementById(
+            "noteModal"
+        );
+
+        if (noteModal) {
+            noteModal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (event.target === noteModal) {
+                        closeNoteModal();
+                    }
+                }
+            );
+        }
+
+        if (window.location.hash === "#notes") {
+
+            const noteButton = document.querySelector(
+                '.profile-tab[data-tab="notes"]'
+            );
+
+            const notePanel = document.getElementById(
+                "tab-notes"
+            );
+
+            if (noteButton && notePanel) {
+
+                document
+                    .querySelectorAll(".profile-tab")
+                    .forEach((item) => {
+                        item.classList.remove("active");
+                    });
+
+                document
+                    .querySelectorAll(".profile-tab-panel")
+                    .forEach((panel) => {
+                        panel.classList.remove("active");
+                    });
+
+                noteButton.classList.add("active");
+                notePanel.classList.add("active");
+            }
+        }
+    }
+);
+function openTaskModal() {
+    const modal = document.getElementById("taskModal");
+
+    if (!modal) {
+        console.error("taskModal not found");
+        return;
+    }
+
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+
+function closeTaskModal() {
+    const modal = document.getElementById("taskModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const taskModal = document.getElementById(
+            "taskModal"
+        );
+
+        if (taskModal) {
+            taskModal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (event.target === taskModal) {
+                        closeTaskModal();
+                    }
+                }
+            );
+        }
+
+        if (window.location.hash === "#tasks") {
+
+            const taskButton = document.querySelector(
+                '.profile-tab[data-tab="tasks"]'
+            );
+
+            const taskPanel = document.getElementById(
+                "tab-tasks"
+            );
+
+            if (taskButton && taskPanel) {
+
+                document
+                    .querySelectorAll(".profile-tab")
+                    .forEach((item) => {
+                        item.classList.remove("active");
+                    });
+
+                document
+                    .querySelectorAll(".profile-tab-panel")
+                    .forEach((panel) => {
+                        panel.classList.remove("active");
+                    });
+
+                taskButton.classList.add("active");
+                taskPanel.classList.add("active");
+            }
+        }
+    }
+);
+function openDocumentModal() {
+    const modal = document.getElementById(
+        "documentModal"
+    );
+
+    if (!modal) {
+        console.error("documentModal not found");
+        return;
+    }
+
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+
+function closeDocumentModal() {
+    const modal = document.getElementById(
+        "documentModal"
+    );
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const documentModal = document.getElementById(
+            "documentModal"
+        );
+
+        const documentFiles = document.getElementById(
+            "documentFiles"
+        );
+
+        const selectedFiles = document.getElementById(
+            "selectedDocumentFiles"
+        );
+
+
+        if (documentModal) {
+
+            documentModal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (event.target === documentModal) {
+                        closeDocumentModal();
+                    }
+                }
+            );
+        }
+
+
+        if (documentFiles && selectedFiles) {
+
+            documentFiles.addEventListener(
+                "change",
+                function () {
+
+                    if (!this.files.length) {
+                        selectedFiles.textContent =
+                            "No files selected";
+                        return;
+                    }
+
+                    const fileNames = Array.from(
+                        this.files
+                    ).map(
+                        file => file.name
+                    );
+
+                    selectedFiles.textContent =
+                        fileNames.join(", ");
+                }
+            );
+        }
+
+
+        if (
+            window.location.hash
+            === "#documents"
+        ) {
+
+            const documentButton =
+                document.querySelector(
+                    '.profile-tab[data-tab="documents"]'
+                );
+
+            const documentPanel =
+                document.getElementById(
+                    "tab-documents"
+                );
+
+            if (
+                documentButton
+                && documentPanel
+            ) {
+
+                document
+                    .querySelectorAll(
+                        ".profile-tab"
+                    )
+                    .forEach((item) => {
+                        item.classList.remove(
+                            "active"
+                        );
+                    });
+
+                document
+                    .querySelectorAll(
+                        ".profile-tab-panel"
+                    )
+                    .forEach((panel) => {
+                        panel.classList.remove(
+                            "active"
+                        );
+                    });
+
+                documentButton.classList.add(
+                    "active"
+                );
+
+                documentPanel.classList.add(
+                    "active"
+                );
+            }
+        }
+    }
+);
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        if (
+            window.location.hash
+            !== "#history"
+        ) {
+            return;
+        }
+
+        const historyButton =
+            document.querySelector(
+                '.profile-tab[data-tab="history"]'
+            );
+
+        const historyPanel =
+            document.getElementById(
+                "tab-history"
+            );
+
+        if (
+            !historyButton
+            || !historyPanel
+        ) {
+            return;
+        }
+
+        document
+            .querySelectorAll(".profile-tab")
+            .forEach((item) => {
+                item.classList.remove("active");
+            });
+
+        document
+            .querySelectorAll(".profile-tab-panel")
+            .forEach((panel) => {
+                panel.classList.remove("active");
+            });
+
+        historyButton.classList.add(
+            "active"
+        );
+
+        historyPanel.classList.add(
+            "active"
+        );
+    }
+);
+</script>
+{% endblock %}

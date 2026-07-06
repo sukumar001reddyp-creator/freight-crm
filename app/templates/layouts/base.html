@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#7f1d1d"
+    >
+
+    <title>
+        {% block title %}
+            Freight CRM
+        {% endblock %}
+    </title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/crm.css', v='20260706-2') }}"
+    >
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <div class="sidebar-brand">
+
+            <div class="brand-mark">
+                <i class="bi bi-box-seam-fill"></i>
+            </div>
+
+            <div class="brand-copy">
+                <strong>FreightCRM</strong>
+                <span>Client & Shipment Hub</span>
+            </div>
+
+            <button
+                type="button"
+                class="sidebar-close"
+                id="sidebarClose"
+                aria-label="Close navigation"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+        </div>
+
+        <div class="sidebar-scroll">
+
+            <div class="nav-label">
+                Workspace
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a
+                    href="{{ url_for('dashboard') }}"
+                    class="nav-item
+                    {% if request.endpoint == 'dashboard' %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                    </span>
+
+                    <span>Dashboard</span>
+                </a>
+
+                <a
+    href="{{ url_for('clients.client_list') }}"
+    class="nav-item
+    {% if request.blueprint == 'clients' %}
+        active
+    {% endif %}"
+>
+                    <span class="nav-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </span>
+
+                    <span>Clients</span>
+
+                    <span class="nav-count">
+                        0
+                    </span>
+                </a>
+
+                <a
+                    href="#"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-inbox-fill"></i>
+                    </span>
+
+                    <span>Enquiries</span>
+                </a>
+
+                <a
+                    href="#"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </span>
+
+                    <span>Quotations</span>
+                </a>
+
+                <a
+                    href="#"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-truck"></i>
+                    </span>
+
+                    <span>Shipments</span>
+                </a>
+
+                <a
+                    href="#"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-check2-square"></i>
+                    </span>
+
+                    <span>Tasks & Follow-ups</span>
+                </a>
+
+            </nav>
+
+            <div class="nav-label">
+                Intelligence
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a
+                    href="#"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </span>
+
+                    <span>Reports</span>
+                </a>
+
+                {% if current_user.role == "admin" %}
+
+                    <a
+                        href="#"
+                        class="nav-item"
+                    >
+                        <span class="nav-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </span>
+
+                        <span>Users & Roles</span>
+                    </a>
+
+                    <a
+                        href="#"
+                        class="nav-item"
+                    >
+                        <span class="nav-icon">
+                            <i class="bi bi-gear-fill"></i>
+                        </span>
+
+                        <span>Settings</span>
+                    </a>
+
+                {% endif %}
+
+            </nav>
+
+        </div>
+
+        <div class="sidebar-user">
+
+            <div class="user-avatar">
+                {{ current_user.full_name[0]|upper }}
+            </div>
+
+            <div class="user-copy">
+                <strong>
+                    {{ current_user.full_name }}
+                </strong>
+
+                <span>
+                    {{ current_user.role_label }}
+                </span>
+            </div>
+
+            <a
+                href="{{ url_for('auth.logout') }}"
+                class="logout-icon"
+                title="Logout"
+            >
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+
+        </div>
+
+    </aside>
+
+    <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+    ></div>
+
+    <main class="main-area">
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button
+                    type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Open navigation"
+                >
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <div class="topbar-title">
+                    <h1>
+                        {% block page_title %}
+                            Dashboard
+                        {% endblock %}
+                    </h1>
+
+                    <p>
+                        {% block page_subtitle %}
+                            Freight CRM workspace
+                        {% endblock %}
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="topbar-actions">
+
+                <button
+                    type="button"
+                    class="top-action-btn"
+                    title="Search"
+                >
+                    <i class="bi bi-search"></i>
+                </button>
+
+                <button
+                    type="button"
+                    class="top-action-btn notification-btn"
+                    title="Notifications"
+                >
+                    <i class="bi bi-bell"></i>
+
+                    <span class="notification-dot"></span>
+                </button>
+
+                <div class="top-user">
+
+                    <div class="top-user-avatar">
+                        {{ current_user.full_name[0]|upper }}
+                    </div>
+
+                    <div class="top-user-copy">
+                        <strong>
+                            {{ current_user.full_name }}
+                        </strong>
+
+                        <span>
+                            {{ current_user.role_label }}
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <section class="page-content">
+
+            {% with messages =
+                get_flashed_messages(
+                    with_categories=true
+                )
+            %}
+
+                {% if messages %}
+
+                    <div class="flash-stack">
+
+                        {% for category, message in messages %}
+
+                            <div
+                                class="app-alert
+                                app-alert-{{ category }}"
+                            >
+                                <span>
+                                    {{ message }}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    class="alert-close"
+                                >
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+
+        </section>
+
+    </main>
+
+</div>
+
+<script
+    src="{{ url_for('static', filename='js/crm.js') }}"
+></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
