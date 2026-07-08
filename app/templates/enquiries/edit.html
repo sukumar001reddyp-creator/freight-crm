@@ -1,0 +1,786 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Edit {{ enquiry.enquiry_reference }} | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+    Edit Enquiry
+{% endblock %}
+
+{% block page_subtitle %}
+    Update freight requirement and ownership details
+{% endblock %}
+
+{% block content %}
+
+<div class="enquiry-edit-page">
+
+    <!-- =====================================
+         PAGE HEADER
+         ===================================== -->
+
+    <div class="edit-page-header">
+
+        <div>
+            <span class="edit-eyebrow">
+                {{ enquiry.enquiry_reference }}
+            </span>
+
+            <h2>Edit Enquiry</h2>
+
+            <p>
+                Update client, shipment, cargo and
+                ownership information.
+            </p>
+        </div>
+
+
+        <a
+            href="{{
+                url_for(
+                    'enquiries.view_enquiry',
+                    enquiry_id=enquiry.id
+                )
+            }}"
+            class="back-detail-btn"
+        >
+            <i class="bi bi-arrow-left"></i>
+            Back to Details
+        </a>
+
+    </div>
+
+
+    <!-- =====================================
+         EDIT FORM
+         ===================================== -->
+
+    <form
+        method="POST"
+        action="{{
+            url_for(
+                'enquiries.edit_enquiry',
+                enquiry_id=enquiry.id
+            )
+        }}"
+        class="edit-enquiry-card"
+    >
+
+        <!-- =================================
+             CLIENT INFORMATION
+             ================================= -->
+
+        <div class="edit-section">
+
+            <div class="edit-section-heading">
+
+                <span class="edit-section-icon">
+                    <i class="bi bi-building"></i>
+                </span>
+
+                <div>
+                    <h3>Client Information</h3>
+
+                    <p>
+                        Update the client linked
+                        to this enquiry.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="edit-field edit-field-full">
+
+                    <label for="client_id">
+                        Linked Client
+                        <span>*</span>
+                    </label>
+
+                    <select
+                        id="client_id"
+                        name="client_id"
+                        required
+                    >
+
+                        <option value="">
+                            Select client
+                        </option>
+
+                        {% for client in clients %}
+
+                            {% set selected_client_id =
+                                request.form.get(
+                                    'client_id',
+                                    enquiry.client_id|string
+                                )
+                            %}
+
+                            <option
+                                value="{{ client.id }}"
+                                {% if
+                                    selected_client_id
+                                    == client.id|string
+                                %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ client.company_name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <small>
+                        Only active, non-archived clients
+                        are available.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             SHIPMENT REQUIREMENT
+             ================================= -->
+
+        <div class="edit-section">
+
+            <div class="edit-section-heading">
+
+                <span class="edit-section-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </span>
+
+                <div>
+                    <h3>Shipment Requirement</h3>
+
+                    <p>
+                        Update origin, destination and
+                        transport mode.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <!-- ORIGIN -->
+
+                <div class="edit-field">
+
+                    <label for="origin">
+                        Origin
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="origin"
+                        name="origin"
+                        value="{{
+                            request.form.get(
+                                'origin',
+                                enquiry.origin
+                            )
+                        }}"
+                        placeholder="e.g. Hyderabad, India"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DESTINATION -->
+
+                <div class="edit-field">
+
+                    <label for="destination">
+                        Destination
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="destination"
+                        name="destination"
+                        value="{{
+                            request.form.get(
+                                'destination',
+                                enquiry.destination
+                            )
+                        }}"
+                        placeholder="e.g. Dubai, UAE"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- MODE -->
+
+                <div class="edit-field edit-field-full">
+
+                    <label for="mode_of_shipment">
+                        Mode of Shipment
+                        <span>*</span>
+                    </label>
+
+                    {% set selected_mode =
+                        request.form.get(
+                            'mode_of_shipment',
+                            enquiry.mode_of_shipment
+                        )
+                    %}
+
+                    <select
+                        id="mode_of_shipment"
+                        name="mode_of_shipment"
+                        required
+                    >
+
+                        <option value="">
+                            Select shipment mode
+                        </option>
+
+                        <option
+                            value="air_freight"
+                            {% if
+                                selected_mode
+                                == "air_freight"
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            Air Freight
+                        </option>
+
+                        <option
+                            value="sea_freight"
+                            {% if
+                                selected_mode
+                                == "sea_freight"
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            Sea Freight
+                        </option>
+
+                        <option
+                            value="land_freight"
+                            {% if
+                                selected_mode
+                                == "land_freight"
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            Land Freight
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             CARGO DETAILS
+             ================================= -->
+
+        <div class="edit-section">
+
+            <div class="edit-section-heading">
+
+                <span class="edit-section-icon">
+                    <i class="bi bi-box-seam-fill"></i>
+                </span>
+
+                <div>
+                    <h3>Cargo Details</h3>
+
+                    <p>
+                        Update goods description and
+                        available weight or volume.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <!-- CARGO DESCRIPTION -->
+
+                <div class="edit-field edit-field-full">
+
+                    <label for="cargo_description">
+                        Cargo Description
+                        <span>*</span>
+                    </label>
+
+                    <textarea
+                        id="cargo_description"
+                        name="cargo_description"
+                        rows="5"
+                        placeholder="Describe the goods or cargo type..."
+                        required
+                    >{{ request.form.get(
+                        'cargo_description',
+                        enquiry.cargo_description
+                    ) }}</textarea>
+
+                </div>
+
+
+                <!-- WEIGHT / VOLUME -->
+
+                <div class="edit-field edit-field-full">
+
+                    <label for="cargo_weight_volume">
+                        Cargo Weight / Volume
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cargo_weight_volume"
+                        name="cargo_weight_volume"
+                        value="{{
+                            request.form.get(
+                                'cargo_weight_volume',
+                                enquiry.cargo_weight_volume or ''
+                            )
+                        }}"
+                        placeholder="e.g. 2500 kg / 18 CBM / 2 containers"
+                    >
+
+                    <small>
+                        Optional field. Enter weight,
+                        volume or container details.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             OWNERSHIP
+             ================================= -->
+
+        <div class="edit-section">
+
+            <div class="edit-section-heading">
+
+                <span class="edit-section-icon">
+                    <i class="bi bi-person-badge-fill"></i>
+                </span>
+
+                <div>
+                    <h3>Ownership</h3>
+
+                    <p>
+                        Change the staff member responsible
+                        for this enquiry.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="edit-form-grid">
+
+                <div class="edit-field edit-field-full">
+
+                    <label for="handled_by_id">
+                        Handled By
+                        <span>*</span>
+                    </label>
+
+                    {% set selected_user_id =
+                        request.form.get(
+                            'handled_by_id',
+                            enquiry.handled_by_id|string
+                        )
+                    %}
+
+                    <select
+                        id="handled_by_id"
+                        name="handled_by_id"
+                        required
+                    >
+
+                        <option value="">
+                            Select staff owner
+                        </option>
+
+                        {% for user in users %}
+
+                            <option
+                                value="{{ user.id }}"
+                                {% if
+                                    selected_user_id
+                                    == user.id|string
+                                %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ user.full_name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================
+             FORM ACTIONS
+             ================================= -->
+
+        <div class="edit-actions">
+
+            <a
+                href="{{
+                    url_for(
+                        'enquiries.view_enquiry',
+                        enquiry_id=enquiry.id
+                    )
+                }}"
+                class="cancel-edit-btn"
+            >
+                Cancel
+            </a>
+
+
+            <button
+                type="submit"
+                class="save-edit-btn"
+            >
+                <i class="bi bi-check2-circle"></i>
+                Save Changes
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    /* ==========================================
+       PAGE
+       ========================================== */
+
+    .enquiry-edit-page {
+        max-width: 1050px;
+        margin: 0 auto;
+    }
+
+
+    /* ==========================================
+       HEADER
+       ========================================== */
+
+    .edit-page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 22px;
+    }
+
+    .edit-eyebrow {
+        display: inline-block;
+        margin-bottom: 7px;
+        color: #7f1d1d;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .edit-page-header h2 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 27px;
+        font-weight: 800;
+    }
+
+    .edit-page-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
+    /* ==========================================
+       BACK / CANCEL BUTTON
+       ========================================== */
+
+    .back-detail-btn,
+    .cancel-edit-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #374151;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+    .back-detail-btn:hover,
+    .cancel-edit-btn:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+        color: #111827;
+    }
+
+
+    /* ==========================================
+       FORM CARD
+       ========================================== */
+
+    .edit-enquiry-card {
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+
+    /* ==========================================
+       SECTIONS
+       ========================================== */
+
+    .edit-section {
+        padding: 26px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .edit-section-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        margin-bottom: 22px;
+    }
+
+    .edit-section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #fef2f2;
+        color: #7f1d1d;
+        font-size: 18px;
+    }
+
+    .edit-section-heading h3 {
+        margin: 0 0 4px;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .edit-section-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       FORM GRID
+       ========================================== */
+
+    .edit-form-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .edit-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .edit-field-full {
+        grid-column: 1 / -1;
+    }
+
+
+    /* ==========================================
+       LABELS
+       ========================================== */
+
+    .edit-field label {
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .edit-field label span {
+        color: #b91c1c;
+    }
+
+
+    /* ==========================================
+       INPUTS
+       ========================================== */
+
+    .edit-field input,
+    .edit-field select,
+    .edit-field textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 11px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 14px;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .edit-field textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .edit-field input:focus,
+    .edit-field select:focus,
+    .edit-field textarea:focus {
+        border-color: #991b1b;
+        box-shadow:
+            0 0 0 3px rgba(153, 27, 27, 0.10);
+    }
+
+    .edit-field small {
+        color: #9ca3af;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       ACTIONS
+       ========================================== */
+
+    .edit-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 20px 26px;
+        background: #fafafa;
+    }
+
+    .save-edit-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 17px;
+        border: 0;
+        border-radius: 10px;
+        background: #7f1d1d;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .save-edit-btn:hover {
+        background: #991b1b;
+        transform: translateY(-1px);
+    }
+
+
+    /* ==========================================
+       MOBILE
+       ========================================== */
+
+    @media (max-width: 768px) {
+
+        .edit-page-header {
+            flex-direction: column;
+        }
+
+        .back-detail-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .edit-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edit-field-full {
+            grid-column: auto;
+        }
+
+        .edit-section {
+            padding: 20px 16px;
+        }
+
+        .edit-actions {
+            padding: 16px;
+            flex-direction: column-reverse;
+        }
+
+        .cancel-edit-btn,
+        .save-edit-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

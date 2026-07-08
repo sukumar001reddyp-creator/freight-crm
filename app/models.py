@@ -898,3 +898,724 @@ class ClientAuditLog(db.Model):
             f"{self.action_type}: "
             f"{self.action}>"
         )
+# =========================================================
+# ENQUIRY
+# Document Section 4.1 — Step 1
+# Every enquiry is linked to an existing Client/Pipeline
+# =========================================================
+
+class Enquiry(db.Model):
+    __tablename__ = "enquiries"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # Auto-generated unique reference
+    # Example: ENQ-2026-000001
+    enquiry_reference = db.Column(
+        db.String(50),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    # Required linked client
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "clients.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=False,
+        index=True
+    )
+
+    # Auto-filled enquiry date
+    enquiry_date = db.Column(
+        db.Date,
+        nullable=False,
+        default=lambda: utc_now().date(),
+        index=True
+    )
+
+    # Required origin
+    origin = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    # Required destination
+    destination = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    # Required:
+    # air_freight
+    # sea_freight
+    # land_freight
+    mode_of_shipment = db.Column(
+        db.String(50),
+        nullable=False,
+        index=True
+    )
+
+    # Required nature/type of goods
+    cargo_description = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    # Optional:
+    # Examples: 2500 kg, 18 CBM, 2 containers
+    cargo_weight_volume = db.Column(
+        db.String(150),
+        nullable=True
+    )
+
+    # Required staff owner / Sales Executive
+    handled_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    # Internal workflow state.
+    # Needed later for quotation/conversion flow.
+    status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="open",
+        index=True
+    )
+
+    # Audit fields
+    created_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
+
+    client = db.relationship(
+        "Client",
+        foreign_keys=[client_id]
+    )
+
+    handled_by = db.relationship(
+        "User",
+        foreign_keys=[handled_by_id]
+    )
+
+    created_by = db.relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
+
+    def __repr__(self):
+        return (
+            f"<Enquiry "
+            f"{self.enquiry_reference}>"
+        )
+    # =========================================================
+# QUOTATION MODEL
+#
+# Document Section 4.2:
+# Quotation & Approval Status
+#
+# One quotation is created against an enquiry.
+# Status flow:
+# pending -> approved OR rejected
+# =========================================================
+
+class Quotation(db.Model):
+
+    __tablename__ = "quotations"
+
+    # -----------------------------------------------------
+    # PRIMARY KEY
+    # -----------------------------------------------------
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+
+    # -----------------------------------------------------
+    # AUTO-GENERATED QUOTATION NUMBER
+    #
+    # Example:
+    # QUO-2026-000001
+    # -----------------------------------------------------
+
+    quotation_number = db.Column(
+        db.String(50),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # LINK TO ENQUIRY
+    #
+    # Every quotation belongs to one enquiry.
+    # -----------------------------------------------------
+
+    enquiry_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "enquiries.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # QUOTATION AMOUNT
+    #
+    # Numeric(15, 2):
+    # Example:
+    # 1250.00
+    # 45000.50
+    #
+    # Money ki Float use cheyyatledu.
+    # -----------------------------------------------------
+
+    quotation_amount = db.Column(
+        db.Numeric(15, 2),
+        nullable=False
+    )
+
+
+    # -----------------------------------------------------
+    # CURRENCY
+    #
+    # Examples:
+    # USD
+    # KWD
+    # AED
+    # -----------------------------------------------------
+
+    currency = db.Column(
+        db.String(10),
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # VALIDITY DATE
+    #
+    # Quotation expiry date.
+    # -----------------------------------------------------
+
+    validity_date = db.Column(
+        db.Date,
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # OPTIONAL QUOTATION DOCUMENT
+    #
+    # PDF path matrame DB lo save chestham.
+    # Actual file disk/storage lo untundi.
+    # -----------------------------------------------------
+
+    document_original_filename = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    document_stored_filename = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    document_file_path = db.Column(
+        db.String(500),
+        nullable=True
+    )
+
+
+    # -----------------------------------------------------
+    # QUOTATION STATUS
+    #
+    # Allowed:
+    # pending
+    # approved
+    # rejected
+    # -----------------------------------------------------
+
+    status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="pending",
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # REJECTION REASON
+    #
+    # Required by application logic only when:
+    # status == "rejected"
+    # -----------------------------------------------------
+
+    rejection_reason = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+
+    # -----------------------------------------------------
+    # APPROVAL DETAILS
+    #
+    # Captured only when:
+    # status == "approved"
+    # -----------------------------------------------------
+
+    approved_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    approved_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+
+    # -----------------------------------------------------
+    # AUDIT FIELDS
+    # -----------------------------------------------------
+
+    created_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
+
+    enquiry = db.relationship(
+        "Enquiry",
+        foreign_keys=[enquiry_id]
+    )
+
+    approved_by = db.relationship(
+        "User",
+        foreign_keys=[approved_by_id]
+    )
+
+    created_by = db.relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
+
+
+    # -----------------------------------------------------
+    # DEBUG REPRESENTATION
+    # -----------------------------------------------------
+
+    def __repr__(self):
+
+        return (
+            f"<Quotation "
+            f"{self.quotation_number}>"
+        )
+    # =========================================================
+# SHIPMENT MODEL
+#
+# Approved Quotation -> Shipment Conversion
+#
+# Workflow:
+# Enquiry -> Quotation -> Approved -> Shipment
+# =========================================================
+
+class Shipment(db.Model):
+
+    __tablename__ = "shipments"
+
+    # -----------------------------------------------------
+    # PRIMARY KEY
+    # -----------------------------------------------------
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+
+    # -----------------------------------------------------
+    # AUTO-GENERATED SHIPMENT REFERENCE
+    #
+    # Example:
+    # SHP-2026-000001
+    # -----------------------------------------------------
+
+    shipment_reference = db.Column(
+        db.String(50),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # SOURCE ENQUIRY
+    # -----------------------------------------------------
+
+    enquiry_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "enquiries.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # APPROVED QUOTATION
+    # -----------------------------------------------------
+
+    quotation_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "quotations.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # CLIENT
+    #
+    # Auto-filled from original enquiry.
+    # -----------------------------------------------------
+
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "clients.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # SHIPMENT ROUTE
+    # -----------------------------------------------------
+
+    origin = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    destination = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+
+    # -----------------------------------------------------
+    # MODE OF SHIPMENT
+    #
+    # air_freight
+    # sea_freight
+    # land_freight
+    # -----------------------------------------------------
+
+    mode_of_shipment = db.Column(
+        db.String(50),
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # CARGO DETAILS
+    # -----------------------------------------------------
+
+    cargo_description = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    cargo_weight_volume = db.Column(
+        db.String(150),
+        nullable=True
+    )
+
+
+    # -----------------------------------------------------
+    # SHIPMENT STATUS
+    #
+    # Initial:
+    # active
+    #
+    # Later workflow can use:
+    # active
+    # in_transit
+    # delivered
+    # closed
+    # -----------------------------------------------------
+
+    shipment_status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="active",
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # HANDLED BY
+    # -----------------------------------------------------
+
+    handled_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+
+    # -----------------------------------------------------
+    # AUDIT FIELDS
+    # -----------------------------------------------------
+
+    created_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
+
+    enquiry = db.relationship(
+        "Enquiry",
+        foreign_keys=[enquiry_id]
+    )
+
+    quotation = db.relationship(
+        "Quotation",
+        foreign_keys=[quotation_id]
+    )
+
+    client = db.relationship(
+        "Client",
+        foreign_keys=[client_id]
+    )
+
+    handled_by = db.relationship(
+        "User",
+        foreign_keys=[handled_by_id]
+    )
+
+    created_by = db.relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
+
+
+    # -----------------------------------------------------
+    # DEBUG REPRESENTATION
+    # -----------------------------------------------------
+
+    def __repr__(self):
+
+        return (
+            f"<Shipment "
+            f"{self.shipment_reference}>"
+        )
+    # =========================================================
+# SHIPMENT MILESTONE MODEL
+#
+# Operational workflow timeline:
+#
+# 1. Booking Confirmed
+# 2. Pickup
+# 3. Origin Handling
+# 4. In Transit
+# 5. Arrival
+# 6. Customs Clearance
+# 7. Delivery
+# 8. Closed
+# =========================================================
+
+class ShipmentMilestone(db.Model):
+
+    __tablename__ = "shipment_milestones"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # -----------------------------------------
+    # LINKED SHIPMENT
+    # -----------------------------------------
+
+    shipment_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "shipments.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------
+    # WORKFLOW STAGE KEY
+    #
+    # booking_confirmed
+    # pickup
+    # origin_handling
+    # in_transit
+    # arrival
+    # customs_clearance
+    # delivery
+    # closed
+    # -----------------------------------------
+
+    stage = db.Column(
+        db.String(50),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------
+    # OPTIONAL REMARKS
+    # -----------------------------------------
+
+    remarks = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # -----------------------------------------
+    # COMPLETION INFORMATION
+    # -----------------------------------------
+
+    completed_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    completed_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    # -----------------------------------------
+    # AUDIT
+    # -----------------------------------------
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    # -----------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------
+
+    shipment = db.relationship(
+        "Shipment",
+        foreign_keys=[shipment_id]
+    )
+
+    completed_by = db.relationship(
+        "User",
+        foreign_keys=[completed_by_id]
+    )
+
+    # -----------------------------------------
+    # PREVENT SAME STAGE DUPLICATE
+    # -----------------------------------------
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "shipment_id",
+            "stage",
+            name="uq_shipment_stage"
+        ),
+    )
+
+    def __repr__(self):
+
+        return (
+            f"<ShipmentMilestone "
+            f"{self.shipment_id} "
+            f"{self.stage}>"
+        )

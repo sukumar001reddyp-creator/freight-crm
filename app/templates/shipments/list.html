@@ -1,0 +1,616 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Shipments | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<div class="shipments-page">
+
+    <!-- ==========================================
+         PAGE HEADER
+         ========================================== -->
+
+    <div class="shipments-header">
+
+        <div>
+            <span class="header-eyebrow">
+                OPERATIONS
+            </span>
+
+            <h1>Shipments</h1>
+
+            <p>
+                Track active freight shipments converted
+                from approved quotations.
+            </p>
+        </div>
+
+        <div class="shipment-count-box">
+
+            <span>
+                Total Shipments
+            </span>
+
+            <strong>
+                {{ shipments|length }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         SHIPMENTS CARD
+         ========================================== -->
+
+    <div class="shipments-card">
+
+        {% if shipments %}
+
+            <div class="table-responsive">
+
+                <table class="shipments-table">
+
+                    <thead>
+                        <tr>
+                            <th>Shipment Ref</th>
+                            <th>Client</th>
+                            <th>Route</th>
+                            <th>Mode</th>
+                            <th>Status</th>
+                            <th>Handled By</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for shipment in shipments %}
+
+                            <tr>
+
+                                <!-- SHIPMENT REFERENCE -->
+
+                                <td>
+    <a
+        href="{{
+            url_for(
+                'shipments.view_shipment',
+                shipment_id=shipment.id
+            )
+        }}"
+        class="shipment-reference"
+    >
+        {{
+            shipment
+            .shipment_reference
+        }}
+    </a>
+</td>
+
+
+                                <!-- CLIENT -->
+
+                                <td>
+                                    <div class="client-cell">
+
+                                        <span class="client-icon">
+                                            <i class="bi bi-building"></i>
+                                        </span>
+
+                                        <strong>
+                                            {{
+                                                shipment
+                                                .client
+                                                .company_name
+                                            }}
+                                        </strong>
+
+                                    </div>
+                                </td>
+
+
+                                <!-- ROUTE -->
+
+                                <td>
+                                    <div class="route-cell">
+
+                                        <span>
+                                            {{ shipment.origin }}
+                                        </span>
+
+                                        <i class="bi bi-arrow-right"></i>
+
+                                        <span>
+                                            {{ shipment.destination }}
+                                        </span>
+
+                                    </div>
+                                </td>
+
+
+                                <!-- MODE -->
+
+                                <td>
+                                    <span class="mode-badge">
+
+                                        {% if shipment.mode_of_shipment == "air_freight" %}
+
+                                            <i class="bi bi-airplane-fill"></i>
+
+                                        {% elif shipment.mode_of_shipment == "sea_freight" %}
+
+                                            <i class="bi bi-water"></i>
+
+                                        {% else %}
+
+                                            <i class="bi bi-truck"></i>
+
+                                        {% endif %}
+
+                                        {{
+                                            shipment
+                                            .mode_of_shipment
+                                            |replace("_", " ")
+                                            |title
+                                        }}
+
+                                    </span>
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+                                    <span
+                                        class="
+                                            shipment-status
+                                            status-{{
+                                                shipment.shipment_status
+                                            }}
+                                        "
+                                    >
+                                        {{
+                                            shipment
+                                            .shipment_status
+                                            |replace("_", " ")
+                                            |title
+                                        }}
+                                    </span>
+                                </td>
+
+
+                                <!-- HANDLED BY -->
+
+                                <td>
+                                    <span class="handled-by">
+                                        {{
+                                            shipment
+                                            .handled_by
+                                            .full_name
+                                        }}
+                                    </span>
+                                </td>
+
+
+                                <!-- CREATED -->
+
+                                <td>
+                                    <span class="created-date">
+                                        {{
+                                            shipment
+                                            .created_at
+                                            .strftime(
+                                                "%d %b %Y"
+                                            )
+                                        }}
+                                    </span>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <!-- ==================================
+                 EMPTY STATE
+                 ================================== -->
+
+            <div class="empty-state">
+
+                <span class="empty-icon">
+                    <i class="bi bi-box-seam"></i>
+                </span>
+
+                <h3>No Shipments Yet</h3>
+
+                <p>
+                    Approved quotations can be converted
+                    into active shipments.
+                </p>
+
+                <a
+                    href="{{ url_for('quotations.quotation_list') }}"
+                    class="view-quotations-btn"
+                >
+                    <i class="bi bi-file-earmark-text"></i>
+                    View Quotations
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    /* ==========================================
+       PAGE
+       ========================================== */
+
+    .shipments-page {
+        max-width: 1250px;
+        margin: 0 auto;
+    }
+
+
+    /* ==========================================
+       HEADER
+       ========================================== */
+
+    .shipments-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .header-eyebrow {
+        display: inline-block;
+        margin-bottom: 7px;
+        color: #1d4ed8;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .shipments-header h1 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .shipments-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
+    /* ==========================================
+       COUNT BOX
+       ========================================== */
+
+    .shipment-count-box {
+        min-width: 145px;
+        padding: 14px 17px;
+        border: 1px solid #dbeafe;
+        border-radius: 13px;
+        background: #eff6ff;
+        text-align: right;
+    }
+
+    .shipment-count-box span {
+        display: block;
+        margin-bottom: 3px;
+        color: #1d4ed8;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .shipment-count-box strong {
+        color: #1e3a8a;
+        font-size: 24px;
+        font-weight: 900;
+    }
+
+
+    /* ==========================================
+       CARD
+       ========================================== */
+
+    .shipments-card {
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 6px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+
+    /* ==========================================
+       TABLE
+       ========================================== */
+
+    .shipments-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .shipments-table th {
+        padding: 13px 16px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+        color: #6b7280;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
+
+    .shipments-table td {
+        padding: 15px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #374151;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+    .shipments-table tbody tr {
+        transition: background 0.2s ease;
+    }
+
+    .shipments-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    .shipments-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+
+    /* ==========================================
+       REFERENCE
+       ========================================== */
+
+    .shipment-reference {
+    color: #1d4ed8;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.shipment-reference:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+
+    /* ==========================================
+       CLIENT
+       ========================================== */
+
+    .client-cell {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .client-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .client-cell strong {
+        color: #111827;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+
+    /* ==========================================
+       ROUTE
+       ========================================== */
+
+    .route-cell {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+
+    .route-cell span {
+        color: #374151;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .route-cell i {
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+
+    /* ==========================================
+       MODE
+       ========================================== */
+
+    .mode-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 9px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+
+    /* ==========================================
+       STATUS
+       ========================================== */
+
+    .shipment-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .status-active {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-in_transit {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-closed {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+
+    /* ==========================================
+       OTHER CELLS
+       ========================================== */
+
+    .handled-by,
+    .created-date {
+        color: #6b7280;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+
+    /* ==========================================
+       EMPTY STATE
+       ========================================== */
+
+    .empty-state {
+        padding: 70px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        border-radius: 18px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 28px;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .empty-state p {
+        margin: 0 0 18px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .view-quotations-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #1d4ed8;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .view-quotations-btn:hover {
+        background: #1e40af;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+
+    /* ==========================================
+       MOBILE
+       ========================================== */
+
+    @media (max-width: 640px) {
+
+        .shipments-header {
+            flex-direction: column;
+        }
+
+        .shipment-count-box {
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+
+    }
+
+
+</style>
+
+{% endblock %}

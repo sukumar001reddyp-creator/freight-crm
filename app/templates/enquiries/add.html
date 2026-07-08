@@ -1,0 +1,668 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    New Enquiry | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+    New Enquiry
+{% endblock %}
+
+{% block page_subtitle %}
+    Create and assign a new freight enquiry
+{% endblock %}
+
+{% block content %}
+
+<div class="enquiry-form-page">
+
+    <div class="enquiry-form-header">
+
+        <div>
+            <span class="form-eyebrow">
+                ENQUIRY WORKFLOW
+            </span>
+
+            <h2>Create New Enquiry</h2>
+
+            <p>
+                Capture the customer's freight requirement
+                and assign a responsible staff owner.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('enquiries.enquiry_list') }}"
+            class="back-enquiry-btn"
+        >
+            <i class="bi bi-arrow-left"></i>
+            Back to Enquiries
+        </a>
+
+    </div>
+
+
+    <form
+        method="POST"
+        action="{{ url_for('enquiries.add_enquiry') }}"
+        class="enquiry-form-card"
+    >
+
+        <!-- =====================================
+             SECTION 1 — CLIENT
+             ===================================== -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="section-icon">
+                    <i class="bi bi-building"></i>
+                </span>
+
+                <div>
+                    <h3>Client Information</h3>
+
+                    <p>
+                        Link this enquiry to an existing
+                        active client or pipeline record.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-field form-field-full">
+
+                    <label for="client_id">
+                        Linked Client
+                        <span>*</span>
+                    </label>
+
+                    <select
+                        id="client_id"
+                        name="client_id"
+                        required
+                    >
+                        <option value="">
+                            Select client
+                        </option>
+
+                        {% for client in clients %}
+
+                            <option
+                                value="{{ client.id }}"
+                                {% if
+                                    request.form.get('client_id')
+                                    == client.id|string
+                                %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ client.company_name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <small>
+                        Only active, non-archived clients
+                        are available.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             SECTION 2 — ROUTE & MODE
+             ===================================== -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="section-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </span>
+
+                <div>
+                    <h3>Shipment Requirement</h3>
+
+                    <p>
+                        Define the route and transport mode
+                        requested by the customer.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-field">
+
+                    <label for="origin">
+                        Origin
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="origin"
+                        name="origin"
+                        value="{{ request.form.get('origin', '') }}"
+                        placeholder="e.g. Hyderabad, India"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="destination">
+                        Destination
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="destination"
+                        name="destination"
+                        value="{{ request.form.get('destination', '') }}"
+                        placeholder="e.g. Dubai, UAE"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-field form-field-full">
+
+                    <label for="mode_of_shipment">
+                        Mode of Shipment
+                        <span>*</span>
+                    </label>
+
+                    <select
+                        id="mode_of_shipment"
+                        name="mode_of_shipment"
+                        required
+                    >
+                        <option value="">
+                            Select shipment mode
+                        </option>
+
+                        <option
+                            value="air_freight"
+                            {% if
+                                request.form.get(
+                                    'mode_of_shipment'
+                                ) == 'air_freight'
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            Air Freight
+                        </option>
+
+                        <option
+                            value="sea_freight"
+                            {% if
+                                request.form.get(
+                                    'mode_of_shipment'
+                                ) == 'sea_freight'
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            Sea Freight
+                        </option>
+
+                        <option
+                            value="land_freight"
+                            {% if
+                                request.form.get(
+                                    'mode_of_shipment'
+                                ) == 'land_freight'
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            Land Freight
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             SECTION 3 — CARGO
+             ===================================== -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="section-icon">
+                    <i class="bi bi-box-seam-fill"></i>
+                </span>
+
+                <div>
+                    <h3>Cargo Details</h3>
+
+                    <p>
+                        Record the nature of goods and
+                        available weight or volume details.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-field form-field-full">
+
+                    <label for="cargo_description">
+                        Cargo Description
+                        <span>*</span>
+                    </label>
+
+                    <textarea
+                        id="cargo_description"
+                        name="cargo_description"
+                        rows="5"
+                        placeholder="Describe the goods or cargo type..."
+                        required
+                    >{{ request.form.get('cargo_description', '') }}</textarea>
+
+                </div>
+
+
+                <div class="form-field form-field-full">
+
+                    <label for="cargo_weight_volume">
+                        Cargo Weight / Volume
+                    </label>
+
+                    <input
+                        type="text"
+                        id="cargo_weight_volume"
+                        name="cargo_weight_volume"
+                        value="{{
+                            request.form.get(
+                                'cargo_weight_volume',
+                                ''
+                            )
+                        }}"
+                        placeholder="e.g. 2500 kg / 18 CBM / 2 containers"
+                    >
+
+                    <small>
+                        Optional field. Enter any available
+                        weight, volume or container details.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             SECTION 4 — OWNERSHIP
+             ===================================== -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="section-icon">
+                    <i class="bi bi-person-badge-fill"></i>
+                </span>
+
+                <div>
+                    <h3>Ownership</h3>
+
+                    <p>
+                        Assign the staff member responsible
+                        for handling this enquiry.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-field form-field-full">
+
+                    <label for="handled_by_id">
+                        Handled By
+                        <span>*</span>
+                    </label>
+
+                    <select
+                        id="handled_by_id"
+                        name="handled_by_id"
+                        required
+                    >
+                        <option value="">
+                            Select staff owner
+                        </option>
+
+                        {% for user in users %}
+
+                            <option
+                                value="{{ user.id }}"
+                                {% if
+                                    request.form.get(
+                                        'handled_by_id'
+                                    ) == user.id|string
+                                %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ user.full_name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             ACTION BUTTONS
+             ===================================== -->
+
+        <div class="form-actions">
+
+            <a
+                href="{{ url_for('enquiries.enquiry_list') }}"
+                class="cancel-enquiry-btn"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="save-enquiry-btn"
+            >
+                <i class="bi bi-check2-circle"></i>
+                Create Enquiry
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    .enquiry-form-page {
+        max-width: 1050px;
+        margin: 0 auto;
+    }
+
+    .enquiry-form-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 22px;
+    }
+
+    .form-eyebrow {
+        display: inline-block;
+        margin-bottom: 7px;
+        color: #7f1d1d;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .enquiry-form-header h2 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 27px;
+        font-weight: 800;
+    }
+
+    .enquiry-form-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .back-enquiry-btn,
+    .cancel-enquiry-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #374151;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .back-enquiry-btn:hover,
+    .cancel-enquiry-btn:hover {
+        border-color: #d1d5db;
+        background: #f9fafb;
+        color: #111827;
+    }
+
+    .enquiry-form-card {
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .form-section {
+        padding: 26px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .form-section-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        margin-bottom: 22px;
+    }
+
+    .section-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #fef2f2;
+        color: #7f1d1d;
+        font-size: 18px;
+    }
+
+    .form-section-heading h3 {
+        margin: 0 0 4px;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .form-section-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .form-field-full {
+        grid-column: 1 / -1;
+    }
+
+    .form-field label {
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .form-field label span {
+        color: #b91c1c;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 11px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 14px;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .form-field textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+        border-color: #991b1b;
+        box-shadow:
+            0 0 0 3px rgba(153, 27, 27, 0.10);
+    }
+
+    .form-field small {
+        color: #9ca3af;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .form-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 20px 26px;
+        background: #fafafa;
+    }
+
+    .save-enquiry-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 17px;
+        border: 0;
+        border-radius: 10px;
+        background: #7f1d1d;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .save-enquiry-btn:hover {
+        background: #991b1b;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+
+        .enquiry-form-header {
+            flex-direction: column;
+        }
+
+        .back-enquiry-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-field-full {
+            grid-column: auto;
+        }
+
+        .form-section {
+            padding: 20px 16px;
+        }
+
+        .form-actions {
+            padding: 16px;
+            flex-direction: column-reverse;
+        }
+
+        .cancel-enquiry-btn,
+        .save-enquiry-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

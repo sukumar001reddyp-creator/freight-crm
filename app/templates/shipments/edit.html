@@ -1,0 +1,1005 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Edit {{ shipment.shipment_reference }} | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<div class="shipment-edit-page">
+
+    <!-- ==========================================
+         PAGE HEADER
+         ========================================== -->
+
+    <div class="edit-page-header">
+
+        <div>
+
+            <a
+                href="{{
+                    url_for(
+                        'shipments.view_shipment',
+                        shipment_id=shipment.id
+                    )
+                }}"
+                class="back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Back to Shipment
+            </a>
+
+            <span class="header-eyebrow">
+                SHIPMENT MANAGEMENT
+            </span>
+
+            <h1>Edit Shipment</h1>
+
+            <p>
+                Update operational shipment details for
+                <strong>
+                    {{ shipment.shipment_reference }}
+                </strong>
+            </p>
+
+        </div>
+
+
+        <div class="shipment-reference-box">
+
+            <span>
+                Shipment Reference
+            </span>
+
+            <strong>
+                {{ shipment.shipment_reference }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         EDIT FORM
+         ========================================== -->
+
+    <form
+        method="POST"
+        class="shipment-edit-form"
+    >
+
+        <div class="edit-layout">
+
+
+            <!-- ==================================
+                 LEFT COLUMN
+                 ================================== -->
+
+            <div class="edit-main-column">
+
+
+                <!-- ROUTE DETAILS -->
+
+                <div class="edit-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon route-icon">
+                            <i class="bi bi-signpost-split-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Route Details</h3>
+
+                            <p>
+                                Update shipment origin and
+                                destination locations.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label for="origin">
+                                Origin
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <i class="bi bi-geo-alt-fill"></i>
+
+                                <input
+                                    type="text"
+                                    id="origin"
+                                    name="origin"
+                                    value="{{ shipment.origin }}"
+                                    placeholder="Enter origin"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="destination">
+                                Destination
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <i class="bi bi-flag-fill"></i>
+
+                                <input
+                                    type="text"
+                                    id="destination"
+                                    name="destination"
+                                    value="{{ shipment.destination }}"
+                                    placeholder="Enter destination"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="route-preview">
+
+                        <div class="preview-point">
+
+                            <span class="preview-dot origin-dot"></span>
+
+                            <div>
+                                <small>Current Origin</small>
+
+                                <strong>
+                                    {{ shipment.origin }}
+                                </strong>
+                            </div>
+
+                        </div>
+
+
+                        <div class="preview-line">
+
+                            {% if shipment.mode_of_shipment == "air_freight" %}
+
+                                <i class="bi bi-airplane-fill"></i>
+
+                            {% elif shipment.mode_of_shipment == "sea_freight" %}
+
+                                <i class="bi bi-water"></i>
+
+                            {% else %}
+
+                                <i class="bi bi-truck"></i>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="preview-point">
+
+                            <span class="preview-dot destination-dot"></span>
+
+                            <div>
+                                <small>Current Destination</small>
+
+                                <strong>
+                                    {{ shipment.destination }}
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARGO DETAILS -->
+
+                <div class="edit-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon cargo-icon">
+                            <i class="bi bi-box2-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Cargo Details</h3>
+
+                            <p>
+                                Update cargo description and
+                                weight or volume information.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="cargo_description">
+                            Cargo Description
+                            <span class="required">*</span>
+                        </label>
+
+                        <textarea
+                            id="cargo_description"
+                            name="cargo_description"
+                            rows="6"
+                            placeholder="Describe the cargo"
+                            required
+                        >{{ shipment.cargo_description }}</textarea>
+
+                        <small class="field-help">
+                            Enter the nature and type of goods
+                            being transported.
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="cargo_weight_volume">
+                            Weight / Volume
+                        </label>
+
+                        <div class="input-wrapper">
+
+                            <i class="bi bi-box-seam-fill"></i>
+
+                            <input
+                                type="text"
+                                id="cargo_weight_volume"
+                                name="cargo_weight_volume"
+                                value="{{
+                                    shipment.cargo_weight_volume or ''
+                                }}"
+                                placeholder="Example: 2500 kg, 18 CBM"
+                            >
+
+                        </div>
+
+                        <small class="field-help">
+                            Optional shipment weight, volume
+                            or container information.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================
+                 RIGHT COLUMN
+                 ================================== -->
+
+            <div class="edit-side-column">
+
+
+                <!-- LOCKED INFORMATION -->
+
+                <div class="side-card">
+
+                    <div class="side-card-heading">
+
+                        <span class="side-heading-icon">
+                            <i class="bi bi-lock-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Locked Information</h3>
+
+                            <p>
+                                Source-linked fields cannot
+                                be changed here.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="locked-list">
+
+                        <div class="locked-item">
+
+                            <span>Client</span>
+
+                            <strong>
+                                {{ shipment.client.company_name }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="locked-item">
+
+                            <span>Mode of Shipment</span>
+
+                            <strong>
+                                {{
+                                    shipment.mode_of_shipment
+                                    |replace("_", " ")
+                                    |title
+                                }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="locked-item">
+
+                            <span>Original Enquiry</span>
+
+                            <strong>
+                                {{
+                                    shipment
+                                    .enquiry
+                                    .enquiry_reference
+                                }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="locked-item">
+
+                            <span>Approved Quotation</span>
+
+                            <strong>
+                                {{
+                                    shipment
+                                    .quotation
+                                    .quotation_number
+                                }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- EDIT POLICY -->
+
+                <div class="side-card policy-card">
+
+                    <div class="policy-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <h3>Editing Policy</h3>
+
+                    <p>
+                        Shipment details can be edited while
+                        operational movement has not reached
+                        transit stage.
+                    </p>
+
+                    <div class="policy-status">
+
+                        <span>
+                            Current Status
+                        </span>
+
+                        <strong>
+                            {{
+                                shipment.shipment_status
+                                |replace("_", " ")
+                                |title
+                            }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="side-card action-card">
+
+                    <button
+                        type="submit"
+                        class="save-shipment-btn"
+                    >
+                        <i class="bi bi-check-circle-fill"></i>
+                        Save Changes
+                    </button>
+
+
+                    <a
+                        href="{{
+                            url_for(
+                                'shipments.view_shipment',
+                                shipment_id=shipment.id
+                            )
+                        }}"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    /* ==========================================
+       PAGE
+       ========================================== */
+
+    .shipment-edit-page {
+        max-width: 1150px;
+        margin: 0 auto;
+    }
+
+
+    /* ==========================================
+       HEADER
+       ========================================== */
+
+    .edit-page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 13px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .back-link:hover {
+        color: #2563eb;
+    }
+
+    .header-eyebrow {
+        display: block;
+        margin-bottom: 6px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+    }
+
+    .edit-page-header h1 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .edit-page-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .edit-page-header p strong {
+        color: #374151;
+    }
+
+    .shipment-reference-box {
+        min-width: 190px;
+        padding: 14px 16px;
+        border: 1px solid #dbeafe;
+        border-radius: 13px;
+        background: #eff6ff;
+    }
+
+    .shipment-reference-box span {
+        display: block;
+        margin-bottom: 5px;
+        color: #6b7280;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .shipment-reference-box strong {
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+
+    /* ==========================================
+       LAYOUT
+       ========================================== */
+
+    .edit-layout {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 2fr)
+            minmax(270px, 0.8fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .edit-main-column,
+    .edit-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+
+    /* ==========================================
+       CARDS
+       ========================================== */
+
+    .edit-card,
+    .side-card {
+        padding: 22px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading,
+    .side-card-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .heading-icon,
+    .side-heading-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        font-size: 17px;
+    }
+
+    .route-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .cargo-icon {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .side-heading-icon {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .card-heading h3,
+    .side-card-heading h3 {
+        margin: 0 0 4px;
+        color: #111827;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .card-heading p,
+    .side-card-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       FORM
+       ========================================== */
+
+    .form-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .required {
+        color: #dc2626;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper i {
+        position: absolute;
+        top: 50%;
+        left: 13px;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 13px;
+        pointer-events: none;
+    }
+
+    .input-wrapper input {
+        padding-left: 38px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .form-group input {
+        height: 43px;
+        padding-right: 12px;
+    }
+
+    .form-group textarea {
+        min-height: 130px;
+        padding: 12px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        border-color: #2563eb;
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 6px;
+        color: #9ca3af;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       ROUTE PREVIEW
+       ========================================== */
+
+    .route-preview {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            90px
+            minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        margin-top: 2px;
+        border-radius: 12px;
+        background: #f8fafc;
+    }
+
+    .preview-point {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+    }
+
+    .preview-dot {
+        flex: 0 0 11px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+    }
+
+    .origin-dot {
+        background: #16a34a;
+    }
+
+    .destination-dot {
+        background: #dc2626;
+    }
+
+    .preview-point small {
+        display: block;
+        margin-bottom: 2px;
+        color: #9ca3af;
+        font-size: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .preview-point strong {
+        display: block;
+        overflow: hidden;
+        color: #374151;
+        font-size: 11px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .preview-line {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 2px;
+        background: #cbd5e1;
+    }
+
+    .preview-line i {
+        padding: 6px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #2563eb;
+    }
+
+
+    /* ==========================================
+       LOCKED LIST
+       ========================================== */
+
+    .locked-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .locked-item {
+        padding: 11px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .locked-item:first-child {
+        padding-top: 0;
+    }
+
+    .locked-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .locked-item span {
+        display: block;
+        margin-bottom: 3px;
+        color: #9ca3af;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .locked-item strong {
+        color: #374151;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       POLICY
+       ========================================== */
+
+    .policy-card {
+        text-align: center;
+    }
+
+    .policy-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        border-radius: 14px;
+        background: #ecfdf5;
+        color: #059669;
+        font-size: 21px;
+    }
+
+    .policy-card h3 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .policy-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+    .policy-status {
+        padding: 11px;
+        margin-top: 14px;
+        border-radius: 10px;
+        background: #f9fafb;
+    }
+
+    .policy-status span {
+        display: block;
+        margin-bottom: 3px;
+        color: #9ca3af;
+        font-size: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .policy-status strong {
+        color: #2563eb;
+        font-size: 11px;
+    }
+
+
+    /* ==========================================
+       ACTIONS
+       ========================================== */
+
+    .action-card {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .save-shipment-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 11px 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #2563eb;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .save-shipment-btn:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+    }
+
+    .cancel-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .cancel-btn:hover {
+        border-color: #9ca3af;
+        color: #374151;
+    }
+
+
+    /* ==========================================
+       TABLET
+       ========================================== */
+
+    @media (max-width: 900px) {
+
+        .edit-layout {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+
+    /* ==========================================
+       MOBILE
+       ========================================== */
+
+    @media (max-width: 640px) {
+
+        .edit-page-header {
+            flex-direction: column;
+        }
+
+        .shipment-reference-box {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .route-preview {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .preview-line {
+            width: 2px;
+            height: 35px;
+            margin-left: 5px;
+        }
+
+        .edit-card,
+        .side-card {
+            padding: 18px 16px;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

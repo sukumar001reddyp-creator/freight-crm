@@ -1,0 +1,1876 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    {{ shipment.shipment_reference }} | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<div class="shipment-view-page">
+
+    <!-- ==========================================
+         HEADER
+         ========================================== -->
+
+    <div class="shipment-header">
+
+        <div>
+
+            <a
+                href="{{ url_for('shipments.shipment_list') }}"
+                class="back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Back to Shipments
+            </a>
+
+            <div class="reference-row">
+
+                <h1>
+                    {{ shipment.shipment_reference }}
+                </h1>
+
+                <span
+                    class="
+                        shipment-status
+                        status-{{ shipment.shipment_status }}
+                    "
+                >
+                    {{
+                        shipment.shipment_status
+                        |replace("_", " ")
+                        |title
+                    }}
+                </span>
+
+            </div>
+
+            <p>
+                Active freight shipment for
+                <strong>
+                    {{ shipment.client.company_name }}
+                </strong>
+            </p>
+
+        </div>
+        {% if shipment.shipment_status == "active" %}
+
+    <div class="shipment-header-actions">
+
+        <a
+            href="{{
+                url_for(
+                    'shipments.edit_shipment',
+                    shipment_id=shipment.id
+                )
+            }}"
+            class="edit-shipment-btn"
+        >
+            <i class="bi bi-pencil-square"></i>
+            Edit Shipment
+        </a>
+
+    </div>
+
+{% endif %}
+
+    </div>
+
+
+    <!-- ==========================================
+         MAIN GRID
+         ========================================== -->
+
+    <div class="shipment-detail-grid">
+
+        <!-- ======================================
+             LEFT COLUMN
+             ====================================== -->
+
+        <div class="shipment-main-column">
+            <!-- ======================================
+     SHIPMENT OPERATIONAL WORKFLOW
+     ====================================== -->
+
+<div class="detail-card workflow-timeline-card">
+
+    <div class="card-heading">
+
+        <span class="heading-icon workflow-heading-icon">
+            <i class="bi bi-diagram-3-fill"></i>
+        </span>
+
+        <div>
+            <h3>Operational Workflow</h3>
+
+            <p>
+                Complete shipment milestones in sequence
+                from booking to closure.
+            </p>
+        </div>
+
+    </div>
+    {% if milestones %}
+
+    <div class="workflow-actions-bar">
+
+        <div class="undo-info">
+
+            <i class="bi bi-arrow-counterclockwise"></i>
+
+            <div>
+                <strong>Need to go back?</strong>
+
+                <span>
+                    Undo the latest completed stage only.
+                </span>
+            </div>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{
+                url_for(
+                    'shipments.undo_last_stage',
+                    shipment_id=shipment.id
+                )
+            }}"
+            onsubmit="
+                return confirm(
+                    'Undo the latest completed shipment stage?'
+                );
+            "
+        >
+
+            <button
+                type="submit"
+                class="undo-stage-btn"
+            >
+                <i class="bi bi-arrow-counterclockwise"></i>
+                Undo Last Stage
+            </button>
+
+        </form>
+
+    </div>
+
+{% endif %}
+
+
+    <div class="shipment-timeline">
+
+        {% for stage in shipment_stages %}
+
+            {% set is_completed = stage in completed_stages %}
+            {% set is_next = stage == next_stage %}
+
+            <div
+                class="
+                    timeline-stage
+                    {% if is_completed %}
+                        timeline-completed
+                    {% elif is_next %}
+                        timeline-current
+                    {% else %}
+                        timeline-locked
+                    {% endif %}
+                "
+            >
+
+                <div class="timeline-marker">
+
+                    {% if is_completed %}
+                        <i class="bi bi-check-lg"></i>
+
+                    {% elif is_next %}
+                        <span>{{ loop.index }}</span>
+
+                    {% else %}
+                        <i class="bi bi-lock-fill"></i>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="timeline-content">
+
+                    <div class="timeline-title-row">
+
+                        <div>
+                            <small>
+                                Stage {{ loop.index }}
+                            </small>
+
+                            <strong>
+                                {{ stage_labels[stage] }}
+                            </strong>
+                        </div>
+
+
+                        {% if is_completed %}
+
+                            <span class="stage-state completed-state">
+                                Completed
+                            </span>
+
+                        {% elif is_next %}
+
+                            <span class="stage-state current-state">
+                                Next Stage
+                            </span>
+
+                        {% else %}
+
+                            <span class="stage-state locked-state">
+                                Locked
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if is_completed %}
+
+                        {% for milestone in milestones %}
+
+                            {% if milestone.stage == stage %}
+
+                                <div class="milestone-meta">
+
+                                    <span>
+                                        <i class="bi bi-person-fill"></i>
+                                        {{ milestone.completed_by.full_name }}
+                                    </span>
+
+                                    <span>
+                                        <i class="bi bi-clock-fill"></i>
+                                        {{
+                                            milestone.completed_at.strftime(
+                                                "%d %b %Y %H:%M"
+                                            )
+                                        }}
+                                    </span>
+
+                                </div>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+
+                    {% elif is_next %}
+
+                        <form
+                            method="POST"
+                            action="{{
+                                url_for(
+                                    'shipments.complete_stage',
+                                    shipment_id=shipment.id,
+                                    stage=stage
+                                )
+                            }}"
+                            onsubmit="
+                                return confirm(
+                                    'Complete {{ stage_labels[stage] }} stage?'
+                                );
+                            "
+                        >
+
+                            <button
+                                type="submit"
+                                class="complete-stage-btn"
+                            >
+                                <i class="bi bi-check-circle-fill"></i>
+
+                                Complete
+                                {{ stage_labels[stage] }}
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <p class="locked-message">
+                            Complete previous stages first.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+            <!-- SHIPMENT INFORMATION -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Information</h3>
+
+                        <p>
+                            Main shipment reference,
+                            route and transport details.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="info-grid">
+
+                    <div class="info-item">
+                        <span>Shipment Reference</span>
+
+                        <strong>
+                            {{ shipment.shipment_reference }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Status</span>
+
+                        <strong>
+                            {{
+                                shipment.shipment_status
+                                |replace("_", " ")
+                                |title
+                            }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Origin</span>
+
+                        <strong>
+                            {{ shipment.origin }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Destination</span>
+
+                        <strong>
+                            {{ shipment.destination }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Mode of Shipment</span>
+
+                        <strong>
+                            {{
+                                shipment.mode_of_shipment
+                                |replace("_", " ")
+                                |title
+                            }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Handled By</span>
+
+                        <strong>
+                            {{ shipment.handled_by.full_name }}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ROUTE VISUAL -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon route-heading-icon">
+                        <i class="bi bi-signpost-split-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Route</h3>
+
+                        <p>
+                            Origin to destination movement.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="route-visual">
+
+                    <div class="route-point">
+
+                        <span class="route-dot origin-dot">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </span>
+
+                        <div>
+                            <small>Origin</small>
+
+                            <strong>
+                                {{ shipment.origin }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="route-line">
+
+                        {% if shipment.mode_of_shipment == "air_freight" %}
+
+                            <i class="bi bi-airplane-fill"></i>
+
+                        {% elif shipment.mode_of_shipment == "sea_freight" %}
+
+                            <i class="bi bi-water"></i>
+
+                        {% else %}
+
+                            <i class="bi bi-truck"></i>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="route-point">
+
+                        <span class="route-dot destination-dot">
+                            <i class="bi bi-flag-fill"></i>
+                        </span>
+
+                        <div>
+                            <small>Destination</small>
+
+                            <strong>
+                                {{ shipment.destination }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CARGO DETAILS -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon cargo-heading-icon">
+                        <i class="bi bi-box2-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Cargo Details</h3>
+
+                        <p>
+                            Goods description and
+                            shipment weight or volume.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="cargo-description-box">
+
+                    <span>
+                        Cargo Description
+                    </span>
+
+                    <p>
+                        {{ shipment.cargo_description }}
+                    </p>
+
+                </div>
+
+
+                <div class="cargo-weight-box">
+
+                    <span>
+                        Weight / Volume
+                    </span>
+
+                    <strong>
+                        {{
+                            shipment.cargo_weight_volume
+                            or "Not specified"
+                        }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- SOURCE RECORDS -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon source-heading-icon">
+                        <i class="bi bi-diagram-3-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Source Records</h3>
+
+                        <p>
+                            Original enquiry and approved
+                            quotation linked to shipment.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="source-records-grid">
+
+                    <!-- ENQUIRY -->
+
+                    <a
+                        href="{{
+                            url_for(
+                                'enquiries.view_enquiry',
+                                enquiry_id=shipment.enquiry.id
+                            )
+                        }}"
+                        class="source-record-card"
+                    >
+
+                        <span class="source-icon enquiry-source-icon">
+                            <i class="bi bi-inbox-fill"></i>
+                        </span>
+
+                        <div>
+                            <small>
+                                Original Enquiry
+                            </small>
+
+                            <strong>
+                                {{
+                                    shipment
+                                    .enquiry
+                                    .enquiry_reference
+                                }}
+                            </strong>
+                        </div>
+
+                        <i class="bi bi-arrow-up-right"></i>
+
+                    </a>
+
+
+                    <!-- QUOTATION -->
+
+                    <a
+                        href="{{
+                            url_for(
+                                'quotations.view_quotation',
+                                quotation_id=shipment.quotation.id
+                            )
+                        }}"
+                        class="source-record-card"
+                    >
+
+                        <span class="source-icon quotation-source-icon">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        </span>
+
+                        <div>
+                            <small>
+                                Approved Quotation
+                            </small>
+
+                            <strong>
+                                {{
+                                    shipment
+                                    .quotation
+                                    .quotation_number
+                                }}
+                            </strong>
+                        </div>
+
+                        <i class="bi bi-arrow-up-right"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ======================================
+             RIGHT COLUMN
+             ====================================== -->
+
+        <div class="shipment-side-column">
+
+
+            <!-- CLIENT CARD -->
+
+            <div class="side-card">
+
+                <h3>Client</h3>
+
+                <div class="client-summary">
+
+                    <span class="client-avatar">
+                        <i class="bi bi-building-fill"></i>
+                    </span>
+
+                    <div>
+                        <strong>
+                            {{ shipment.client.company_name }}
+                        </strong>
+
+                        <span>
+                            Linked shipment client
+                        </span>
+                    </div>
+
+                </div>
+
+                <a
+                    href="{{
+                        url_for(
+                            'clients.view_client',
+                            client_id=shipment.client.id
+                        )
+                    }}"
+                    class="side-link-btn"
+                >
+                    View Client
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+
+            </div>
+
+
+            <!-- WORKFLOW STATUS -->
+
+            <div class="side-card">
+
+                <h3>Workflow Status</h3>
+
+                <div
+                    class="
+                        workflow-box
+                        workflow-{{ shipment.shipment_status }}
+                    "
+                >
+
+                    {% if shipment.shipment_status == "active" %}
+
+                        <i class="bi bi-play-circle-fill"></i>
+
+                        <div>
+                            <strong>Active Shipment</strong>
+
+                            <span>
+                                Shipment is active and ready
+                                for operational tracking.
+                            </span>
+                        </div>
+
+                    {% elif shipment.shipment_status == "in_transit" %}
+
+                        <i class="bi bi-truck"></i>
+
+                        <div>
+                            <strong>In Transit</strong>
+
+                            <span>
+                                Cargo is currently moving
+                                toward destination.
+                            </span>
+                        </div>
+
+                    {% elif shipment.shipment_status == "delivered" %}
+
+                        <i class="bi bi-check-circle-fill"></i>
+
+                        <div>
+                            <strong>Delivered</strong>
+
+                            <span>
+                                Cargo delivery has been
+                                completed.
+                            </span>
+                        </div>
+
+                    {% else %}
+
+                        <i class="bi bi-archive-fill"></i>
+
+                        <div>
+                            <strong>Closed</strong>
+
+                            <span>
+                                Shipment workflow is closed.
+                            </span>
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- QUOTATION VALUE -->
+
+            <div class="side-card">
+
+                <h3>Approved Value</h3>
+
+                <div class="quotation-value">
+
+                    <span>
+                        {{
+                            shipment
+                            .quotation
+                            .currency
+                        }}
+                    </span>
+
+                    <strong>
+                        {{
+                            "{:,.2f}".format(
+                                shipment
+                                .quotation
+                                .quotation_amount
+                            )
+                        }}
+                    </strong>
+
+                </div>
+
+                <small class="value-note">
+                    Based on approved quotation
+                    {{
+                        shipment
+                        .quotation
+                        .quotation_number
+                    }}
+                </small>
+
+            </div>
+
+
+            <!-- AUDIT -->
+
+            <div class="side-card">
+
+                <h3>Record Information</h3>
+
+                <div class="audit-list">
+
+                    <div class="audit-item">
+                        <span>Created By</span>
+
+                        <strong>
+                            {{ shipment.created_by.full_name }}
+                        </strong>
+                    </div>
+
+
+                    <div class="audit-item">
+                        <span>Created</span>
+
+                        <strong>
+                            {{
+                                shipment.created_at
+                                .strftime(
+                                    "%d %b %Y %H:%M"
+                                )
+                            }}
+                        </strong>
+                    </div>
+
+
+                    <div class="audit-item">
+                        <span>Last Updated</span>
+
+                        <strong>
+                            {{
+                                shipment.updated_at
+                                .strftime(
+                                    "%d %b %Y %H:%M"
+                                )
+                            }}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    /* ==========================================
+       PAGE
+       ========================================== */
+
+    .shipment-view-page {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+
+    /* ==========================================
+       HEADER
+       ========================================== */
+
+    .shipment-header {
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 12px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .back-link:hover {
+        color: #1d4ed8;
+    }
+
+    .reference-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .reference-row h1 {
+        margin: 0;
+        color: #111827;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .shipment-header p {
+        margin: 8px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .shipment-header p strong {
+        color: #374151;
+    }
+
+
+    /* ==========================================
+       STATUS
+       ========================================== */
+
+    .shipment-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .status-active {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-in_transit {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-delivered {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-closed {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+
+    /* ==========================================
+       MAIN GRID
+       ========================================== */
+
+    .shipment-detail-grid {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 2fr)
+            minmax(280px, 0.85fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .shipment-main-column,
+    .shipment-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+
+    /* ==========================================
+       CARDS
+       ========================================== */
+
+    .detail-card,
+    .side-card {
+        padding: 22px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .heading-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 18px;
+    }
+
+    .route-heading-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .cargo-heading-icon {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .source-heading-icon {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .card-heading h3,
+    .side-card h3 {
+        margin: 0 0 4px;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .card-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       INFO GRID
+       ========================================== */
+
+    .info-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .info-item {
+        padding: 14px;
+        border-radius: 11px;
+        background: #f9fafb;
+    }
+
+    .info-item span {
+        display: block;
+        margin-bottom: 5px;
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .info-item strong {
+        color: #111827;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       ROUTE VISUAL
+       ========================================== */
+
+    .route-visual {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            120px
+            minmax(0, 1fr);
+        align-items: center;
+        gap: 15px;
+        padding: 18px;
+        border-radius: 14px;
+        background: #f8fafc;
+    }
+
+    .route-point {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .route-dot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+    }
+
+    .origin-dot {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .destination-dot {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .route-point small {
+        display: block;
+        margin-bottom: 3px;
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .route-point strong {
+        color: #111827;
+        font-size: 13px;
+    }
+
+    .route-line {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 2px;
+        background: #cbd5e1;
+    }
+
+    .route-line i {
+        padding: 7px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: #2563eb;
+        font-size: 15px;
+    }
+
+
+    /* ==========================================
+       CARGO
+       ========================================== */
+
+    .cargo-description-box {
+        padding: 15px;
+        border-radius: 12px;
+        background: #f9fafb;
+    }
+
+    .cargo-description-box span,
+    .cargo-weight-box span {
+        display: block;
+        margin-bottom: 6px;
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .cargo-description-box p {
+        margin: 0;
+        color: #374151;
+        font-size: 13px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+    }
+
+    .cargo-weight-box {
+        padding: 14px 15px;
+        margin-top: 12px;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        background: #fff7ed;
+    }
+
+    .cargo-weight-box strong {
+        color: #9a3412;
+        font-size: 14px;
+    }
+
+
+    /* ==========================================
+       SOURCE RECORDS
+       ========================================== */
+
+    .source-records-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .source-record-card {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        color: #374151;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+
+    .source-record-card:hover {
+        border-color: #c4b5fd;
+        background: #faf5ff;
+        transform: translateY(-1px);
+    }
+
+    .source-record-card > div {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .source-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .enquiry-source-icon {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .quotation-source-icon {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .source-record-card small {
+        display: block;
+        margin-bottom: 3px;
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .source-record-card strong {
+        color: #111827;
+        font-size: 12px;
+    }
+
+
+    /* ==========================================
+       CLIENT
+       ========================================== */
+
+    .side-card h3 {
+        margin-bottom: 15px;
+    }
+
+    .client-summary {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .client-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .client-summary strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #111827;
+        font-size: 13px;
+    }
+
+    .client-summary span {
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    .side-link-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding: 9px 11px;
+        border-radius: 9px;
+        background: #f9fafb;
+        color: #374151;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .side-link-btn:hover {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+
+    /* ==========================================
+       WORKFLOW
+       ========================================== */
+
+    .workflow-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .workflow-box i {
+        font-size: 18px;
+    }
+
+    .workflow-box strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 13px;
+    }
+
+    .workflow-box span {
+        display: block;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .workflow-active {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .workflow-in_transit {
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .workflow-delivered {
+        background: #f0fdf4;
+        color: #166534;
+    }
+
+    .workflow-closed {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+
+    /* ==========================================
+       QUOTATION VALUE
+       ========================================== */
+
+    .quotation-value {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        padding: 14px;
+        border-radius: 12px;
+        background: #eff6ff;
+    }
+
+    .quotation-value span {
+        color: #1d4ed8;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .quotation-value strong {
+        color: #1e3a8a;
+        font-size: 24px;
+        font-weight: 900;
+    }
+
+    .value-note {
+        display: block;
+        margin-top: 9px;
+        color: #9ca3af;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       AUDIT
+       ========================================== */
+
+    .audit-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .audit-item {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .audit-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .audit-item span {
+        display: block;
+        margin-bottom: 4px;
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .audit-item strong {
+        color: #374151;
+        font-size: 12px;
+    }
+
+
+    /* ==========================================
+       TABLET
+       ========================================== */
+
+    @media (max-width: 900px) {
+
+        .shipment-detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+
+    /* ==========================================
+       MOBILE
+       ========================================== */
+
+    @media (max-width: 640px) {
+
+        .reference-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .info-grid,
+        .source-records-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .route-visual {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .route-line {
+            width: 2px;
+            height: 50px;
+            margin-left: 18px;
+        }
+
+        .detail-card,
+        .side-card {
+            padding: 18px 16px;
+        }
+
+    }
+    /* ==========================================
+   OPERATIONAL WORKFLOW TIMELINE
+   ========================================== */
+
+.workflow-timeline-card {
+    border-top: 4px solid #2563eb;
+}
+
+.workflow-heading-icon {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.shipment-timeline {
+    display: flex;
+    flex-direction: column;
+}
+
+.timeline-stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 13px;
+    min-height: 86px;
+}
+
+.timeline-stage:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 38px;
+    bottom: -4px;
+    left: 18px;
+    width: 2px;
+    background: #e5e7eb;
+}
+
+.timeline-stage.timeline-completed:not(:last-child)::before {
+    background: #22c55e;
+}
+
+.timeline-marker {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.timeline-completed .timeline-marker {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+.timeline-current .timeline-marker {
+    border: 3px solid #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.timeline-locked .timeline-marker {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+.timeline-content {
+    min-width: 0;
+    padding: 2px 0 22px;
+}
+
+.timeline-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.timeline-title-row small {
+    display: block;
+    margin-bottom: 3px;
+
+    color: #9ca3af;
+
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.timeline-title-row strong {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.stage-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 5px 8px;
+
+    border-radius: 999px;
+
+    font-size: 9px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+.completed-state {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.current-state {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.locked-state {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.milestone-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-top: 8px;
+}
+
+.milestone-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    color: #6b7280;
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.milestone-meta i {
+    color: #16a34a;
+}
+
+.complete-stage-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    margin-top: 10px;
+    padding: 8px 11px;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.complete-stage-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.locked-message {
+    margin: 7px 0 0;
+
+    color: #9ca3af;
+
+    font-size: 10px;
+    font-style: italic;
+}
+
+
+/* ==========================================
+   WORKFLOW MOBILE
+   ========================================== */
+
+@media (max-width: 640px) {
+
+    .timeline-title-row {
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .complete-stage-btn {
+        width: 100%;
+    }
+
+}
+/* ==========================================
+   SHIPMENT HEADER ACTIONS
+   ========================================== */
+
+.shipment-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.shipment-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-shipment-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 10px 14px;
+
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+
+    background: #eff6ff;
+    color: #1d4ed8;
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.edit-shipment-btn:hover {
+    border-color: #93c5fd;
+    background: #dbeafe;
+    color: #1e40af;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+
+    .shipment-header {
+        flex-direction: column;
+    }
+
+    .shipment-header-actions {
+        width: 100%;
+    }
+
+    .edit-shipment-btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+}
+/* ==========================================
+   WORKFLOW UNDO ACTION
+   ========================================== */
+
+.workflow-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding: 12px 14px;
+    margin-bottom: 20px;
+
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+
+    background: #fff7ed;
+}
+
+.undo-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.undo-info > i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+
+    border-radius: 9px;
+
+    background: #ffedd5;
+    color: #ea580c;
+
+    font-size: 15px;
+}
+
+.undo-info strong {
+    display: block;
+    margin-bottom: 2px;
+
+    color: #9a3412;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.undo-info span {
+    display: block;
+
+    color: #78716c;
+
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.undo-stage-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 8px 11px;
+
+    border: 1px solid #fdba74;
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: #c2410c;
+
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.undo-stage-btn:hover {
+    border-color: #fb923c;
+    background: #ffedd5;
+    color: #9a3412;
+    transform: translateY(-1px);
+}
+
+
+/* ==========================================
+   UNDO MOBILE
+   ========================================== */
+
+@media (max-width: 640px) {
+
+    .workflow-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .workflow-actions-bar form {
+        width: 100%;
+    }
+
+    .undo-stage-btn {
+        width: 100%;
+    }
+
+}
+
+</style>
+
+{% endblock %}

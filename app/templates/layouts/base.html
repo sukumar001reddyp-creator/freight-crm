@@ -119,38 +119,55 @@
                     </span>
                 </a>
 
+                
+                 <!-- ======================================
+                     ENQUIRIES
+                     ====================================== -->
+
                 <a
-                    href="#"
-                    class="nav-item"
+                    href="{{ url_for('enquiries.enquiry_list') }}"
+                    class="nav-item
+                    {% if request.blueprint == 'enquiries' %}
+                        active
+                    {% endif %}"
                 >
                     <span class="nav-icon">
                         <i class="bi bi-inbox-fill"></i>
                     </span>
 
                     <span>Enquiries</span>
+
+                    <span class="nav-count">
+                        0
+                    </span>
                 </a>
+               <a
+    href="{{ url_for('quotations.quotation_list') }}"
+    class="nav-item
+    {% if request.blueprint == 'quotations' %}
+        active
+    {% endif %}"
+>
+    <span class="nav-icon">
+        <i class="bi bi-file-earmark-text-fill"></i>
+    </span>
+
+    <span>Quotations</span>
+</a>
 
                 <a
-                    href="#"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-file-earmark-text-fill"></i>
-                    </span>
+    href="{{ url_for('shipments.shipment_list') }}"
+    class="nav-item
+    {% if request.blueprint == 'shipments' %}
+        active
+    {% endif %}"
+>
+    <span class="nav-icon">
+        <i class="bi bi-box-seam-fill"></i>
+    </span>
 
-                    <span>Quotations</span>
-                </a>
-
-                <a
-                    href="#"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-truck"></i>
-                    </span>
-
-                    <span>Shipments</span>
-                </a>
+    <span>Shipments</span>
+</a>
 
                 <a
                     href="#"
