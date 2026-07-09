@@ -6030,3 +6030,351 @@ button {
         gap: 7px;
     }
 }
+.task-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-height: 36px;
+    padding: 7px 12px;
+
+    border: 1px solid #bfdbfe;
+    border-radius: 9px;
+
+    background: #eff6ff;
+    color: #1d4ed8;
+
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 800;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.task-edit-btn:hover {
+    border-color: #93c5fd;
+    background: #dbeafe;
+    color: #1e40af;
+    transform: translateY(-1px);
+}
+/* =====================================================
+   CLIENT COMMERCIAL RECORD PANELS
+   Enquiries / Quotations / Shipments
+   ===================================================== */
+
+.commercial-panel {
+    padding: 22px;
+}
+
+.commercial-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.commercial-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #2563eb;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.commercial-panel-header h3 {
+    margin: 0 0 5px;
+    color: #111827;
+    font-size: 18px;
+    font-weight: 850;
+}
+
+.commercial-panel-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.commercial-primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 8px 13px;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.commercial-primary-btn:hover {
+    background: #1d4ed8;
+    color: #ffffff;
+}
+
+.commercial-summary-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.commercial-summary-box {
+    min-width: 130px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 11px;
+    background: #f9fafb;
+}
+
+.commercial-summary-box small {
+    display: block;
+    margin-bottom: 3px;
+    color: #9ca3af;
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.commercial-summary-box strong {
+    color: #111827;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.commercial-record-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.commercial-record-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 15px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.commercial-record-card:hover {
+    border-color: #bfdbfe;
+    box-shadow:
+        0 7px 20px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+}
+
+.commercial-record-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.commercial-record-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.commercial-record-type {
+    display: block;
+    margin-bottom: 4px;
+    color: #9ca3af;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+}
+
+.commercial-record-top h4 {
+    margin: 0;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.commercial-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 8px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.commercial-status-pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.commercial-status-approved {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.commercial-status-rejected {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.commercial-status-open,
+.commercial-status-new {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.commercial-status-in_progress,
+.commercial-status-in_transit {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.commercial-status-completed,
+.commercial-status-delivered,
+.commercial-status-closed {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.commercial-status-cancelled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.commercial-record-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 11px;
+    margin-top: 9px;
+}
+
+.commercial-record-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #6b7280;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.commercial-record-meta i {
+    color: #9ca3af;
+}
+
+.commercial-view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    text-decoration: none;
+    font-size: 9px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.commercial-view-btn:hover {
+    border-color: #93c5fd;
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.commercial-empty-state {
+    padding: 42px 20px;
+    border: 1px dashed #d1d5db;
+    border-radius: 12px;
+    background: #fafafa;
+    text-align: center;
+}
+
+.commercial-empty-state > i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 11px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 19px;
+}
+
+.commercial-empty-state h4 {
+    margin: 0 0 5px;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.commercial-empty-state p {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+    .commercial-panel {
+        padding: 15px;
+    }
+
+    .commercial-panel-header {
+        flex-direction: column;
+    }
+
+    .commercial-primary-btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .commercial-record-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .commercial-record-top {
+        flex-direction: column;
+    }
+
+    .commercial-view-btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .commercial-summary-box {
+        flex: 1;
+        min-width: 110px;
+    }
+}

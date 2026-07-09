@@ -11,7 +11,6 @@ Client Profile
 {% block page_subtitle %}
 Complete relationship, lifecycle and account workspace.
 {% endblock %}
-
 {% block content %}
 
 <div class="client-profile-page">
@@ -1186,7 +1185,24 @@ Complete relationship, lifecycle and account workspace.
         </select>
 
     </form>
+        
+    <!-- EDIT TASK -->
 
+<a
+    href="{{ url_for(
+        'tasks.edit_task',
+        task_id=task.id,
+        next=url_for(
+            'clients.view_client',
+            client_id=client.id
+        ) ~ '#tasks'
+    ) }}"
+    class="task-edit-btn"
+    title="Edit Task"
+>
+    <i class="bi bi-pencil-square"></i>
+    Edit
+</a>
 
     <!-- DELETE TASK -->
 
@@ -1701,28 +1717,459 @@ Complete relationship, lifecycle and account workspace.
     {% endif %}
 
 </div>
-        <!-- PLACEHOLDER PANELS -->
+        <!-- =====================================================
+     ENQUIRIES PANEL
+     ===================================================== -->
 
-     {% for tab_id, icon, title, text in [
-    ('enquiries', 'inbox', 'Enquiries', 'Client-linked enquiry records will appear here.'),
-    ('quotations', 'file-earmark-text', 'Quotations', 'Client quotation history will appear here.'),
-    ('shipments', 'truck', 'Shipments', 'Client shipment records will appear here.')
-] %}
+<div
+    class="profile-tab-panel"
+    id="tab-enquiries"
+>
+    <div class="commercial-panel">
 
-        <div
-            class="profile-tab-panel"
-            id="tab-{{ tab_id }}"
-        >
-            <div class="profile-tab-empty">
-                <i class="bi bi-{{ icon }}"></i>
-                <h3>{{ title }}</h3>
-                <p>{{ text }}</p>
+        <div class="commercial-panel-header">
+            <div>
+                <span class="commercial-eyebrow">
+                    SALES PIPELINE
+                </span>
+
+                <h3>Client Enquiries</h3>
+
+                <p>
+                    All enquiries linked to this client.
+                </p>
+            </div>
+
+            <a
+    href="{{ url_for(
+        'enquiries.add_enquiry',
+        client_id=client.id
+    ) }}"
+    class="commercial-primary-btn"
+>
+                <i class="bi bi-plus-lg"></i>
+                New Enquiry
+            </a>
+        </div>
+
+
+        <div class="commercial-summary-row">
+
+            <div class="commercial-summary-box">
+                <small>Total Enquiries</small>
+                <strong>{{ client_enquiries|length }}</strong>
+            </div>
+
+        </div>
+
+
+        {% if client_enquiries %}
+
+            <div class="commercial-record-list">
+
+                {% for enquiry in client_enquiries %}
+
+                    <article class="commercial-record-card">
+
+                        <div class="commercial-record-main">
+
+                            <div class="commercial-record-top">
+
+                                <div>
+                                    <span class="commercial-record-type">
+                                        ENQUIRY
+                                    </span>
+
+                                    <h4>
+                                        {{ enquiry.enquiry_reference }}
+                                    </h4>
+                                </div>
+
+                                <span
+                                    class="
+                                        commercial-status-badge
+                                        commercial-status-{{ enquiry.status }}
+                                    "
+                                >
+                                    {{
+                                        enquiry.status
+                                        |replace("_", " ")
+                                        |title
+                                    }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="commercial-record-meta">
+
+                                <span>
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    {{ enquiry.origin }}
+                                    →
+                                    {{ enquiry.destination }}
+                                </span>
+
+                                <span>
+                                    <i class="bi bi-calendar-event"></i>
+                                    {{
+                                        enquiry.enquiry_date.strftime(
+                                            "%d %b %Y"
+                                        )
+                                    }}
+                                </span>
+
+                                {% if enquiry.handled_by %}
+                                    <span>
+                                        <i class="bi bi-person-fill"></i>
+                                        {{ enquiry.handled_by.full_name }}
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <a
+                            href="{{ url_for(
+                                'enquiries.view_enquiry',
+                                enquiry_id=enquiry.id
+                            ) }}"
+                            class="commercial-view-btn"
+                        >
+                            View
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="commercial-empty-state">
+                <i class="bi bi-inbox"></i>
+
+                <h4>No enquiries yet</h4>
+
+                <p>
+                    This client has no linked enquiry records.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     QUOTATIONS PANEL
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-quotations"
+>
+    <div class="commercial-panel">
+
+        <div class="commercial-panel-header">
+            <div>
+                <span class="commercial-eyebrow">
+                    SALES PIPELINE
+                </span>
+
+                <h3>Client Quotations</h3>
+
+                <p>
+                    All quotations linked through
+                    this client's enquiries.
+                </p>
             </div>
         </div>
 
-        {% endfor %}
+        <div class="commercial-summary-row">
 
-    </section>
+            <div class="commercial-summary-box">
+                <small>Total Quotations</small>
+                <strong>{{ client_quotations|length }}</strong>
+            </div>
+
+            <div class="commercial-summary-box">
+                <small>Approved</small>
+                <strong>
+                    {{
+                        client_quotations
+                        |selectattr(
+                            "status",
+                            "equalto",
+                            "approved"
+                        )
+                        |list
+                        |length
+                    }}
+                </strong>
+            </div>
+
+        </div>
+
+        {% if client_quotations %}
+
+            <div class="commercial-record-list">
+
+                {% for quotation in client_quotations %}
+
+                    <article class="commercial-record-card">
+
+                        <div class="commercial-record-main">
+
+                            <div class="commercial-record-top">
+
+                                <div>
+                                    <span class="commercial-record-type">
+                                        QUOTATION
+                                    </span>
+
+                                    <h4>
+                                        {{ quotation.quotation_number }}
+                                    </h4>
+                                </div>
+
+                                <span
+                                    class="
+                                        commercial-status-badge
+                                        commercial-status-{{ quotation.status }}
+                                    "
+                                >
+                                    {{
+                                        quotation.status
+                                        |replace("_", " ")
+                                        |title
+                                    }}
+                                </span>
+
+                            </div>
+
+                            <div class="commercial-record-meta">
+
+                                <span>
+                                    <i class="bi bi-cash-stack"></i>
+                                    {{ quotation.currency }}
+                                    {{
+                                        "{:,.2f}".format(
+                                            quotation.quotation_amount
+                                        )
+                                    }}
+                                </span>
+
+                                <span>
+                                    <i class="bi bi-calendar-check"></i>
+                                    Valid until
+                                    {{
+                                        quotation.validity_date.strftime(
+                                            "%d %b %Y"
+                                        )
+                                    }}
+                                </span>
+
+                                {% if quotation.enquiry %}
+                                    <span>
+                                        <i class="bi bi-link-45deg"></i>
+                                        {{
+                                            quotation
+                                            .enquiry
+                                            .enquiry_reference
+                                        }}
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                        <a
+                            href="{{ url_for(
+                                'quotations.view_quotation',
+                                quotation_id=quotation.id
+                            ) }}"
+                            class="commercial-view-btn"
+                        >
+                            View
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="commercial-empty-state">
+                <i class="bi bi-file-earmark-text"></i>
+
+                <h4>No quotations yet</h4>
+
+                <p>
+                    No quotation has been created from
+                    this client's enquiries.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     SHIPMENTS PANEL
+     ===================================================== -->
+
+<div
+    class="profile-tab-panel"
+    id="tab-shipments"
+>
+    <div class="commercial-panel">
+
+        <div class="commercial-panel-header">
+
+            <div>
+                <span class="commercial-eyebrow">
+                    OPERATIONS
+                </span>
+
+                <h3>Client Shipments</h3>
+
+                <p>
+                    Active and historical shipments linked
+                    to this client.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="commercial-summary-row">
+
+            <div class="commercial-summary-box">
+                <small>Total Shipments</small>
+                <strong>{{ client_shipments|length }}</strong>
+            </div>
+
+        </div>
+
+
+        {% if client_shipments %}
+
+            <div class="commercial-record-list">
+
+                {% for shipment in client_shipments %}
+
+                    <article class="commercial-record-card">
+
+                        <div class="commercial-record-main">
+
+                            <div class="commercial-record-top">
+
+                                <div>
+                                    <span class="commercial-record-type">
+                                        SHIPMENT
+                                    </span>
+
+                                    <h4>
+                                        {{ shipment.shipment_reference }}
+                                    </h4>
+                                </div>
+
+                                <span
+                                    class="
+                                        commercial-status-badge
+                                        commercial-status-{{ shipment.status }}
+                                    "
+                                >
+                                    {{
+                                        shipment.status
+                                        |replace("_", " ")
+                                        |title
+                                    }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="commercial-record-meta">
+
+                                <span>
+                                    <i class="bi bi-geo-alt-fill"></i>
+
+                                    {{ shipment.origin }}
+                                    →
+                                    {{ shipment.destination }}
+                                </span>
+
+                                {% if shipment.handled_by %}
+                                    <span>
+                                        <i class="bi bi-person-fill"></i>
+                                        {{ shipment.handled_by.full_name }}
+                                    </span>
+                                {% endif %}
+
+                                {% if shipment.created_at %}
+                                    <span>
+                                        <i class="bi bi-calendar-event"></i>
+
+                                        {{
+                                            shipment.created_at.strftime(
+                                                "%d %b %Y"
+                                            )
+                                        }}
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <a
+                            href="{{ url_for(
+                                'shipments.view_shipment',
+                                shipment_id=shipment.id
+                            ) }}"
+                            class="commercial-view-btn"
+                        >
+                            View
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="commercial-empty-state">
+                <i class="bi bi-truck"></i>
+
+                <h4>No shipments yet</h4>
+
+                <p>
+                    This client has no shipment records yet.
+                </p>
+            </div>
+
+        {% endif %}
+
+    </div>
+</div>
+</section>
 
 </div>
 

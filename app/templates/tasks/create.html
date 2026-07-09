@@ -1,0 +1,855 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Create Task | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<div class="task-create-page">
+
+    <div class="create-header">
+
+        <div>
+
+            <a
+                href="{{ url_for('tasks.task_list') }}"
+                class="back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Back to Tasks
+            </a>
+
+            <span class="page-eyebrow">
+                WORK MANAGEMENT
+            </span>
+
+            <h1>Create Task / Follow-Up</h1>
+
+            <p>
+                Schedule client follow-ups, calls, emails,
+                meetings and general work assignments.
+            </p>
+
+        </div>
+
+        <div class="header-icon-box">
+            <i class="bi bi-calendar2-check-fill"></i>
+        </div>
+
+    </div>
+
+
+    <form
+        method="POST"
+        class="task-create-form"
+    >
+
+        <div class="create-layout">
+
+
+            <!-- ==================================
+                 LEFT COLUMN
+                 ================================== -->
+
+            <div class="create-main-column">
+
+
+                <!-- TASK DETAILS -->
+
+                <div class="form-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon task-icon">
+                            <i class="bi bi-list-check"></i>
+                        </span>
+
+                        <div>
+                            <h3>Task Details</h3>
+
+                            <p>
+                                Define the client and work
+                                that needs to be completed.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="client_id">
+                            Client
+                            <span class="required">*</span>
+                        </label>
+
+                        <select
+                            id="client_id"
+                            name="client_id"
+                            required
+                        >
+                            <option value="">
+                                Select Client
+                            </option>
+
+                            {% for client in clients %}
+
+                                <option
+                                    value="{{ client.id }}"
+                                    {% if selected_client_id
+                                        == client.id %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ client.company_name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <small class="field-help">
+                            Task will be linked to this
+                            client record.
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="title">
+                            Task Title
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            placeholder="Example: Follow up on pending quotation"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="6"
+                            placeholder="Add instructions, discussion points or follow-up notes..."
+                        ></textarea>
+
+                        <small class="field-help">
+                            Optional details for the assigned
+                            team member.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SCHEDULE -->
+
+                <div class="form-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon schedule-icon">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Schedule & Assignment</h3>
+
+                            <p>
+                                Set the work type, deadline
+                                and responsible team member.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label for="task_type">
+                                Task Type
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="task_type"
+                                name="task_type"
+                                required
+                            >
+                                <option value="follow_up">
+                                    Follow-Up
+                                </option>
+
+                                <option value="call">
+                                    Call
+                                </option>
+
+                                <option value="email">
+                                    Email
+                                </option>
+
+                                <option value="meeting">
+                                    Meeting
+                                </option>
+
+                                <option value="general">
+                                    General Task
+                                </option>
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="priority">
+                                Priority
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="priority"
+                                name="priority"
+                                required
+                            >
+                                <option value="low">
+                                    Low
+                                </option>
+
+                                <option
+                                    value="medium"
+                                    selected
+                                >
+                                    Medium
+                                </option>
+
+                                <option value="high">
+                                    High
+                                </option>
+
+                                <option value="urgent">
+                                    Urgent
+                                </option>
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="due_date">
+                                Due Date & Time
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="due_date"
+                                name="due_date"
+                                required
+                            >
+
+                            <small class="field-help">
+                                Reminder deadline for this task.
+                            </small>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="assigned_to_id">
+                                Assign To
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="assigned_to_id"
+                                name="assigned_to_id"
+                                required
+                            >
+                                <option value="">
+                                    Select Team Member
+                                </option>
+
+                                {% for user in users %}
+
+                                    <option value="{{ user.id }}">
+                                        {{ user.full_name }}
+                                    </option>
+
+                                {% endfor %}
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================
+                 RIGHT COLUMN
+                 ================================== -->
+
+            <div class="create-side-column">
+
+
+                <!-- WORKFLOW GUIDE -->
+
+                <div class="side-card">
+
+                    <div class="side-heading">
+
+                        <span class="side-heading-icon">
+                            <i class="bi bi-signpost-split-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Task Workflow</h3>
+
+                            <p>
+                                How assigned work progresses.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="workflow-list">
+
+                        <div class="workflow-item active-step">
+
+                            <span class="workflow-number">
+                                1
+                            </span>
+
+                            <div>
+                                <strong>Pending</strong>
+                                <small>
+                                    Task is created and waiting
+                                    to be started.
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="workflow-item">
+
+                            <span class="workflow-number">
+                                2
+                            </span>
+
+                            <div>
+                                <strong>In Progress</strong>
+                                <small>
+                                    Assigned team member is
+                                    actively working.
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="workflow-item">
+
+                            <span class="workflow-number">
+                                3
+                            </span>
+
+                            <div>
+                                <strong>Completed</strong>
+                                <small>
+                                    Work is finished and completion
+                                    time is recorded.
+                                </small>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- REMINDER INFO -->
+
+                <div class="side-card reminder-card">
+
+                    <span class="reminder-icon">
+                        <i class="bi bi-bell-fill"></i>
+                    </span>
+
+                    <h3>Follow-Up Reminder</h3>
+
+                    <p>
+                        Tasks that pass their due date while
+                        still pending or in progress will be
+                        highlighted as overdue.
+                    </p>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="side-card action-card">
+
+                    <button
+                        type="submit"
+                        class="create-task-btn"
+                    >
+                        <i class="bi bi-check-circle-fill"></i>
+                        Create Task
+                    </button>
+
+
+                    <a
+                        href="{{ url_for('tasks.task_list') }}"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    .task-create-page {
+        max-width: 1120px;
+        margin: 0 auto;
+    }
+
+    /* HEADER */
+
+    .create-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 13px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .back-link:hover {
+        color: #2563eb;
+    }
+
+    .page-eyebrow {
+        display: block;
+        margin-bottom: 6px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+    }
+
+    .create-header h1 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .create-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .header-icon-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 58px;
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 23px;
+    }
+
+
+    /* LAYOUT */
+
+    .create-layout {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 2fr)
+            minmax(270px, 0.8fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .create-main-column,
+    .create-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+
+    /* CARDS */
+
+    .form-card,
+    .side-card {
+        padding: 22px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading,
+    .side-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .heading-icon,
+    .side-heading-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        font-size: 17px;
+    }
+
+    .task-icon {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .schedule-icon {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .side-heading-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .card-heading h3,
+    .side-heading h3 {
+        margin: 0 0 4px;
+        color: #111827;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .card-heading p,
+    .side-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* FORM */
+
+    .form-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .required {
+        color: #dc2626;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .form-group input,
+    .form-group select {
+        height: 43px;
+        padding: 0 12px;
+    }
+
+    .form-group textarea {
+        min-height: 130px;
+        padding: 12px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #2563eb;
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 6px;
+        color: #9ca3af;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+
+    /* WORKFLOW */
+
+    .workflow-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .workflow-item {
+        position: relative;
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 10px;
+        min-height: 68px;
+    }
+
+    .workflow-item:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        top: 31px;
+        bottom: 0;
+        left: 14px;
+        width: 2px;
+        background: #e5e7eb;
+    }
+
+    .workflow-number {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 900;
+    }
+
+    .active-step .workflow-number {
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+    .workflow-item strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .workflow-item small {
+        display: block;
+        color: #9ca3af;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+
+    /* REMINDER */
+
+    .reminder-card {
+        text-align: center;
+        border-color: #fed7aa;
+        background: #fffaf5;
+    }
+
+    .reminder-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        margin: 0 auto 12px;
+        border-radius: 13px;
+        background: #ffedd5;
+        color: #ea580c;
+        font-size: 19px;
+    }
+
+    .reminder-card h3 {
+        margin: 0 0 7px;
+        color: #9a3412;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .reminder-card p {
+        margin: 0;
+        color: #78716c;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+
+    /* ACTIONS */
+
+    .action-card {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .create-task-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 11px 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #2563eb;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .create-task-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .cancel-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .cancel-btn:hover {
+        border-color: #9ca3af;
+        color: #374151;
+    }
+
+
+    /* RESPONSIVE */
+
+    @media (max-width: 900px) {
+
+        .create-layout {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+    @media (max-width: 640px) {
+
+        .create-header {
+            flex-direction: column;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-card,
+        .side-card {
+            padding: 18px 16px;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

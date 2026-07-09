@@ -14,6 +14,91 @@ Monitor clients, enquiries, quotations and shipments.
 
 {% block content %}
 
+<style>
+.dashboard-followup-list,
+.dashboard-activity-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+.dashboard-followup-item,
+.dashboard-activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.dashboard-followup-copy,
+.dashboard-activity-item .flow-copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.dashboard-followup-copy strong,
+.dashboard-activity-item .flow-copy strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.dashboard-followup-copy span,
+.dashboard-activity-item .flow-copy span {
+    display: block;
+    font-size: 0.86rem;
+    opacity: 0.72;
+}
+
+.shipment-flow .flow-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.shipment-flow .flow-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.shipment-count-badge {
+    margin-left: auto;
+    min-width: 46px;
+    height: 46px;
+    padding: 0 12px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #ffffff;
+    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+    box-shadow: 0 8px 18px rgba(127, 29, 29, 0.22);
+}
+
+.shipment-count-badge.is-zero {
+    color: #64748b;
+    background: #f1f5f9;
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+}
+
+.shipment-count-label {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+</style>
+
+
 <section class="welcome-banner">
 
     <div class="welcome-content">
@@ -38,7 +123,7 @@ Monitor clients, enquiries, quotations and shipments.
     <div class="welcome-actions">
 
         <a
-            href="#"
+            href="{{ url_for('clients.add_client') }}"
             class="btn btn-light"
         >
             <i class="bi bi-person-plus-fill"></i>
@@ -46,7 +131,7 @@ Monitor clients, enquiries, quotations and shipments.
         </a>
 
         <a
-            href="#"
+            href="{{ url_for('enquiries.add_enquiry') }}"
             class="btn btn-dark-red"
         >
             <i class="bi bi-plus-circle-fill"></i>
@@ -75,7 +160,7 @@ Monitor clients, enquiries, quotations and shipments.
         </div>
 
         <div class="stat-value">
-            0
+            {{ total_clients }}
         </div>
 
         <div class="stat-label">
@@ -104,7 +189,7 @@ Monitor clients, enquiries, quotations and shipments.
         </div>
 
         <div class="stat-value">
-            0
+            {{ total_enquiries }}
         </div>
 
         <div class="stat-label">
@@ -133,7 +218,7 @@ Monitor clients, enquiries, quotations and shipments.
         </div>
 
         <div class="stat-value">
-            0
+            {{ total_quotations }}
         </div>
 
         <div class="stat-label">
@@ -162,7 +247,7 @@ Monitor clients, enquiries, quotations and shipments.
         </div>
 
         <div class="stat-value">
-            0
+            {{ total_shipments }}
         </div>
 
         <div class="stat-label">
@@ -200,7 +285,7 @@ Monitor clients, enquiries, quotations and shipments.
             </div>
 
             <a
-                href="#"
+                href="{{ url_for('shipments.shipment_list') }}"
                 class="text-link"
             >
                 View shipments
@@ -211,148 +296,46 @@ Monitor clients, enquiries, quotations and shipments.
 
         <div class="shipment-flow">
 
-            <div class="flow-item">
+            {% set shipment_stages = [
+                ("booking_confirmed", "Booking Confirmed", "journal-check"),
+                ("pickup", "Pickup", "box-seam"),
+                ("origin_handling", "Origin Handling", "building-gear"),
+                ("in_transit", "In Transit", "arrow-left-right"),
+                ("arrival", "Arrival", "geo-alt-fill"),
+                ("customs_clearance", "Customs Clearance", "shield-check"),
+                ("delivery", "Delivery", "truck"),
+                ("closed", "Closed", "check2-circle")
+            ] %}
 
-                <div class="flow-icon">
-                    <i class="bi bi-journal-check"></i>
-                </div>
+            {% for stage_key, stage_label, stage_icon in shipment_stages %}
 
-                <div class="flow-copy">
-                    <strong>Booked</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    01
-                </div>
-
-            </div>
-
+            {% set stage_count = shipment_stage_counts.get(stage_key, 0) %}
 
             <div class="flow-item">
 
                 <div class="flow-icon">
-                    <i class="bi bi-box-seam"></i>
+                    <i class="bi bi-{{ stage_icon }}"></i>
                 </div>
 
                 <div class="flow-copy">
-                    <strong>Cargo Picked Up</strong>
-                    <span>0 shipments</span>
+                    <strong>{{ stage_label }}</strong>
+
+                    <span class="shipment-count-label">
+                        Current workflow position
+                    </span>
                 </div>
 
-                <div class="flow-number">
-                    02
+                <div
+                    class="shipment-count-badge
+                    {% if stage_count == 0 %}is-zero{% endif %}"
+                    title="{{ stage_count }} shipment{% if stage_count != 1 %}s{% endif %}"
+                >
+                    {{ stage_count }}
                 </div>
 
             </div>
 
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-airplane"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>In Transit</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    03
-                </div>
-
-            </div>
-
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-geo-alt-fill"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>Arrived</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    04
-                </div>
-
-            </div>
-
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>Customs Clearance</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    05
-                </div>
-
-            </div>
-
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-truck-flatbed"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>Out for Delivery</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    06
-                </div>
-
-            </div>
-
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>Delivered</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    07
-                </div>
-
-            </div>
-
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-archive-fill"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>Closed / Completed</strong>
-                    <span>0 shipments</span>
-                </div>
-
-                <div class="flow-number">
-                    08
-                </div>
-
-            </div>
+            {% endfor %}
 
         </div>
 
@@ -373,18 +356,64 @@ Monitor clients, enquiries, quotations and shipments.
                 </h3>
 
                 <p>
-                    Upcoming client actions and reminders.
+                    {{ pending_followups_count }}
+                    pending or in-progress actions.
                 </p>
             </div>
 
-            <button
-                type="button"
+            <a
+                href="{{ url_for('tasks.task_list') }}"
                 class="icon-square-btn"
+                title="View Tasks"
             >
-                <i class="bi bi-plus-lg"></i>
-            </button>
+                <i class="bi bi-arrow-right"></i>
+            </a>
 
         </div>
+
+        {% if follow_up_tasks %}
+
+        <div class="dashboard-followup-list">
+
+            {% for task in follow_up_tasks %}
+
+            <div class="dashboard-followup-item">
+
+                <div class="dashboard-followup-copy">
+                    <strong>{{ task.title }}</strong>
+
+                    <span>
+                        {{ task.client.company_name }}
+                        {% if task.due_date %}
+                        • {{ task.due_date.strftime("%d %b %Y, %I:%M %p") }}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <span class="trend-badge
+                    {% if task.priority in ['high', 'urgent'] %}
+                    warning
+                    {% else %}
+                    neutral
+                    {% endif %}
+                ">
+                    {{ task.priority|title }}
+                </span>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <a
+            href="{{ url_for('tasks.task_list') }}"
+            class="btn btn-primary-red btn-small"
+        >
+            View All Follow-ups
+        </a>
+
+        {% else %}
 
         <div class="empty-state">
 
@@ -393,22 +422,24 @@ Monitor clients, enquiries, quotations and shipments.
             </div>
 
             <h4>
-                No follow-ups yet
+                No pending follow-ups
             </h4>
 
             <p>
-                Client tasks and next follow-up dates
-                will appear here.
+                Pending and in-progress client tasks
+                will appear here automatically.
             </p>
 
             <a
-                href="#"
+                href="{{ url_for('tasks.task_list') }}"
                 class="btn btn-primary-red btn-small"
             >
-                Add Follow-up
+                Open Tasks
             </a>
 
         </div>
+
+        {% endif %}
 
     </article>
 
@@ -444,7 +475,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Lead / Prospect
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["lead"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -452,7 +483,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     New Client
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["new"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -460,7 +491,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Active / Existing
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["active"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -468,7 +499,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Key / Strategic
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["key"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -476,7 +507,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     At-Risk
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["at_risk"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -484,7 +515,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Dormant / Inactive
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["dormant"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -492,7 +523,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Churned / Lost
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["churned"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -500,7 +531,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Reactivated / Win-Back
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["reactivated"] }}</strong>
             </div>
 
             <div class="lifecycle-row">
@@ -508,7 +539,7 @@ Monitor clients, enquiries, quotations and shipments.
                 <span class="lifecycle-name">
                     Referral Client
                 </span>
-                <strong>0</strong>
+                <strong>{{ lifecycle_counts["referral"] }}</strong>
             </div>
 
         </div>
@@ -530,19 +561,49 @@ Monitor clients, enquiries, quotations and shipments.
                 </h3>
 
                 <p>
-                    Calls, emails, meetings and record updates.
+                    Calls, emails and meetings.
                 </p>
             </div>
 
-            <a
-                href="#"
-                class="text-link"
-            >
-                View all
-                <i class="bi bi-arrow-right"></i>
-            </a>
+        </div>
+
+        {% if recent_activities %}
+
+        <div class="dashboard-activity-list">
+
+            {% for activity in recent_activities %}
+
+            <div class="dashboard-activity-item">
+
+                <div class="flow-icon">
+                    {% if activity.activity_type == "call" %}
+                    <i class="bi bi-telephone-fill"></i>
+                    {% elif activity.activity_type == "email" %}
+                    <i class="bi bi-envelope-fill"></i>
+                    {% elif activity.activity_type == "meeting" %}
+                    <i class="bi bi-people-fill"></i>
+                    {% else %}
+                    <i class="bi bi-activity"></i>
+                    {% endif %}
+                </div>
+
+                <div class="flow-copy">
+                    <strong>{{ activity.subject }}</strong>
+
+                    <span>
+                        {{ activity.client.company_name }}
+                        •
+                        {{ activity.activity_date.strftime("%d %b %Y, %I:%M %p") }}
+                    </span>
+                </div>
+
+            </div>
+
+            {% endfor %}
 
         </div>
+
+        {% else %}
 
         <div class="empty-state compact">
 
@@ -555,11 +616,13 @@ Monitor clients, enquiries, quotations and shipments.
             </h4>
 
             <p>
-                Logged communication and CRM changes
-                will appear in chronological order.
+                Logged calls, emails and meetings
+                will appear here automatically.
             </p>
 
         </div>
+
+        {% endif %}
 
     </article>
 

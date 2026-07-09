@@ -34,6 +34,9 @@ from app.models import (
     ClientStatusHistory,
     ClientTask,
     User,
+    Enquiry,
+    Quotation,
+    Shipment,
 )
 
 
@@ -415,26 +418,19 @@ def client_list():
         .count()
     )
 
-
     return render_template(
         "clients/list.html",
         clients=clients,
         pagination=pagination,
-        owners=owners,
-        categories=CLIENT_CATEGORIES,
-        statuses=CLIENT_STATUSES,
-        priorities=PRIORITY_LEVELS,
         total_clients=total_clients,
         active_clients=active_clients,
         lead_clients=lead_clients,
         at_risk_clients=at_risk_clients,
-        current_search=search,
-        current_category=category,
-        current_status=status,
-        current_assigned_to=assigned_to,
-        current_priority=priority,
-        current_sort=sort,
+        statuses=CLIENT_STATUSES,
+        services=SERVICE_OPTIONS,
+        categories=CLIENT_CATEGORIES,
     )
+       
 
 
 # =========================================================
@@ -828,10 +824,6 @@ def add_client():
 
 
 # =========================================================
-# VIEW CLIENT
-# =========================================================
-
-# =========================================================
 # CHANGE CLIENT STATUS
 # =========================================================
 
@@ -975,7 +967,138 @@ def add_activity(client_id):
         "email",
         "meeting",
     }
-    # =========================================================
+
+    # -----------------------------------------
+    # VALIDATION
+    # -----------------------------------------
+
+    if activity_type not in valid_activity_types:
+        flash(
+            "Please select a valid activity type.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "clients.view_client",
+                client_id=client.id
+            )
+            + "#activities"
+        )
+
+    if not subject:
+        flash(
+            "Activity subject is required.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "clients.view_client",
+                client_id=client.id
+            )
+            + "#activities"
+        )
+
+    # -----------------------------------------
+    # PARSE ACTIVITY DATE + TIME
+    # HTML datetime-local format:
+    # 2026-07-06T16:30
+    # -----------------------------------------
+
+    if activity_date_raw:
+        try:
+            activity_date = datetime.strptime(
+                activity_date_raw,
+                "%Y-%m-%dT%H:%M"
+            )
+
+        except ValueError:
+            flash(
+                "Invalid activity date or time.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "clients.view_client",
+                    client_id=client.id
+                )
+                + "#activities"
+            )
+
+    else:
+        activity_date = datetime.now(
+            timezone.utc
+        )
+
+    # -----------------------------------------
+    # CREATE ACTIVITY
+    # -----------------------------------------
+
+    activity = ClientActivity(
+        client_id=client.id,
+        activity_type=activity_type,
+        subject=subject,
+        description=description,
+        activity_date=activity_date,
+        created_by_id=current_user.id,
+    )
+
+    db.session.add(activity)
+
+    # -----------------------------------------
+    # AUTO UPDATE LAST CONTACT DATE
+    # -----------------------------------------
+
+    activity_contact_date = activity_date.date()
+
+    if (
+        client.last_contact_date is None
+        or activity_contact_date >= client.last_contact_date
+    ):
+        client.last_contact_date = activity_contact_date
+
+    try:
+        db.session.commit()
+
+    except Exception as error:
+        db.session.rollback()
+
+        print(
+            "ADD ACTIVITY ERROR:",
+            repr(error)
+        )
+
+        flash(
+            "Unable to save the activity.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "clients.view_client",
+                client_id=client.id
+            )
+            + "#activities"
+        )
+
+    flash(
+        f"{activity.activity_type_label} "
+        f"activity logged successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "clients.view_client",
+            client_id=client.id
+        )
+        + "#activities"
+    )
+
+
+# =========================================================
 # ADD CLIENT NOTE / REMARK
 # =========================================================
 
@@ -1939,249 +2062,6 @@ def delete_task(client_id, task_id):
         + "#tasks"
     )
 
-    # -----------------------------------------
-    # DELETE PERMISSION
-    # Creator OR assigned user
-    # -----------------------------------------
-
-    if (
-        task.created_by_id != current_user.id
-        and task.assigned_to_id != current_user.id
-    ):
-        flash(
-            "You do not have permission to delete this task.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "clients.view_client",
-                client_id=client.id
-            )
-            + "#tasks"
-        )
-            # -------------------------------------
-        # PERMANENT AUDIT TRAIL
-        # Save details BEFORE task deletion
-        # -------------------------------------
-
-        log_client_audit(
-            client_id=client.id,
-            action_type="task",
-            action="deleted",
-            title="Follow-up task deleted",
-            description=(
-                f"Task: {task.title}\n"
-                f"Type: {task.task_type_label}\n"
-                f"Priority: {task.priority_label}\n"
-                f"Status: {task.status_label}"
-            )
-        )
-    try:
-        db.session.delete(task)
-        db.session.flush()
-
-        # -------------------------------------
-        # RECALCULATE NEXT FOLLOW-UP DATE
-        # from remaining active follow-up tasks
-        # -------------------------------------
-
-        remaining_tasks = (
-            db.session.execute(
-                db.select(ClientTask)
-                .where(
-                    ClientTask.client_id == client.id,
-                    ClientTask.status.in_(
-                        [
-                            "pending",
-                            "in_progress",
-                        ]
-                    ),
-                    ClientTask.task_type.in_(
-                        [
-                            "follow_up",
-                            "call",
-                            "email",
-                            "meeting",
-                        ]
-                    )
-                )
-                .order_by(
-                    ClientTask.due_date.asc()
-                )
-            )
-            .scalars()
-            .all()
-        )
-
-        if remaining_tasks:
-            client.next_follow_up_date = (
-                remaining_tasks[0]
-                .due_date
-                .date()
-            )
-        else:
-            client.next_follow_up_date = None
-
-        db.session.commit()
-
-    except Exception:
-        db.session.rollback()
-
-        flash(
-            "Unable to delete the task.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "clients.view_client",
-                client_id=client.id
-            )
-            + "#tasks"
-        )
-
-    flash(
-        "Task deleted successfully.",
-        "success"
-    )
-
-    return redirect(
-        url_for(
-            "clients.view_client",
-            client_id=client.id
-        )
-        + "#tasks"
-    )
-    # -----------------------------------------
-    # VALIDATION
-    # -----------------------------------------
-
-    if activity_type not in valid_activity_types:
-        flash(
-            "Please select a valid activity type.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "clients.view_client",
-                client_id=client.id
-            )
-            + "#activities"
-        )
-
-    if not subject:
-        flash(
-            "Activity subject is required.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "clients.view_client",
-                client_id=client.id
-            )
-            + "#activities"
-        )
-
-    # -----------------------------------------
-    # PARSE ACTIVITY DATE + TIME
-    # HTML datetime-local format:
-    # 2026-07-06T16:30
-    # -----------------------------------------
-
-    if activity_date_raw:
-        try:
-            activity_date = datetime.strptime(
-                activity_date_raw,
-                "%Y-%m-%dT%H:%M"
-            )
-
-        except ValueError:
-            flash(
-                "Invalid activity date or time.",
-                "danger"
-            )
-
-            return redirect(
-                url_for(
-                    "clients.view_client",
-                    client_id=client.id
-                )
-                + "#activities"
-            )
-
-    else:
-        activity_date = datetime.now(
-            timezone.utc
-        )
-
-    # -----------------------------------------
-    # CREATE ACTIVITY
-    # -----------------------------------------
-
-    activity = ClientActivity(
-        client_id=client.id,
-        activity_type=activity_type,
-        subject=subject,
-        description=description,
-        activity_date=activity_date,
-        created_by_id=current_user.id,
-    )
-
-    db.session.add(activity)
-
-    # -----------------------------------------
-    # AUTO UPDATE LAST CONTACT DATE
-    # Document requirement
-    # -----------------------------------------
-
-    activity_contact_date = (
-        activity_date.date()
-    )
-
-    if (
-        client.last_contact_date is None
-        or activity_contact_date
-        >= client.last_contact_date
-    ):
-        client.last_contact_date = (
-            activity_contact_date
-        )
-
-    try:
-        db.session.commit()
-
-    except Exception:
-        db.session.rollback()
-
-        flash(
-            "Unable to save the activity.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "clients.view_client",
-                client_id=client.id
-            )
-            + "#activities"
-        )
-
-    flash(
-        f"{activity.activity_type_label} "
-        f"activity logged successfully.",
-        "success"
-    )
-
-    return redirect(
-        url_for(
-            "clients.view_client",
-            client_id=client.id
-        )
-        + "#activities"
-    )
 # =========================================================
 # VIEW CLIENT
 # =========================================================
@@ -2194,16 +2074,22 @@ def view_client(client_id):
         Client,
         client_id
     )
+
     active_users = (
-    db.session.execute(
-        db.select(User)
-        .where(User.is_active_user.is_(True))
-        .order_by(User.full_name.asc())
+        db.session.execute(
+            db.select(User)
+            .where(
+                User.is_active_user.is_(True)
+            )
+            .order_by(
+                User.full_name.asc()
+            )
+        )
+        .scalars()
+        .all()
     )
-    .scalars()
-    .all()
-)
-        # =====================================================
+
+    # =====================================================
     # COMBINED CLIENT HISTORY / AUDIT TIMELINE
     # =====================================================
 
@@ -2340,42 +2226,178 @@ def view_client(client_id):
         })
 
     # -----------------------------------------
-    # NEWEST FIRST
+    # PERMANENT AUDIT LOGS
     # -----------------------------------------
 
+    audit_logs = (
+        db.session.execute(
+            db.select(ClientAuditLog)
+            .where(
+                ClientAuditLog.client_id == client.id
+            )
+            .order_by(
+                ClientAuditLog.created_at.desc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    for audit in audit_logs:
+
+        client_history.append({
+            "type": "audit",
+            "date": audit.created_at,
+            "title": audit.title,
+            "description": audit.description,
+            "actor": (
+                audit.performed_by.full_name
+                if getattr(audit, "performed_by", None)
+                else "Unknown User"
+            ),
+            "meta": (
+                f"{audit.action_type.replace('_', ' ').title()} • "
+                f"{audit.action.replace('_', ' ').title()}"
+            ),
+            "icon": "shield-check",
+        })
+
+    # =====================================================
+    # CLIENT-LINKED ENQUIRIES
+    # =====================================================
+
+    client_enquiries = (
+        db.session.execute(
+            db.select(Enquiry)
+            .where(
+                Enquiry.client_id == client.id
+            )
+            .order_by(
+                Enquiry.enquiry_date.desc(),
+                Enquiry.id.desc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    # =====================================================
+    # CLIENT-LINKED QUOTATIONS
+    # Quotation -> Enquiry -> Client
+    # =====================================================
+
+    client_quotations = (
+        db.session.execute(
+            db.select(Quotation)
+            .join(
+                Enquiry,
+                Quotation.enquiry_id == Enquiry.id
+            )
+            .where(
+                Enquiry.client_id == client.id
+            )
+            .order_by(
+                Quotation.created_at.desc(),
+                Quotation.id.desc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    # =====================================================
+    # CLIENT-LINKED SHIPMENTS
+    # =====================================================
+
+    client_shipments = (
+        db.session.execute(
+            db.select(Shipment)
+            .where(
+                Shipment.client_id == client.id
+            )
+            .order_by(
+                Shipment.created_at.desc(),
+                Shipment.id.desc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    # -----------------------------------------
+    # NEWEST FIRST
+    # Safe handling for mixed naive/aware DB dates
+    # -----------------------------------------
+
+    def history_sort_key(item):
+        value = item.get("date")
+
+        if value is None:
+            return datetime.min.replace(
+                tzinfo=timezone.utc
+            )
+
+        if isinstance(value, datetime):
+            if value.tzinfo is None:
+                return value.replace(
+                    tzinfo=timezone.utc
+                )
+
+            return value.astimezone(
+                timezone.utc
+            )
+
+        return datetime.combine(
+            value,
+            datetime.min.time(),
+            tzinfo=timezone.utc
+        )
+
     client_history.sort(
-        key=lambda item: item["date"],
+        key=history_sort_key,
         reverse=True
     )
 
     return render_template(
-    "clients/view.html",
-    client=client,
-    client_history=client_history,
-    statuses=CLIENT_STATUSES,
-    services=dict(SERVICE_OPTIONS),
-    categories=dict(CLIENT_CATEGORIES),
-    lead_sources=dict(LEAD_SOURCES),
-    activity_types=[
-        ("call", "Call"),
-        ("email", "Email"),
-        ("meeting", "Meeting"),
-    ],
-    task_assignees=active_users,
-task_types=[
-    ("follow_up", "Follow-Up"),
-    ("call", "Call"),
-    ("email", "Email"),
-    ("meeting", "Meeting"),
-    ("general", "General Task"),
-],
-task_priorities=[
-    ("low", "Low"),
-    ("medium", "Medium"),
-    ("high", "High"),
-    ("urgent", "Urgent"),
-],
-)
+        "clients/view.html",
+        client=client,
+        client_history=client_history,
+
+        # Client-linked commercial records
+        client_enquiries=client_enquiries,
+        client_quotations=client_quotations,
+        client_shipments=client_shipments,
+
+        statuses=CLIENT_STATUSES,
+        services=dict(SERVICE_OPTIONS),
+        categories=dict(CLIENT_CATEGORIES),
+        lead_sources=dict(LEAD_SOURCES),
+
+        activity_types=[
+            ("call", "Call"),
+            ("email", "Email"),
+            ("meeting", "Meeting"),
+        ],
+
+        task_assignees=active_users,
+
+        task_types=[
+            ("follow_up", "Follow-Up"),
+            ("call", "Call"),
+            ("email", "Email"),
+            ("meeting", "Meeting"),
+            ("general", "General Task"),
+        ],
+
+        task_priorities=[
+            ("low", "Low"),
+            ("medium", "Medium"),
+            ("high", "High"),
+            ("urgent", "Urgent"),
+        ],
+    )
+
+
 # =========================================================
 # EDIT CLIENT
 # =========================================================

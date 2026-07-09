@@ -1,0 +1,922 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Edit Task | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<div class="task-edit-page">
+
+    <!-- ==========================================
+         PAGE HEADER
+         ========================================== -->
+
+    <div class="edit-header">
+
+        <div>
+
+            <a
+                href="{{ url_for('tasks.task_list') }}"
+                class="back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Back to Tasks
+            </a>
+
+            <span class="page-eyebrow">
+                WORK MANAGEMENT
+            </span>
+
+            <h1>Edit Task</h1>
+
+            <p>
+                Update schedule, assignment and task details
+                for <strong>{{ task.title }}</strong>.
+            </p>
+
+        </div>
+
+
+        <div class="task-status-box">
+
+            <span>Current Status</span>
+
+            <strong class="status-{{ task.status }}">
+                {{ task.status_label }}
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         EDIT FORM
+         ========================================== -->
+
+    <form
+        method="POST"
+        class="task-edit-form"
+    >
+
+        <div class="edit-layout">
+
+
+            <!-- ==================================
+                 LEFT COLUMN
+                 ================================== -->
+
+            <div class="edit-main-column">
+
+
+                <!-- TASK DETAILS -->
+
+                <div class="form-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon task-icon">
+                            <i class="bi bi-pencil-square"></i>
+                        </span>
+
+                        <div>
+                            <h3>Task Details</h3>
+
+                            <p>
+                                Update the linked client,
+                                title and work instructions.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="client_id">
+                            Client
+                            <span class="required">*</span>
+                        </label>
+
+                        <select
+                            id="client_id"
+                            name="client_id"
+                            required
+                        >
+
+                            {% for client in clients %}
+
+                                <option
+                                    value="{{ client.id }}"
+                                    {% if task.client_id == client.id %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ client.company_name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="title">
+                            Task Title
+                            <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            value="{{ task.title }}"
+                            placeholder="Enter task title"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="6"
+                            placeholder="Add task instructions or notes..."
+                        >{{ task.description or '' }}</textarea>
+
+                        <small class="field-help">
+                            Optional instructions for the
+                            assigned team member.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SCHEDULE -->
+
+                <div class="form-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon schedule-icon">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Schedule & Assignment</h3>
+
+                            <p>
+                                Change task type, priority,
+                                deadline or assignee.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+
+                        <!-- TASK TYPE -->
+
+                        <div class="form-group">
+
+                            <label for="task_type">
+                                Task Type
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="task_type"
+                                name="task_type"
+                                required
+                            >
+
+                                <option
+                                    value="follow_up"
+                                    {% if task.task_type == "follow_up" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Follow-Up
+                                </option>
+
+                                <option
+                                    value="call"
+                                    {% if task.task_type == "call" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Call
+                                </option>
+
+                                <option
+                                    value="email"
+                                    {% if task.task_type == "email" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Email
+                                </option>
+
+                                <option
+                                    value="meeting"
+                                    {% if task.task_type == "meeting" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Meeting
+                                </option>
+
+                                <option
+                                    value="general"
+                                    {% if task.task_type == "general" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    General Task
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- PRIORITY -->
+
+                        <div class="form-group">
+
+                            <label for="priority">
+                                Priority
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="priority"
+                                name="priority"
+                                required
+                            >
+
+                                {% for value in [
+                                    "low",
+                                    "medium",
+                                    "high",
+                                    "urgent"
+                                ] %}
+
+                                    <option
+                                        value="{{ value }}"
+                                        {% if task.priority == value %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        {{ value|title }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- DUE DATE -->
+
+                        <div class="form-group">
+
+                            <label for="due_date">
+                                Due Date & Time
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="due_date"
+                                name="due_date"
+                                value="{{
+                                    task.due_date.strftime(
+                                        '%Y-%m-%dT%H:%M'
+                                    )
+                                }}"
+                                required
+                            >
+
+                            <small class="field-help">
+                                Update the reminder deadline.
+                            </small>
+
+                        </div>
+
+
+                        <!-- ASSIGNEE -->
+
+                        <div class="form-group">
+
+                            <label for="assigned_to_id">
+                                Assign To
+                                <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="assigned_to_id"
+                                name="assigned_to_id"
+                                required
+                            >
+
+                                {% for user in users %}
+
+                                    <option
+                                        value="{{ user.id }}"
+                                        {% if task.assigned_to_id
+                                            == user.id %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        {{ user.full_name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================
+                 RIGHT COLUMN
+                 ================================== -->
+
+            <div class="edit-side-column">
+
+
+                <!-- TASK INFORMATION -->
+
+                <div class="side-card">
+
+                    <div class="side-heading">
+
+                        <span class="side-heading-icon">
+                            <i class="bi bi-info-circle-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Task Information</h3>
+
+                            <p>
+                                Current record information.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-list">
+
+                        <div class="info-item">
+
+                            <span>Created By</span>
+
+                            <strong>
+                                {{ task.created_by.full_name }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Created On</span>
+
+                            <strong>
+                                {{
+                                    task.created_at.strftime(
+                                        "%d %b %Y, %H:%M"
+                                    )
+                                }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Current Assignee</span>
+
+                            <strong>
+                                {{ task.assigned_to.full_name }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Current Client</span>
+
+                            <strong>
+                                {{ task.client.company_name }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- EDIT POLICY -->
+
+                <div class="side-card policy-card">
+
+                    <span class="policy-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </span>
+
+                    <h3>Editing Policy</h3>
+
+                    <p>
+                        Pending and in-progress tasks can be
+                        edited. Completed or cancelled tasks
+                        are locked.
+                    </p>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="side-card action-card">
+
+                    <button
+                        type="submit"
+                        class="save-task-btn"
+                    >
+                        <i class="bi bi-check-circle-fill"></i>
+                        Save Changes
+                    </button>
+
+
+                    <a
+                        href="{{ url_for('tasks.task_list') }}"
+                        class="cancel-edit-btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    .task-edit-page {
+        max-width: 1120px;
+        margin: 0 auto;
+    }
+
+
+    /* ==========================================
+       HEADER
+       ========================================== */
+
+    .edit-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 13px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .back-link:hover {
+        color: #2563eb;
+    }
+
+    .page-eyebrow {
+        display: block;
+        margin-bottom: 6px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+    }
+
+    .edit-header h1 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .edit-header p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .edit-header p strong {
+        color: #374151;
+    }
+
+    .task-status-box {
+        min-width: 170px;
+        padding: 14px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 13px;
+        background: #ffffff;
+    }
+
+    .task-status-box span {
+        display: block;
+        margin-bottom: 5px;
+        color: #9ca3af;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .task-status-box strong {
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .task-status-box .status-pending {
+        color: #c2410c;
+    }
+
+    .task-status-box .status-in_progress {
+        color: #6d28d9;
+    }
+
+
+    /* ==========================================
+       LAYOUT
+       ========================================== */
+
+    .edit-layout {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 2fr)
+            minmax(270px, 0.8fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .edit-main-column,
+    .edit-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+
+    /* ==========================================
+       CARDS
+       ========================================== */
+
+    .form-card,
+    .side-card {
+        padding: 22px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow:
+            0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading,
+    .side-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .heading-icon,
+    .side-heading-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        font-size: 17px;
+    }
+
+    .task-icon {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .schedule-icon {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .side-heading-icon {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .card-heading h3,
+    .side-heading h3 {
+        margin: 0 0 4px;
+        color: #111827;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .card-heading p,
+    .side-heading p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       FORM
+       ========================================== */
+
+    .form-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .required {
+        color: #dc2626;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .form-group input,
+    .form-group select {
+        height: 43px;
+        padding: 0 12px;
+    }
+
+    .form-group textarea {
+        min-height: 130px;
+        padding: 12px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #2563eb;
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 6px;
+        color: #9ca3af;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       INFO LIST
+       ========================================== */
+
+    .info-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-item {
+        padding: 11px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-item:first-child {
+        padding-top: 0;
+    }
+
+    .info-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .info-item span {
+        display: block;
+        margin-bottom: 3px;
+        color: #9ca3af;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .info-item strong {
+        color: #374151;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* ==========================================
+       POLICY
+       ========================================== */
+
+    .policy-card {
+        text-align: center;
+    }
+
+    .policy-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        margin: 0 auto 12px;
+        border-radius: 13px;
+        background: #ecfdf5;
+        color: #059669;
+        font-size: 19px;
+    }
+
+    .policy-card h3 {
+        margin: 0 0 7px;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .policy-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+
+    /* ==========================================
+       ACTIONS
+       ========================================== */
+
+    .action-card {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .save-task-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 11px 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #2563eb;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .save-task-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .cancel-edit-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .cancel-edit-btn:hover {
+        border-color: #9ca3af;
+        color: #374151;
+    }
+
+
+    /* ==========================================
+       RESPONSIVE
+       ========================================== */
+
+    @media (max-width: 900px) {
+
+        .edit-layout {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+    @media (max-width: 640px) {
+
+        .edit-header {
+            flex-direction: column;
+        }
+
+        .task-status-box {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-card,
+        .side-card {
+            padding: 18px 16px;
+        }
+
+    }
+
+</style>
+
+{% endblock %}

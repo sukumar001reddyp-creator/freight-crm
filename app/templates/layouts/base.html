@@ -115,7 +115,7 @@
                     <span>Clients</span>
 
                     <span class="nav-count">
-                        0
+                    {{ sidebar_clients_count }}
                     </span>
                 </a>
 
@@ -138,8 +138,8 @@
                     <span>Enquiries</span>
 
                     <span class="nav-count">
-                        0
-                    </span>
+    {{ sidebar_enquiries_count }}
+</span>
                 </a>
                <a
     href="{{ url_for('quotations.quotation_list') }}"
@@ -170,15 +170,20 @@
 </a>
 
                 <a
-                    href="#"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-check2-square"></i>
-                    </span>
+    href="{{ url_for('tasks.task_list') }}"
+    class="nav-item
+        {% if request.endpoint
+            and request.endpoint.startswith('tasks.') %}
+            active
+        {% endif %}
+    "
+>
+    <span class="nav-icon">
+        <i class="bi bi-check2-square"></i>
+    </span>
 
-                    <span>Tasks & Follow-ups</span>
-                </a>
+    <span>Tasks & Follow-ups</span>
+</a>
 
             </nav>
 
