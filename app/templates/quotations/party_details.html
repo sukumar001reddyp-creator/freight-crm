@@ -1,0 +1,936 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Shipment Party Details | Freight CRM
+{% endblock %}
+
+{% block page_title %}
+Shipment Party Details
+{% endblock %}
+
+{% block page_subtitle %}
+Capture agent, shipper and consignee information before shipment conversion.
+{% endblock %}
+
+{% block content %}
+
+<div class="party-page">
+
+    <!-- ==========================================
+         PAGE HEADER
+         ========================================== -->
+
+    <section class="party-hero">
+
+        <div class="party-hero-copy">
+
+            <span class="party-eyebrow">
+                <i class="bi bi-diagram-3-fill"></i>
+                Approved Quotation Workflow
+            </span>
+
+            <h2>
+                Agent, Shipper & Consignee Details
+            </h2>
+
+            <p>
+                Complete the operational party information
+                required before converting this quotation
+                into a shipment.
+            </p>
+
+        </div>
+
+        <div class="party-hero-actions">
+
+            <a
+                href="{{ url_for(
+                    'quotations.view_quotation',
+                    quotation_id=quotation.id
+                ) }}"
+                class="party-btn party-btn-light"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Back to Quotation
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         QUOTATION SUMMARY
+         ========================================== -->
+
+    <section class="party-summary-grid">
+
+        <article class="party-summary-card">
+
+            <span class="party-summary-icon">
+                <i class="bi bi-file-earmark-text-fill"></i>
+            </span>
+
+            <div>
+                <small>Quotation</small>
+
+                <strong>
+                    {{ quotation.quotation_number }}
+                </strong>
+            </div>
+
+        </article>
+
+
+        <article class="party-summary-card">
+
+            <span class="party-summary-icon">
+                <i class="bi bi-inbox-fill"></i>
+            </span>
+
+            <div>
+                <small>Enquiry</small>
+
+                <strong>
+                    {{ quotation.enquiry.enquiry_reference }}
+                </strong>
+            </div>
+
+        </article>
+
+
+        <article class="party-summary-card">
+
+            <span class="party-summary-icon">
+                <i class="bi bi-building"></i>
+            </span>
+
+            <div>
+                <small>Client</small>
+
+                <strong>
+                    {{ quotation.enquiry.client.company_name }}
+                </strong>
+            </div>
+
+        </article>
+
+
+        <article class="party-summary-card">
+
+            <span class="party-summary-icon success">
+                <i class="bi bi-check-circle-fill"></i>
+            </span>
+
+            <div>
+                <small>Status</small>
+
+                <strong>
+                    {{ quotation.status|title }}
+                </strong>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- ==========================================
+         FORM
+         ========================================== -->
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'quotations.manage_party_details',
+            quotation_id=quotation.id
+        ) }}"
+        class="party-form"
+    >
+
+        <!-- ======================================
+             AGENT DETAILS
+             ====================================== -->
+
+        <section class="party-section-card">
+
+            <div class="party-section-header">
+
+                <div class="party-section-title">
+
+                    <span class="party-section-icon">
+                        <i class="bi bi-globe2"></i>
+                    </span>
+
+                    <div>
+                        <span class="party-section-step">
+                            Operational Partner
+                        </span>
+
+                        <h3>
+                            Agent Details
+                        </h3>
+
+                        <p>
+                            Overseas or local forwarding
+                            agent information.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="party-fields-grid">
+
+                <div class="party-field">
+
+                    <label for="agent_name">
+                        Agent Name
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="agent_name"
+                        name="agent_name"
+                        value="{{ party_details.agent_name if party_details else '' }}"
+                        placeholder="Enter agent company name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="agent_country">
+                        Country
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="agent_country"
+                        name="agent_country"
+                        value="{{ party_details.agent_country if party_details else '' }}"
+                        placeholder="Enter country"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="agent_contact_person">
+                        Contact Person
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="agent_contact_person"
+                        name="agent_contact_person"
+                        value="{{ party_details.agent_contact_person if party_details else '' }}"
+                        placeholder="Enter contact person"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="agent_phone">
+                        Phone
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="agent_phone"
+                        name="agent_phone"
+                        value="{{ party_details.agent_phone if party_details else '' }}"
+                        placeholder="Enter phone number"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="agent_email">
+                        Email
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="email"
+                        id="agent_email"
+                        name="agent_email"
+                        value="{{ party_details.agent_email if party_details else '' }}"
+                        placeholder="Enter email address"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="agent_reference">
+                        Agreement / Reference No.
+                    </label>
+
+                    <input
+                        type="text"
+                        id="agent_reference"
+                        name="agent_reference"
+                        value="{{ party_details.agent_reference if party_details else '' }}"
+                        placeholder="Optional reference number"
+                    >
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================
+             SHIPPER DETAILS
+             ====================================== -->
+
+        <section class="party-section-card">
+
+            <div class="party-section-header">
+
+                <div class="party-section-title">
+
+                    <span class="party-section-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </span>
+
+                    <div>
+                        <span class="party-section-step">
+                            Cargo Origin Party
+                        </span>
+
+                        <h3>
+                            Shipper Details
+                        </h3>
+
+                        <p>
+                            Party responsible for dispatching
+                            the cargo.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="party-fields-grid">
+
+                <div class="party-field">
+
+                    <label for="shipper_name">
+                        Shipper Name
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="shipper_name"
+                        name="shipper_name"
+                        value="{{ party_details.shipper_name if party_details else '' }}"
+                        placeholder="Enter shipper name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="shipper_contact_person">
+                        Contact Person
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="shipper_contact_person"
+                        name="shipper_contact_person"
+                        value="{{ party_details.shipper_contact_person if party_details else '' }}"
+                        placeholder="Enter contact person"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="shipper_phone">
+                        Phone
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="shipper_phone"
+                        name="shipper_phone"
+                        value="{{ party_details.shipper_phone if party_details else '' }}"
+                        placeholder="Enter phone number"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field party-field-full">
+
+                    <label for="shipper_address">
+                        Address
+                        <span>*</span>
+                    </label>
+
+                    <textarea
+                        id="shipper_address"
+                        name="shipper_address"
+                        rows="4"
+                        placeholder="Enter complete shipper address"
+                        required
+                    >{{ party_details.shipper_address if party_details else '' }}</textarea>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================
+             CONSIGNEE DETAILS
+             ====================================== -->
+
+        <section class="party-section-card">
+
+            <div class="party-section-header">
+
+                <div class="party-section-title">
+
+                    <span class="party-section-icon">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </span>
+
+                    <div>
+                        <span class="party-section-step">
+                            Cargo Destination Party
+                        </span>
+
+                        <h3>
+                            Consignee Details
+                        </h3>
+
+                        <p>
+                            Final receiving party for the
+                            shipment.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="party-fields-grid">
+
+                <div class="party-field">
+
+                    <label for="consignee_name">
+                        Consignee Name
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="consignee_name"
+                        name="consignee_name"
+                        value="{{ party_details.consignee_name if party_details else '' }}"
+                        placeholder="Enter consignee name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="consignee_contact_person">
+                        Contact Person
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="consignee_contact_person"
+                        name="consignee_contact_person"
+                        value="{{ party_details.consignee_contact_person if party_details else '' }}"
+                        placeholder="Enter contact person"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field">
+
+                    <label for="consignee_phone">
+                        Phone
+                        <span>*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="consignee_phone"
+                        name="consignee_phone"
+                        value="{{ party_details.consignee_phone if party_details else '' }}"
+                        placeholder="Enter phone number"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="party-field party-field-full">
+
+                    <label for="consignee_address">
+                        Address
+                        <span>*</span>
+                    </label>
+
+                    <textarea
+                        id="consignee_address"
+                        name="consignee_address"
+                        rows="4"
+                        placeholder="Enter complete consignee address"
+                        required
+                    >{{ party_details.consignee_address if party_details else '' }}</textarea>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================
+             ACTION BAR
+             ====================================== -->
+
+        <section class="party-action-bar">
+
+            <div class="party-action-copy">
+
+                <i class="bi bi-shield-check"></i>
+
+                <span>
+                    These details will be linked to
+                    quotation {{ quotation.quotation_number }}.
+                </span>
+
+            </div>
+
+
+            <div class="party-action-buttons">
+
+                <a
+                    href="{{ url_for(
+                        'quotations.view_quotation',
+                        quotation_id=quotation.id
+                    ) }}"
+                    class="party-btn party-btn-light"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="party-btn party-btn-primary"
+                >
+                    <i class="bi bi-check2-circle"></i>
+
+                    {% if party_details %}
+                        Update Party Details
+                    {% else %}
+                        Save Party Details
+                    {% endif %}
+                </button>
+
+            </div>
+
+        </section>
+
+    </form>
+
+</div>
+
+
+<style>
+
+.party-page {
+    display: grid;
+    gap: 22px;
+}
+
+.party-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px;
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            135deg,
+            #7f1d1d,
+            #991b1b
+        );
+    color: #fff;
+    box-shadow:
+        0 18px 40px rgba(127, 29, 29, 0.18);
+}
+
+.party-hero-copy {
+    max-width: 760px;
+}
+
+.party-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.party-hero h2 {
+    margin: 0 0 10px;
+    font-size: clamp(1.55rem, 3vw, 2.35rem);
+}
+
+.party-hero p {
+    margin: 0;
+    max-width: 680px;
+    line-height: 1.65;
+    opacity: 0.88;
+}
+
+.party-summary-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.party-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.party-summary-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #991b1b;
+    background: #fef2f2;
+}
+
+.party-summary-icon.success {
+    color: #15803d;
+    background: #f0fdf4;
+}
+
+.party-summary-card small {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+}
+
+.party-summary-card strong {
+    display: block;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+}
+
+.party-form {
+    display: grid;
+    gap: 20px;
+}
+
+.party-section-card {
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.party-section-header {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.party-section-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.party-section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+    background:
+        linear-gradient(
+            135deg,
+            #b91c1c,
+            #7f1d1d
+        );
+}
+
+.party-section-step {
+    display: block;
+    margin-bottom: 4px;
+    color: #991b1b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.party-section-title h3 {
+    margin: 0 0 5px;
+    color: #0f172a;
+}
+
+.party-section-title p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.55;
+}
+
+.party-fields-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.party-field {
+    display: grid;
+    gap: 8px;
+}
+
+.party-field-full {
+    grid-column: 1 / -1;
+}
+
+.party-field label {
+    color: #334155;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.party-field label span {
+    color: #dc2626;
+}
+
+.party-field input,
+.party-field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dbe2ea;
+    border-radius: 12px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.party-field textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.party-field input:focus,
+.party-field textarea:focus {
+    border-color: #b91c1c;
+    box-shadow:
+        0 0 0 4px rgba(185, 28, 28, 0.1);
+}
+
+.party-action-bar {
+    position: sticky;
+    bottom: 16px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow:
+        0 16px 40px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(12px);
+}
+
+.party-action-copy {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #64748b;
+    font-size: 0.88rem;
+}
+
+.party-action-copy i {
+    color: #15803d;
+}
+
+.party-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.party-btn {
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.party-btn-light {
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.party-btn-primary {
+    color: #fff;
+    background:
+        linear-gradient(
+            135deg,
+            #b91c1c,
+            #7f1d1d
+        );
+    box-shadow:
+        0 8px 18px rgba(127, 29, 29, 0.18);
+}
+
+.party-hero .party-btn-light {
+    color: #7f1d1d;
+    background: #fff;
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 1050px) {
+
+    .party-summary-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 760px) {
+
+    .party-hero,
+    .party-action-bar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .party-summary-grid,
+    .party-fields-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .party-field-full {
+        grid-column: auto;
+    }
+
+    .party-action-buttons {
+        width: 100%;
+    }
+
+    .party-action-buttons .party-btn {
+        flex: 1;
+    }
+
+}
+
+@media (max-width: 520px) {
+
+    .party-hero,
+    .party-section-card {
+        padding: 18px;
+        border-radius: 17px;
+    }
+
+    .party-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .party-action-buttons {
+        flex-direction: column-reverse;
+    }
+
+    .party-action-buttons .party-btn {
+        width: 100%;
+    }
+
+}
+
+</style>
+
+{% endblock %}

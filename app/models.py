@@ -1265,6 +1265,192 @@ class Quotation(db.Model):
             f"<Quotation "
             f"{self.quotation_number}>"
         )
+# =========================================================
+# SHIPMENT PARTY DETAILS MODEL
+#
+# Approved Quotation ->
+# Agent + Shipper + Consignee Details ->
+# Shipment Conversion
+# =========================================================
+
+class ShipmentPartyDetails(db.Model):
+
+    __tablename__ = "shipment_party_details"
+
+    # -----------------------------------------------------
+    # PRIMARY KEY
+    # -----------------------------------------------------
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # -----------------------------------------------------
+    # LINK TO APPROVED QUOTATION
+    #
+    # One quotation = one party-details record
+    # -----------------------------------------------------
+
+    quotation_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "quotations.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # LINK TO ENQUIRY
+    # -----------------------------------------------------
+
+    enquiry_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "enquiries.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=False,
+        index=True
+    )
+
+    # =====================================================
+    # AGENT DETAILS
+    # =====================================================
+
+    agent_name = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    agent_country = db.Column(
+        db.String(120),
+        nullable=False
+    )
+
+    agent_contact_person = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    agent_phone = db.Column(
+        db.String(50),
+        nullable=False
+    )
+
+    agent_email = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    agent_reference = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    # =====================================================
+    # SHIPPER DETAILS
+    # =====================================================
+
+    shipper_name = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    shipper_address = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    shipper_contact_person = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    shipper_phone = db.Column(
+        db.String(50),
+        nullable=False
+    )
+
+    # =====================================================
+    # CONSIGNEE DETAILS
+    # =====================================================
+
+    consignee_name = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    consignee_address = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    consignee_contact_person = db.Column(
+        db.String(255),
+        nullable=False
+    )
+
+    consignee_phone = db.Column(
+        db.String(50),
+        nullable=False
+    )
+
+    # =====================================================
+    # AUDIT FIELDS
+    # =====================================================
+
+    created_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+    # =====================================================
+    # RELATIONSHIPS
+    # =====================================================
+
+    quotation = db.relationship(
+        "Quotation",
+        foreign_keys=[quotation_id]
+    )
+
+    enquiry = db.relationship(
+        "Enquiry",
+        foreign_keys=[enquiry_id]
+    )
+
+    created_by = db.relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
+
+    # =====================================================
+    # DEBUG REPRESENTATION
+    # =====================================================
+
+    def __repr__(self):
+
+        return (
+            f"<ShipmentPartyDetails "
+            f"Quotation={self.quotation_id}>"
+        )
     # =========================================================
 # SHIPMENT MODEL
 #

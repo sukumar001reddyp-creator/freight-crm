@@ -567,59 +567,6 @@ def create_quotation(enquiry_id):
 # Single quotation full details display chestundi.
 # =========================================================
 
-@quotations_bp.route(
-    "/<int:quotation_id>"
-)
-@login_required
-def view_quotation(quotation_id):
-
-    quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
-
-    # -----------------------------------------
-    # CHECK WHETHER ALREADY CONVERTED
-    # -----------------------------------------
-
-    from app.models import Shipment
-
-    converted_shipment = (
-        db.session.execute(
-            db.select(Shipment)
-            .where(
-                Shipment.quotation_id
-                == quotation.id
-            )
-        )
-        .scalars()
-        .first()
-    )
-
-    # -----------------------------------------
-    # LOAD AGENT / SHIPPER / CONSIGNEE DETAILS
-    # -----------------------------------------
-
-    party_details = (
-        db.session.execute(
-            db.select(ShipmentPartyDetails)
-            .where(
-                ShipmentPartyDetails.quotation_id
-                == quotation.id
-            )
-        )
-        .scalars()
-        .first()
-    )
-
-    return render_template(
-        "quotations/view.html",
-        quotation=quotation,
-        converted_shipment=converted_shipment,
-        party_details=party_details,
-    )
-
-
 # =========================================================
 # AGENT / SHIPPER / CONSIGNEE DETAILS
 #

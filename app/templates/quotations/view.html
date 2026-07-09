@@ -575,30 +575,56 @@
         </div>
 
 
-        <form
-            method="POST"
-            action="{{
-                url_for(
-                    'shipments.convert_from_quotation',
-                    quotation_id=quotation.id
-                )
-            }}"
-            onsubmit="
-                return confirm(
-                    'Convert this approved quotation to a shipment?'
-                );
-            "
+        {% if not party_details %}
+
+    <a
+        href="{{ url_for(
+            'quotations.manage_party_details',
+            quotation_id=quotation.id
+        ) }}"
+        class="convert-shipment-btn"
+    >
+        <i class="bi bi-people-fill"></i>
+        Add Party Details
+    </a>
+
+{% else %}
+
+    <a
+        href="{{ url_for(
+            'quotations.manage_party_details',
+            quotation_id=quotation.id
+        ) }}"
+        class="party-edit-btn"
+    >
+        <i class="bi bi-pencil-square"></i>
+        Edit Party Details
+    </a>
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'shipments.convert_from_quotation',
+            quotation_id=quotation.id
+        ) }}"
+        onsubmit="
+            return confirm(
+                'Convert this approved quotation to a shipment?'
+            );
+        "
+    >
+
+        <button
+            type="submit"
+            class="convert-shipment-btn"
         >
+            <i class="bi bi-arrow-right-circle-fill"></i>
+            Convert to Shipment
+        </button>
 
-            <button
-                type="submit"
-                class="convert-shipment-btn"
-            >
-                <i class="bi bi-arrow-right-circle-fill"></i>
-                Convert to Shipment
-            </button>
+    </form>
 
-        </form>
+{% endif %}
 
     </div>
 
