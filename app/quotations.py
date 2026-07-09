@@ -450,7 +450,7 @@ def create_quotation(enquiry_id):
         # CREATE QUOTATION OBJECT
         # -------------------------------------
 
-            quotation = Quotation(
+        quotation = Quotation(
             quotation_number=(
                 generate_quotation_number()
             ),
