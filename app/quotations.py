@@ -494,9 +494,14 @@ def create_quotation(enquiry_id):
 
             db.session.commit()
 
-        except Exception:
+        except Exception as e:
 
             db.session.rollback()
+            print(
+    "QUOTATION CREATE ERROR:",
+    repr(e),
+    flush=True
+)
 
             # If DB save failed after PDF was saved,
             # remove orphan file from disk.
