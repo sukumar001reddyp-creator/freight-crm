@@ -107,8 +107,8 @@ Search, filter and manage complete client lifecycle records.
                 <input
                     type="search"
                     name="search"
-                    value="{{ current_search }}"
-                    placeholder="Search company, contact, email, phone or industry..."
+                    value="{{ selected_search }}"
+                    placeholder="Search reference, company, contact, email, phone or industry..."
                 >
             </div>
 
@@ -123,7 +123,7 @@ Search, filter and manage complete client lifecycle records.
                     {% for value, label in categories %}
                     <option
                         value="{{ value }}"
-                        {% if current_category == value %}
+                        {% if selected_category == value %}
                         selected
                         {% endif %}
                     >
@@ -141,7 +141,25 @@ Search, filter and manage complete client lifecycle records.
                     {% for value, label in statuses %}
                     <option
                         value="{{ value }}"
-                        {% if current_status == value %}
+                        {% if selected_status == value %}
+                        selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+
+                <select name="pipeline_stage">
+                    <option value="">
+                        All Pipeline Stages
+                    </option>
+
+                    {% for value, label in pipeline_stages %}
+                    <option
+                        value="{{ value }}"
+                        {% if selected_pipeline_stage == value %}
                         selected
                         {% endif %}
                     >
@@ -159,7 +177,7 @@ Search, filter and manage complete client lifecycle records.
                     {% for owner in owners %}
                     <option
                         value="{{ owner.id }}"
-                        {% if current_assigned_to == owner.id %}
+                        {% if selected_assigned_to == owner.id %}
                         selected
                         {% endif %}
                     >
@@ -177,7 +195,7 @@ Search, filter and manage complete client lifecycle records.
                     {% for value, label in priorities %}
                     <option
                         value="{{ value }}"
-                        {% if current_priority == value %}
+                        {% if selected_priority == value %}
                         selected
                         {% endif %}
                     >
@@ -190,7 +208,7 @@ Search, filter and manage complete client lifecycle records.
                 <select name="sort">
                     <option
                         value="newest"
-                        {% if current_sort == "newest" %}
+                        {% if selected_sort == "newest" %}
                         selected
                         {% endif %}
                     >
@@ -199,7 +217,7 @@ Search, filter and manage complete client lifecycle records.
 
                     <option
                         value="oldest"
-                        {% if current_sort == "oldest" %}
+                        {% if selected_sort == "oldest" %}
                         selected
                         {% endif %}
                     >
@@ -208,7 +226,7 @@ Search, filter and manage complete client lifecycle records.
 
                     <option
                         value="name_az"
-                        {% if current_sort == "name_az" %}
+                        {% if selected_sort == "name_az" %}
                         selected
                         {% endif %}
                     >
@@ -217,7 +235,7 @@ Search, filter and manage complete client lifecycle records.
 
                     <option
                         value="name_za"
-                        {% if current_sort == "name_za" %}
+                        {% if selected_sort == "name_za" %}
                         selected
                         {% endif %}
                     >
@@ -226,11 +244,20 @@ Search, filter and manage complete client lifecycle records.
 
                     <option
                         value="follow_up"
-                        {% if current_sort == "follow_up" %}
+                        {% if selected_sort == "follow_up" %}
                         selected
                         {% endif %}
                     >
                         Follow-Up Date
+                    </option>
+
+                    <option
+                        value="last_activity"
+                        {% if selected_sort == "last_activity" %}
+                        selected
+                        {% endif %}
+                    >
+                        Last Activity
                     </option>
                 </select>
 
@@ -261,6 +288,26 @@ Search, filter and manage complete client lifecycle records.
 
     <section class="client-table-card">
 
+        {% if current_user.role == "admin" %}
+        <form
+            method="POST"
+            action="{{ url_for('clients.bulk_reassign_owner') }}"
+            id="bulkClientForm"
+        ></form>
+
+        <form
+            method="POST"
+            action="{{ url_for('clients.bulk_export_clients_excel') }}"
+            id="bulkExportForm"
+        ></form>
+
+        <form
+            method="POST"
+            action="{{ url_for('clients.bulk_tag_clients') }}"
+            id="bulkTagForm"
+        ></form>
+        {% endif %}
+
         <div class="client-table-head">
             <div>
                 <span class="panel-eyebrow">
@@ -275,6 +322,144 @@ Search, filter and manage complete client lifecycle records.
             </span>
         </div>
 
+        {% if current_user.role == "admin" %}
+        <div class="bulk-action-toolbar" id="bulkActionToolbar">
+
+            <div class="bulk-selection-status">
+                <span class="bulk-selection-icon">
+                    <i class="bi bi-check2-square"></i>
+                </span>
+
+                <div>
+                    <strong>
+                        <span id="bulkSelectedCount">0</span>
+                        selected
+                    </strong>
+                    <small>Choose clients from the table</small>
+                </div>
+            </div>
+
+            <div class="bulk-owner-action">
+
+                <div class="bulk-owner-select-wrap">
+                    <i class="bi bi-person-badge"></i>
+
+                    <select
+                        name="new_owner_id"
+                        id="bulkOwnerSelect"
+                        form="bulkClientForm"
+                        aria-label="Select new owner"
+                    >
+                        <option value="">
+                            Select new owner
+                        </option>
+
+                        {% for owner in owners %}
+                        <option value="{{ owner.id }}">
+                            {{ owner.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <i class="bi bi-chevron-down bulk-select-chevron"></i>
+                </div>
+
+                <button
+                    type="submit"
+                    class="bulk-reassign-btn"
+                    id="bulkReassignBtn"
+                    form="bulkClientForm"
+                    disabled
+                >
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Reassign Owner</span>
+                </button>
+
+                <button
+                    type="submit"
+                    class="bulk-export-btn"
+                    id="bulkExportBtn"
+                    form="bulkExportForm"
+                    disabled
+                >
+                    <i class="bi bi-file-earmark-excel"></i>
+                    <span>Export Selected</span>
+                </button>
+
+                <div class="bulk-tag-wrap">
+                    <input
+                        type="text"
+                        name="tag_value"
+                        id="bulkTagInput"
+                        form="bulkTagForm"
+                        maxlength="50"
+                        placeholder="Tag / label"
+                        aria-label="Tag or label"
+                    >
+
+                    <select
+                        name="tag_action"
+                        id="bulkTagAction"
+                        form="bulkTagForm"
+                        aria-label="Tag action"
+                    >
+                        <option value="add">Add Tag</option>
+                        <option value="remove">Remove Tag</option>
+                    </select>
+                </div>
+
+                <button
+                    type="submit"
+                    class="bulk-tag-btn"
+                    id="bulkTagBtn"
+                    form="bulkTagForm"
+                    disabled
+                >
+                    <i class="bi bi-tags"></i>
+                    <span>Apply Tag</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="column-settings-btn"
+                    id="columnSettingsBtn"
+                >
+                    <i class="bi bi-layout-three-columns"></i>
+                    <span>Columns</span>
+                </button>
+
+            </div>
+
+        </div>
+        {% endif %}
+
+
+        <div class="column-settings-panel" id="columnSettingsPanel" hidden>
+            <div class="column-settings-head">
+                <div>
+                    <strong>Customize Columns</strong>
+                    <small>Saved for your user in this browser</small>
+                </div>
+                <button type="button" id="closeColumnSettings" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="column-settings-grid">
+                <label><input type="checkbox" data-column-toggle="category" checked> Category</label>
+                <label><input type="checkbox" data-column-toggle="status" checked> Status</label>
+                <label><input type="checkbox" data-column-toggle="contact" checked> Contact</label>
+                <label><input type="checkbox" data-column-toggle="owner" checked> Owner</label>
+                <label><input type="checkbox" data-column-toggle="followup" checked> Follow-Up</label>
+                <label><input type="checkbox" data-column-toggle="priority" checked> Priority</label>
+                <label><input type="checkbox" data-column-toggle="actions" checked> Actions</label>
+            </div>
+
+            <button type="button" class="reset-columns-btn" id="resetColumnsBtn">
+                Reset Default Columns
+            </button>
+        </div>
+
 
         {% if clients %}
 
@@ -284,14 +469,23 @@ Search, filter and manage complete client lifecycle records.
 
                 <thead>
                     <tr>
+                        {% if current_user.role == "admin" %}
+                        <th>
+                            <input
+                                type="checkbox"
+                                id="selectAllClients"
+                                aria-label="Select all clients"
+                            >
+                        </th>
+                        {% endif %}
                         <th>Client</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Contact</th>
-                        <th>Owner</th>
-                        <th>Follow-Up</th>
-                        <th>Priority</th>
-                        <th>Actions</th>
+                        <th data-column="category">Category</th>
+                        <th data-column="status">Status</th>
+                        <th data-column="contact">Contact</th>
+                        <th data-column="owner">Owner</th>
+                        <th data-column="followup">Follow-Up</th>
+                        <th data-column="priority">Priority</th>
+                        <th data-column="actions">Actions</th>
                     </tr>
                 </thead>
 
@@ -300,6 +494,19 @@ Search, filter and manage complete client lifecycle records.
                     {% for client in clients %}
 
                     <tr>
+
+                        {% if current_user.role == "admin" %}
+                        <td>
+                            <input
+                                type="checkbox"
+                                name="client_ids"
+                                value="{{ client.id }}"
+                                class="client-row-checkbox"
+                                form="bulkClientForm"
+                                aria-label="Select {{ client.company_name }}"
+                            >
+                        </td>
+                        {% endif %}
 
                         <td>
                             <div class="client-company-cell">
@@ -319,16 +526,43 @@ Search, filter and manage complete client lifecycle records.
                                         {{ client.company_name }}
                                     </a>
 
+                                    {% if client.client_reference %}
+                                    <small>
+                                        <i class="bi bi-hash"></i>
+                                        {{ client.client_reference }}
+                                    </small>
+                                    {% endif %}
+
                                     <small>
                                         {{ client.industry_sector or 'No industry set' }}
                                     </small>
+
+                                    {% if client.tags %}
+                                    <div class="client-list-tags">
+                                        {% for tag in client.tags[:3] %}
+                                        <span class="client-list-tag">
+                                            <i class="bi bi-tag-fill"></i>
+                                            {{ tag }}
+                                        </span>
+                                        {% endfor %}
+
+                                        {% if client.tags|length > 3 %}
+                                        <span
+                                            class="client-list-tag-more"
+                                            title="{{ client.tags[3:]|join(', ') }}"
+                                        >
+                                            +{{ client.tags|length - 3 }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
                                 </div>
 
                             </div>
                         </td>
 
 
-                        <td>
+                        <td data-column="category">
                             <span class="category-pill">
                                 {{ client.category
                                     |replace('_', ' ')
@@ -338,7 +572,7 @@ Search, filter and manage complete client lifecycle records.
                         </td>
 
 
-                        <td>
+                        <td data-column="status">
                             <span
                                 class="client-status-badge status-{{ client.status }}"
                             >
@@ -348,7 +582,7 @@ Search, filter and manage complete client lifecycle records.
                         </td>
 
 
-                        <td>
+                        <td data-column="contact">
                             <div class="client-contact-cell">
                                 <strong>
                                     {{ client.contact_person_name }}
@@ -361,7 +595,7 @@ Search, filter and manage complete client lifecycle records.
                         </td>
 
 
-                        <td>
+                        <td data-column="owner">
                             <div class="owner-cell">
                                 <span class="owner-avatar">
                                     {{ client.assigned_to.full_name[:1]|upper }}
@@ -374,7 +608,7 @@ Search, filter and manage complete client lifecycle records.
                         </td>
 
 
-                        <td>
+                        <td data-column="followup">
                             {% if client.next_follow_up_date %}
 
                             <span class="follow-up-date">
@@ -393,7 +627,7 @@ Search, filter and manage complete client lifecycle records.
                         </td>
 
 
-                        <td>
+                        <td data-column="priority">
                             {% if client.priority_level %}
 
                             <span
@@ -490,12 +724,13 @@ Search, filter and manage complete client lifecycle records.
                     href="{{ url_for(
                         'clients.client_list',
                         page=pagination.prev_num,
-                        search=current_search,
-                        category=current_category,
-                        status=current_status,
-                        assigned_to=current_assigned_to,
-                        priority=current_priority,
-                        sort=current_sort
+                        search=selected_search,
+                        category=selected_category,
+                        status=selected_status,
+                        pipeline_stage=selected_pipeline_stage,
+                        assigned_to=selected_assigned_to,
+                        priority=selected_priority,
+                        sort=selected_sort
                     ) }}"
                     class="pagination-btn"
                 >
@@ -512,12 +747,13 @@ Search, filter and manage complete client lifecycle records.
                         href="{{ url_for(
                             'clients.client_list',
                             page=page_num,
-                            search=current_search,
-                            category=current_category,
-                            status=current_status,
-                            assigned_to=current_assigned_to,
-                            priority=current_priority,
-                            sort=current_sort
+                            search=selected_search,
+                            category=selected_category,
+                            status=selected_status,
+                            pipeline_stage=selected_pipeline_stage,
+                            assigned_to=selected_assigned_to,
+                            priority=selected_priority,
+                            sort=selected_sort
                         ) }}"
                         class="pagination-btn
                         {% if page_num == pagination.page %}
@@ -543,12 +779,13 @@ Search, filter and manage complete client lifecycle records.
                     href="{{ url_for(
                         'clients.client_list',
                         page=pagination.next_num,
-                        search=current_search,
-                        category=current_category,
-                        status=current_status,
-                        assigned_to=current_assigned_to,
-                        priority=current_priority,
-                        sort=current_sort
+                        search=selected_search,
+                        category=selected_category,
+                        status=selected_status,
+                        pipeline_stage=selected_pipeline_stage,
+                        assigned_to=selected_assigned_to,
+                        priority=selected_priority,
+                        sort=selected_sort
                     ) }}"
                     class="pagination-btn"
                 >
@@ -592,5 +829,686 @@ Search, filter and manage complete client lifecycle records.
     </section>
 
 </div>
+
+
+<style>
+.bulk-action-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border: 1px solid #e7eaf0;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.bulk-selection-status {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 170px;
+}
+
+.bulk-selection-icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    font-size: 17px;
+}
+
+.bulk-selection-status strong,
+.bulk-selection-status small {
+    display: block;
+}
+
+.bulk-selection-status strong {
+    font-size: 14px;
+    line-height: 1.25;
+    color: #172033;
+}
+
+.bulk-selection-status small {
+    margin-top: 3px;
+    font-size: 11px;
+    color: #7a8496;
+}
+
+.bulk-owner-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+}
+
+.bulk-owner-select-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 250px;
+}
+
+.bulk-owner-select-wrap > i:first-child {
+    position: absolute;
+    left: 13px;
+    z-index: 2;
+    pointer-events: none;
+    color: #667085;
+    font-size: 15px;
+}
+
+.bulk-owner-select-wrap select {
+    width: 100%;
+    height: 42px;
+    padding: 0 38px 0 38px;
+    border: 1px solid #d9dee8;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #273043;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.bulk-owner-select-wrap select:focus {
+    border-color: #aeb7c6;
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.06);
+}
+
+.bulk-select-chevron {
+    position: absolute;
+    right: 13px;
+    pointer-events: none;
+    color: #7a8496;
+    font-size: 12px;
+}
+
+.bulk-reassign-btn {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 10px;
+    background: #c62828;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.bulk-reassign-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 16px rgba(198, 40, 40, 0.18);
+}
+
+.bulk-reassign-btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.bulk-export-btn {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border: 1px solid #d9dee8;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #273043;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.bulk-export-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 16px rgba(31, 41, 55, 0.10);
+}
+
+.bulk-export-btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.bulk-action-toolbar.has-selection {
+    background: #ffffff;
+    border-color: #d8dde7;
+}
+
+@media (max-width: 760px) {
+    .bulk-action-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .bulk-owner-action {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .bulk-owner-select-wrap {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .bulk-reassign-btn,
+    .bulk-export-btn {
+        width: 100%;
+    }
+}
+</style>
+
+
+<style>
+.bulk-tag-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bulk-tag-wrap input,
+.bulk-tag-wrap select {
+    height: 42px;
+    border: 1px solid #d9dee8;
+    border-radius: 10px;
+    background: #fff;
+    color: #273043;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+}
+
+.bulk-tag-wrap input {
+    width: 145px;
+    padding: 0 12px;
+}
+
+.bulk-tag-wrap select {
+    padding: 0 10px;
+}
+
+.bulk-tag-btn,
+.column-settings-btn {
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.bulk-tag-btn {
+    border: 1px solid #d9dee8;
+    background: #fff;
+    color: #273043;
+}
+
+.bulk-tag-btn:disabled {
+    opacity: .42;
+    cursor: not-allowed;
+}
+
+.column-settings-btn {
+    border: 1px solid #d9dee8;
+    background: #172033;
+    color: #fff;
+}
+
+.column-settings-panel {
+    margin: 0 0 18px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, .08);
+}
+
+.column-settings-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.column-settings-head strong,
+.column-settings-head small {
+    display: block;
+}
+
+.column-settings-head small {
+    margin-top: 3px;
+    color: #7a8496;
+    font-size: 11px;
+}
+
+.column-settings-head button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.column-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.column-settings-grid label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid #edf0f5;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.reset-columns-btn {
+    margin-top: 14px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #d9dee8;
+    border-radius: 9px;
+    background: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Document requirement: clearly color-coded lifecycle statuses */
+.client-status-badge.status-lead { background:#eef2ff; color:#4338ca; }
+.client-status-badge.status-new { background:#e0f2fe; color:#0369a1; }
+.client-status-badge.status-active { background:#dcfce7; color:#15803d; }
+.client-status-badge.status-key { background:#fef3c7; color:#a16207; }
+.client-status-badge.status-at_risk { background:#ffedd5; color:#c2410c; }
+.client-status-badge.status-dormant { background:#f1f5f9; color:#475569; }
+.client-status-badge.status-churned { background:#fee2e2; color:#b91c1c; }
+.client-status-badge.status-reactivated { background:#ccfbf1; color:#0f766e; }
+.client-status-badge.status-referral { background:#f3e8ff; color:#7e22ce; }
+
+.client-status-badge.status-lead .status-dot { background:#6366f1; }
+.client-status-badge.status-new .status-dot { background:#0ea5e9; }
+.client-status-badge.status-active .status-dot { background:#22c55e; }
+.client-status-badge.status-key .status-dot { background:#eab308; }
+.client-status-badge.status-at_risk .status-dot { background:#f97316; }
+.client-status-badge.status-dormant .status-dot { background:#64748b; }
+.client-status-badge.status-churned .status-dot { background:#ef4444; }
+.client-status-badge.status-reactivated .status-dot { background:#14b8a6; }
+.client-status-badge.status-referral .status-dot { background:#a855f7; }
+
+@media (max-width: 1100px) {
+    .bulk-owner-action {
+        flex-wrap: wrap;
+    }
+
+    .column-settings-grid {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .bulk-tag-wrap {
+        width: 100%;
+    }
+
+    .bulk-tag-wrap input,
+    .bulk-tag-wrap select,
+    .bulk-tag-btn,
+    .column-settings-btn {
+        width: 100%;
+    }
+
+    .column-settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+
+<style>
+.client-list-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 7px;
+}
+
+.client-list-tag,
+.client-list-tag-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 22px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.client-list-tag {
+    border: 1px solid #dfe3ff;
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.client-list-tag i {
+    font-size: 9px;
+}
+
+.client-list-tag-more {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: help;
+}
+</style>
+
+{% if current_user.role == "admin" %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("bulkClientForm");
+    const selectAll = document.getElementById("selectAllClients");
+    const rowCheckboxes = Array.from(
+        document.querySelectorAll(".client-row-checkbox")
+    );
+    const ownerSelect = document.getElementById("bulkOwnerSelect");
+    const submitBtn = document.getElementById("bulkReassignBtn");
+    const selectedCount = document.getElementById("bulkSelectedCount");
+    const bulkToolbar = document.getElementById("bulkActionToolbar");
+    const exportForm = document.getElementById("bulkExportForm");
+    const exportBtn = document.getElementById("bulkExportBtn");
+    const tagForm = document.getElementById("bulkTagForm");
+    const tagBtn = document.getElementById("bulkTagBtn");
+    const tagInput = document.getElementById("bulkTagInput");
+
+    if (!form || !ownerSelect || !submitBtn || !selectedCount) {
+        return;
+    }
+
+    function syncBulkState() {
+        const checked = rowCheckboxes.filter(
+            checkbox => checkbox.checked
+        );
+
+        selectedCount.textContent = checked.length;
+
+        if (bulkToolbar) {
+            bulkToolbar.classList.toggle(
+                "has-selection",
+                checked.length > 0
+            );
+        }
+
+        submitBtn.disabled = !(
+            checked.length > 0 &&
+            ownerSelect.value
+        );
+
+        if (exportBtn) {
+            exportBtn.disabled = checked.length === 0;
+        }
+
+        if (tagBtn) {
+            tagBtn.disabled = !(
+                checked.length > 0 &&
+                tagInput &&
+                tagInput.value.trim()
+            );
+        }
+
+        if (selectAll) {
+            selectAll.checked = (
+                rowCheckboxes.length > 0 &&
+                checked.length === rowCheckboxes.length
+            );
+
+            selectAll.indeterminate = (
+                checked.length > 0 &&
+                checked.length < rowCheckboxes.length
+            );
+        }
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener("change", function () {
+            rowCheckboxes.forEach(function (checkbox) {
+                checkbox.checked = selectAll.checked;
+            });
+
+            syncBulkState();
+        });
+    }
+
+    rowCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener(
+            "change",
+            syncBulkState
+        );
+    });
+
+    ownerSelect.addEventListener(
+        "change",
+        syncBulkState
+    );
+
+    if (tagInput) {
+        tagInput.addEventListener(
+            "input",
+            syncBulkState
+        );
+    }
+
+    form.addEventListener("submit", function (event) {
+        const checkedCount = rowCheckboxes.filter(
+            checkbox => checkbox.checked
+        ).length;
+
+        if (!checkedCount || !ownerSelect.value) {
+            event.preventDefault();
+            return;
+        }
+
+        const ownerName = ownerSelect.options[
+            ownerSelect.selectedIndex
+        ].text.trim();
+
+        if (!window.confirm(
+            `Reassign ${checkedCount} selected client(s) to ${ownerName}?`
+        )) {
+            event.preventDefault();
+        }
+    });
+
+    if (exportForm) {
+        exportForm.addEventListener("submit", function (event) {
+            exportForm.querySelectorAll(
+                'input[data-export-client-id="1"]'
+            ).forEach(function (input) {
+                input.remove();
+            });
+
+            const checked = rowCheckboxes.filter(
+                checkbox => checkbox.checked
+            );
+
+            if (!checked.length) {
+                event.preventDefault();
+                return;
+            }
+
+            checked.forEach(function (checkbox) {
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "client_ids";
+                hiddenInput.value = checkbox.value;
+                hiddenInput.dataset.exportClientId = "1";
+                exportForm.appendChild(hiddenInput);
+            });
+        });
+    }
+
+
+    if (tagForm) {
+        tagForm.addEventListener("submit", function (event) {
+            tagForm.querySelectorAll(
+                'input[data-tag-client-id="1"]'
+            ).forEach(function (input) {
+                input.remove();
+            });
+
+            const checked = rowCheckboxes.filter(
+                checkbox => checkbox.checked
+            );
+
+            if (!checked.length || !tagInput.value.trim()) {
+                event.preventDefault();
+                return;
+            }
+
+            checked.forEach(function (checkbox) {
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "client_ids";
+                hiddenInput.value = checkbox.value;
+                hiddenInput.dataset.tagClientId = "1";
+                tagForm.appendChild(hiddenInput);
+            });
+        });
+    }
+
+    syncBulkState();
+});
+</script>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const settingsBtn = document.getElementById("columnSettingsBtn");
+    const settingsPanel = document.getElementById("columnSettingsPanel");
+    const closeBtn = document.getElementById("closeColumnSettings");
+    const resetBtn = document.getElementById("resetColumnsBtn");
+    const toggles = Array.from(
+        document.querySelectorAll("[data-column-toggle]")
+    );
+
+    if (!settingsBtn || !settingsPanel || !toggles.length) {
+        return;
+    }
+
+    const storageKey = "freight-crm-client-columns-user-{{ current_user.id }}";
+    const defaultColumns = toggles.map(
+        toggle => toggle.dataset.columnToggle
+    );
+
+    function readVisibleColumns() {
+        try {
+            const saved = JSON.parse(
+                localStorage.getItem(storageKey)
+            );
+
+            if (Array.isArray(saved)) {
+                return saved;
+            }
+        } catch (error) {
+            console.warn("Unable to read saved columns", error);
+        }
+
+        return defaultColumns;
+    }
+
+    function applyColumns(visibleColumns) {
+        toggles.forEach(function (toggle) {
+            const columnName = toggle.dataset.columnToggle;
+            const isVisible = visibleColumns.includes(columnName);
+
+            toggle.checked = isVisible;
+
+            document.querySelectorAll(
+                `[data-column="${columnName}"]`
+            ).forEach(function (cell) {
+                cell.hidden = !isVisible;
+            });
+        });
+    }
+
+    function saveColumns() {
+        const visibleColumns = toggles
+            .filter(toggle => toggle.checked)
+            .map(toggle => toggle.dataset.columnToggle);
+
+        localStorage.setItem(
+            storageKey,
+            JSON.stringify(visibleColumns)
+        );
+
+        applyColumns(visibleColumns);
+    }
+
+    settingsBtn.addEventListener("click", function () {
+        settingsPanel.hidden = !settingsPanel.hidden;
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+            settingsPanel.hidden = true;
+        });
+    }
+
+    toggles.forEach(function (toggle) {
+        toggle.addEventListener("change", saveColumns);
+    });
+
+    if (resetBtn) {
+        resetBtn.addEventListener("click", function () {
+            localStorage.removeItem(storageKey);
+            applyColumns(defaultColumns);
+        });
+    }
+
+    applyColumns(readVisibleColumns());
+});
+</script>
 
 {% endblock %}

@@ -533,6 +533,694 @@
             </div>
 
 
+
+            <!-- SHIPMENT DOCUMENT STATUS TRACKING -->
+
+            <div class="detail-card document-tracking-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon document-heading-icon">
+                        <i class="bi bi-folder-check"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Document Status Tracking</h3>
+
+                        <p>
+                            Track required shipment documents,
+                            review status and retain operational remarks.
+                        </p>
+                    </div>
+
+                </div>
+
+                {% if documents %}
+
+                    {% set pending_count = documents | selectattr("status", "equalto", "pending") | list | length %}
+                    {% set received_count = documents | selectattr("status", "equalto", "received") | list | length %}
+                    {% set not_applicable_count = documents | selectattr("status", "equalto", "not_applicable") | list | length %}
+
+                    <div class="document-summary-grid">
+
+                        <div class="document-summary-item summary-total">
+                            <span>Total</span>
+                            <strong>{{ documents | length }}</strong>
+                        </div>
+
+                        <div class="document-summary-item summary-pending">
+                            <span>Pending</span>
+                            <strong>{{ pending_count }}</strong>
+                        </div>
+
+                        <div class="document-summary-item summary-received">
+                            <span>Received</span>
+                            <strong>{{ received_count }}</strong>
+                        </div>
+
+                        <div class="document-summary-item summary-not-applicable">
+                            <span>N/A</span>
+                            <strong>{{ not_applicable_count }}</strong>
+                        </div>
+
+                    </div>
+
+                    <div class="document-checklist">
+
+                        {% for document in documents %}
+
+                            <div class="document-track-item">
+
+                                <div class="document-track-top">
+
+                                    <div class="document-track-identity">
+
+                                        <span class="document-file-icon">
+                                            <i class="bi bi-file-earmark-text-fill"></i>
+                                        </span>
+
+                                        <div>
+                                            <strong>{{ document.document_name }}</strong>
+
+                                            <small>
+                                                {{ document.document_type | replace("_", " ") | title }}
+                                            </small>
+                                        </div>
+
+                                    </div>
+
+                                    <span class="document-status-badge document-status-{{ document.status }}">
+                                        {{ document.status | replace("_", " ") | title }}
+                                    </span>
+
+                                </div>
+
+                                {% if document.received_at or document.remarks %}
+
+                                    <div class="document-meta-box">
+
+                                        {% if document.received_at %}
+
+                                            <span>
+                                                <i class="bi bi-clock-history"></i>
+                                                Received
+                                                {{ document.received_at.strftime("%d %b %Y %H:%M") }}
+                                            </span>
+
+                                        {% endif %}
+
+                                        {% if document.received_by %}
+
+                                            <span>
+                                                <i class="bi bi-person-check-fill"></i>
+                                                {{ document.received_by.full_name }}
+                                            </span>
+
+                                        {% endif %}
+
+                                        {% if document.remarks %}
+
+                                            <p>
+                                                <i class="bi bi-chat-left-text-fill"></i>
+                                                {{ document.remarks }}
+                                            </p>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endif %}
+
+                                <form
+                                    method="POST"
+                                    action="{{
+                                        url_for(
+                                            'shipments.update_document_status',
+                                            shipment_id=shipment.id,
+                                            document_id=document.id
+                                        )
+                                    }}"
+                                    class="document-status-form"
+                                >
+
+                                    <div class="document-form-grid">
+
+                                        <div class="document-form-field">
+
+                                            <label for="status_{{ document.id }}">
+                                                Status
+                                            </label>
+
+                                            <select
+                                                id="status_{{ document.id }}"
+                                                name="status"
+                                                required
+                                            >
+                                                <option value="pending" {% if document.status == "pending" %}selected{% endif %}>
+                                                    Pending
+                                                </option>
+
+                                                <option value="received" {% if document.status == "received" %}selected{% endif %}>
+                                                    Received
+                                                </option>
+
+                                                <option value="not_applicable" {% if document.status == "not_applicable" %}selected{% endif %}>
+                                                    N/A
+                                                </option>
+                                            </select>
+
+                                        </div>
+
+                                        <div class="document-form-field document-remarks-field">
+
+                                            <label for="remarks_{{ document.id }}">
+                                                Remarks
+                                            </label>
+
+                                            <input
+                                                id="remarks_{{ document.id }}"
+                                                type="text"
+                                                name="remarks"
+                                                value="{{ document.remarks or '' }}"
+                                                maxlength="500"
+                                                placeholder="Optional operational remarks"
+                                            >
+
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            class="update-document-btn"
+                                        >
+                                            <i class="bi bi-check2-circle"></i>
+                                            Update
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="document-tracking-empty">
+                        <i class="bi bi-folder-x"></i>
+
+                        <div>
+                            <strong>No document checklist found</strong>
+
+                            <span>
+                                This shipment does not currently have
+                                document tracking records.
+                            </span>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- CUSTOMS CLEARANCE -->
+            <div class="detail-card customs-clearance-card">
+                <div class="card-heading">
+                    <span class="heading-icon customs-heading-icon"><i class="bi bi-shield-check"></i></span>
+                    <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
+                </div>
+                {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
+                {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
+                {% if customs_clearance %}
+                <div id="customsSummaryView" class="customs-summary-view">
+                    <div class="customs-summary-grid">
+                        <div class="customs-summary-item">
+                            <span>Clearance Required</span>
+                            <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
+                        </div>
+                        <div class="customs-summary-item">
+                            <span>Status</span>
+                            <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
+                        </div>
+                        <div class="customs-summary-item">
+                            <span>Clearing Agent</span>
+                            <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
+                        </div>
+                        <div class="customs-summary-item">
+                            <span>Clearance Date</span>
+                            <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
+                        </div>
+                    </div>
+
+                    {% if customs_clearance.remarks %}
+                    <div class="customs-summary-remarks">
+                        <span>Remarks</span>
+                        <p>{{ customs_clearance.remarks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="customs-summary-footer">
+                        <div class="customs-saved-meta">
+                            <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
+                            {% if customs_clearance.updated_by %}
+                            <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
+                            {% endif %}
+                        </div>
+                        <button type="button" id="editCustomsBtn" class="edit-customs-btn">
+                            <i class="bi bi-pencil-square"></i> Edit Customs Clearance
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
+                    <div class="customs-required-panel">
+                        <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
+                        <div class="customs-choice-group">
+                            <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
+                            <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
+                        </div>
+                    </div>
+                    <div id="customsConditionalFields" class="customs-conditional-fields">
+                        <div class="customs-form-grid">
+                            <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
+                                <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
+                                <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
+                                <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
+                                <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
+                            </select></div>
+                            <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
+                            <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
+                        </div>
+                    </div>
+                    <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
+                    <div class="customs-form-actions">
+                        {% if customs_clearance %}
+                        <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        {% endif %}
+                        <button type="submit" class="save-customs-btn">
+                            {% if customs_clearance %}
+                            <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
+                            {% else %}
+                            <i class="bi bi-check2-circle"></i> Save Customs Clearance
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+
+            <!-- ======================================
+                 SHIPMENT CLOSING - SECTION 4.8
+                 ====================================== -->
+
+            <div class="detail-card shipment-closing-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon closing-heading-icon">
+                        <i class="bi bi-archive-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Closing</h3>
+                        <p>
+                            Finalize the shipment after delivery,
+                            archive confirmation and optional client feedback.
+                        </p>
+                    </div>
+
+                </div>
+
+                {% set delivered_complete = "delivered" in completed_stages %}
+
+                {% if shipment_closure %}
+
+                    <div class="closure-success-banner">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>Shipment Closed Successfully</strong>
+                            <span>
+                                Final closure record is saved and the shipment is locked.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="closure-summary-grid">
+
+                        <div class="closure-summary-item">
+                            <span>Closing Status</span>
+                            <strong>
+                                {{ shipment_closure.closing_status | replace("_", " ") | title }}
+                            </strong>
+                        </div>
+
+                        <div class="closure-summary-item">
+                            <span>Closing Date</span>
+                            <strong>
+                                {{ shipment_closure.closing_date.strftime("%d %b %Y %H:%M") }}
+                            </strong>
+                        </div>
+
+                        <div class="closure-summary-item">
+                            <span>Document Archive</span>
+                            <strong class="archive-confirmed-text">
+                                <i class="bi bi-check-circle-fill"></i>
+                                Confirmed
+                            </strong>
+                        </div>
+
+                        <div class="closure-summary-item">
+                            <span>Client Rating</span>
+                            <strong>
+                                {% if shipment_closure.client_rating %}
+                                    {{ shipment_closure.client_rating }} / 5
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    {% if shipment_closure.closing_notes %}
+                        <div class="closure-text-summary">
+                            <span>Closing Notes</span>
+                            <p>{{ shipment_closure.closing_notes }}</p>
+                        </div>
+                    {% endif %}
+
+                    {% if shipment_closure.client_feedback %}
+                        <div class="closure-text-summary feedback-summary">
+                            <span>Client Feedback</span>
+                            <p>{{ shipment_closure.client_feedback }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="closure-audit-bar">
+                        <span>
+                            <i class="bi bi-person-check-fill"></i>
+                            Closed by {{ shipment_closure.closed_by.full_name }}
+                        </span>
+
+                        {% if shipment_closure.updated_by %}
+                            <span>
+                                <i class="bi bi-clock-history"></i>
+                                Last updated by {{ shipment_closure.updated_by.full_name }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if current_user.role == "admin" %}
+
+                        <details class="closure-admin-edit">
+
+                            <summary>
+                                <i class="bi bi-pencil-square"></i>
+                                Edit Closure Details
+                            </summary>
+
+                            <form
+                                method="POST"
+                                action="{{
+                                    url_for(
+                                        'shipments.close_shipment',
+                                        shipment_id=shipment.id
+                                    )
+                                }}"
+                                class="closure-form"
+                            >
+
+                                <div class="closure-form-grid">
+
+                                    <div class="closure-form-field">
+                                        <label for="closing_status_edit">
+                                            Closing Status
+                                        </label>
+
+                                        <select
+                                            id="closing_status_edit"
+                                            name="closing_status"
+                                            required
+                                        >
+                                            <option value="delivered" {% if shipment_closure.closing_status == "delivered" %}selected{% endif %}>
+                                                Delivered
+                                            </option>
+                                            <option value="completed" {% if shipment_closure.closing_status == "completed" %}selected{% endif %}>
+                                                Completed
+                                            </option>
+                                            <option value="closed" {% if shipment_closure.closing_status == "closed" %}selected{% endif %}>
+                                                Closed
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="closure-form-field">
+                                        <label for="client_rating_edit">
+                                            Client Rating
+                                        </label>
+
+                                        <select
+                                            id="client_rating_edit"
+                                            name="client_rating"
+                                        >
+                                            <option value="">Not provided</option>
+                                            {% for rating in range(1, 6) %}
+                                                <option value="{{ rating }}" {% if shipment_closure.client_rating == rating %}selected{% endif %}>
+                                                    {{ rating }} / 5
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                                <div class="closure-form-field">
+                                    <label for="closing_notes_edit">
+                                        Closing Notes
+                                    </label>
+                                    <textarea
+                                        id="closing_notes_edit"
+                                        name="closing_notes"
+                                        rows="3"
+                                        placeholder="Optional closing notes"
+                                    >{{ shipment_closure.closing_notes or "" }}</textarea>
+                                </div>
+
+                                <div class="closure-form-field">
+                                    <label for="client_feedback_edit">
+                                        Client Feedback
+                                    </label>
+                                    <textarea
+                                        id="client_feedback_edit"
+                                        name="client_feedback"
+                                        rows="3"
+                                        placeholder="Optional client feedback"
+                                    >{{ shipment_closure.client_feedback or "" }}</textarea>
+                                </div>
+
+                                <label class="archive-confirmation-box">
+                                    <input
+                                        type="checkbox"
+                                        name="document_archive_confirmed"
+                                        value="yes"
+                                        checked
+                                        required
+                                    >
+                                    <span>
+                                        <i class="bi bi-folder-check"></i>
+                                        <strong>Document Archive Confirmed</strong>
+                                        <small>
+                                            Required confirmation must remain checked.
+                                        </small>
+                                    </span>
+                                </label>
+
+                                <div class="closure-form-actions">
+                                    <button
+                                        type="submit"
+                                        class="close-shipment-btn"
+                                    >
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        Update Closure Details
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </details>
+
+                    {% else %}
+
+                        <div class="closure-lock-note">
+                            <i class="bi bi-lock-fill"></i>
+                            <span>
+                                This shipment is closed. Further modifications are restricted to Admin users.
+                            </span>
+                        </div>
+
+                    {% endif %}
+
+                {% elif delivered_complete %}
+
+                    <div class="closure-ready-banner">
+                        <i class="bi bi-box-arrow-in-down"></i>
+                        <div>
+                            <strong>Ready for Final Closure</strong>
+                            <span>
+                                Delivered stage is complete. Confirm document archiving to close the shipment.
+                            </span>
+                        </div>
+                    </div>
+
+                    <form
+                        method="POST"
+                        action="{{
+                            url_for(
+                                'shipments.close_shipment',
+                                shipment_id=shipment.id
+                            )
+                        }}"
+                        class="closure-form"
+                        onsubmit="
+                            return confirm(
+                                'Close this shipment and lock further non-Admin edits?'
+                            );
+                        "
+                    >
+
+                        <div class="closure-form-grid">
+
+                            <div class="closure-form-field">
+                                <label for="closing_status">
+                                    Closing Status
+                                </label>
+
+                                <select
+                                    id="closing_status"
+                                    name="closing_status"
+                                    required
+                                >
+                                    <option value="">Select closing status</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="closed">Closed</option>
+                                </select>
+                            </div>
+
+                            <div class="closure-form-field">
+                                <label>Closing Date</label>
+
+                                <div class="auto-date-field">
+                                    <i class="bi bi-clock-fill"></i>
+                                    Set automatically on closure
+                                </div>
+                            </div>
+
+                            <div class="closure-form-field">
+                                <label for="client_rating">
+                                    Client Rating
+                                </label>
+
+                                <select
+                                    id="client_rating"
+                                    name="client_rating"
+                                >
+                                    <option value="">Optional</option>
+                                    <option value="1">1 / 5</option>
+                                    <option value="2">2 / 5</option>
+                                    <option value="3">3 / 5</option>
+                                    <option value="4">4 / 5</option>
+                                    <option value="5">5 / 5</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="closure-form-field">
+                            <label for="closing_notes">
+                                Closing Notes
+                            </label>
+
+                            <textarea
+                                id="closing_notes"
+                                name="closing_notes"
+                                rows="3"
+                                placeholder="Optional closing notes"
+                            ></textarea>
+                        </div>
+
+                        <div class="closure-form-field">
+                            <label for="client_feedback">
+                                Client Feedback
+                            </label>
+
+                            <textarea
+                                id="client_feedback"
+                                name="client_feedback"
+                                rows="3"
+                                placeholder="Optional client feedback"
+                            ></textarea>
+                        </div>
+
+                        <label class="archive-confirmation-box">
+                            <input
+                                type="checkbox"
+                                name="document_archive_confirmed"
+                                value="yes"
+                                required
+                            >
+
+                            <span>
+                                <i class="bi bi-folder-check"></i>
+                                <strong>Document Archive Confirmation</strong>
+                                <small>
+                                    I confirm that required shipment documents have been archived.
+                                    This confirmation is mandatory.
+                                </small>
+                            </span>
+                        </label>
+
+                        <div class="closure-form-actions">
+                            <button
+                                type="submit"
+                                class="close-shipment-btn"
+                            >
+                                <i class="bi bi-lock-fill"></i>
+                                Close Shipment
+                            </button>
+                        </div>
+
+                    </form>
+
+                {% else %}
+
+                    <div class="closure-locked-panel">
+
+                        <span class="closure-lock-icon">
+                            <i class="bi bi-lock-fill"></i>
+                        </span>
+
+                        <div>
+                            <strong>Closing Locked</strong>
+                            <p>
+                                Complete the <b>Delivered</b> workflow stage first.
+                                Shipment closing will unlock automatically after delivery.
+                            </p>
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
             <!-- SOURCE RECORDS -->
 
             <div class="detail-card">
@@ -1426,6 +2114,691 @@
     }
 
 
+
+    /* ==========================================
+       SHIPMENT DOCUMENT STATUS TRACKING
+       ========================================== */
+
+    .document-tracking-card {
+        border-top: 4px solid #7c3aed;
+    }
+
+    .document-heading-icon {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .document-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 9px;
+        margin-bottom: 18px;
+    }
+
+    .document-summary-item {
+        padding: 11px 10px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .document-summary-item span {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .document-summary-item strong {
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .summary-total {
+        background: #f8fafc;
+        color: #475569;
+    }
+
+    .summary-pending {
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .summary-received {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .summary-not-applicable {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .document-checklist {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .document-track-item {
+        padding: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 13px;
+        background: #ffffff;
+    }
+
+    .document-track-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .document-track-identity {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .document-file-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        font-size: 16px;
+    }
+
+    .document-track-identity strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #111827;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .document-track-identity small {
+        display: block;
+        color: #9ca3af;
+        font-size: 9px;
+        line-height: 1.4;
+    }
+
+    .document-status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        padding: 5px 8px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .document-status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .document-status-received {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .document-status-not_applicable {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .document-meta-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        padding: 10px 11px;
+        margin-top: 11px;
+        border-radius: 9px;
+        background: #f8fafc;
+    }
+
+    .document-meta-box span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .document-meta-box p {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        width: 100%;
+        margin: 0;
+        color: #475569;
+        font-size: 10px;
+        line-height: 1.5;
+        word-break: break-word;
+    }
+
+    .document-meta-box i {
+        color: #7c3aed;
+    }
+
+    .document-status-form {
+        margin-top: 12px;
+    }
+
+    .document-form-grid {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: end;
+    }
+
+    .document-form-field {
+        min-width: 0;
+    }
+
+    .document-form-field label {
+        display: block;
+        margin-bottom: 5px;
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .document-form-field select,
+    .document-form-field input {
+        width: 100%;
+        height: 38px;
+        box-sizing: border-box;
+        padding: 0 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 9px;
+        outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 11px;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .document-form-field select:focus,
+    .document-form-field input:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.10);
+    }
+
+    .update-document-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 38px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 9px;
+        background: #7c3aed;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .update-document-btn:hover {
+        background: #6d28d9;
+        transform: translateY(-1px);
+    }
+
+    .document-tracking-empty {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 15px;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #94a3b8;
+    }
+
+    .document-tracking-empty > i {
+        font-size: 22px;
+    }
+
+    .document-tracking-empty strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #475569;
+        font-size: 12px;
+    }
+
+    .document-tracking-empty span {
+        display: block;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+
+        .document-summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .summary-total {
+            grid-column: 1 / -1;
+        }
+
+        .document-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .update-document-btn {
+            width: 100%;
+        }
+
+    }
+
+    @media (max-width: 480px) {
+
+        .document-track-top {
+            flex-direction: column;
+        }
+
+        .document-status-badge {
+            margin-left: 48px;
+        }
+
+    }
+
+
+    /* CUSTOMS CLEARANCE */
+    .customs-clearance-card{border-top:4px solid #0f766e}.customs-heading-icon{background:#f0fdfa;color:#0f766e}
+    .customs-clearance-form{display:flex;flex-direction:column;gap:16px}
+    .customs-required-panel{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border:1px solid #ccfbf1;border-radius:12px;background:#f0fdfa}
+    .customs-required-panel strong{display:block;margin-bottom:4px;color:#134e4a;font-size:12px;font-weight:800}.customs-required-panel span{color:#64748b;font-size:10px}
+    .customs-choice-group{display:flex;gap:8px}.customs-choice{cursor:pointer}.customs-choice input{position:absolute;opacity:0}
+    .customs-choice span{display:inline-flex;align-items:center;gap:6px;min-width:70px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800}
+    .customs-choice input:checked+span{border-color:#14b8a6;background:#ccfbf1;color:#115e59}
+    .customs-conditional-fields.is-hidden{display:none}.customs-form-grid{display:grid;grid-template-columns:.9fr 1.3fr .9fr;gap:12px}
+    .customs-form-field label{display:block;margin-bottom:6px;color:#64748b;font-size:9px;font-weight:800;text-transform:uppercase}
+    .customs-form-field input,.customs-form-field select,.customs-form-field textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:9px;background:#fff;color:#111827;font-family:inherit;font-size:11px}
+    .customs-form-field input,.customs-form-field select{height:40px;padding:0 10px}.customs-form-field textarea{padding:10px;resize:vertical}.customs-form-field small{display:block;margin-top:5px;color:#94a3b8;font-size:9px}
+    .customs-saved-meta{display:flex;flex-wrap:wrap;gap:8px 14px;padding:10px 12px;border-radius:9px;background:#f8fafc;font-size:9px;color:#64748b}
+    .customs-form-actions{display:flex;justify-content:flex-end}.save-customs-btn{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 14px;border:0;border-radius:9px;background:#0f766e;color:#fff;cursor:pointer;font-weight:800}
+    @media(max-width:760px){.customs-required-panel{align-items:stretch;flex-direction:column}.customs-choice-group{width:100%}.customs-choice{flex:1}.customs-choice span{width:100%;box-sizing:border-box;justify-content:center}.customs-form-grid{grid-template-columns:1fr}.customs-form-actions{display:block}.save-customs-btn{width:100%;justify-content:center}}
+
+
+    .customs-clearance-form.is-edit-hidden{display:none}
+    .customs-summary-view{display:flex;flex-direction:column;gap:14px}
+    .customs-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .customs-summary-item{padding:13px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
+    .customs-summary-item span,.customs-summary-remarks span{display:block;margin-bottom:5px;color:#64748b;font-size:9px;font-weight:800;text-transform:uppercase}
+    .customs-summary-item strong{color:#0f172a;font-size:12px}
+    .customs-summary-remarks{padding:13px;border-radius:10px;background:#f8fafc}
+    .customs-summary-remarks p{margin:0;color:#334155;font-size:11px;line-height:1.55}
+    .customs-summary-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .edit-customs-btn,.cancel-customs-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:800}
+    .edit-customs-btn{border:0;background:#0f766e;color:#fff}
+    .cancel-customs-btn{border:1px solid #cbd5e1;background:#fff;color:#475569}
+    .customs-form-actions{gap:8px}
+    @media(max-width:760px){
+        .customs-summary-grid{grid-template-columns:1fr}
+        .customs-summary-footer{align-items:stretch;flex-direction:column}
+        .edit-customs-btn,.cancel-customs-btn{width:100%}
+    }
+
+
+    /* ==========================================
+       SHIPMENT CLOSING - SECTION 4.8
+       ========================================== */
+
+    .shipment-closing-card {
+        border-top: 4px solid #334155;
+    }
+
+    .closing-heading-icon {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .closure-locked-panel,
+    .closure-ready-banner,
+    .closure-success-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px;
+        border-radius: 12px;
+    }
+
+    .closure-locked-panel {
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .closure-lock-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #e2e8f0;
+        color: #64748b;
+    }
+
+    .closure-locked-panel strong,
+    .closure-ready-banner strong,
+    .closure-success-banner strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .closure-locked-panel p {
+        margin: 0;
+        color: #64748b;
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+    .closure-ready-banner {
+        margin-bottom: 16px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .closure-success-banner {
+        margin-bottom: 16px;
+        border: 1px solid #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+    }
+
+    .closure-ready-banner > i,
+    .closure-success-banner > i {
+        margin-top: 1px;
+        font-size: 18px;
+    }
+
+    .closure-ready-banner span,
+    .closure-success-banner span {
+        display: block;
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .closure-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .closure-form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .closure-admin-edit .closure-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .closure-form-field label {
+        display: block;
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .closure-form-field select,
+    .closure-form-field textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d1d5db;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 11px;
+        outline: none;
+    }
+
+    .closure-form-field select {
+        height: 40px;
+        padding: 0 10px;
+    }
+
+    .closure-form-field textarea {
+        padding: 10px;
+        resize: vertical;
+    }
+
+    .closure-form-field select:focus,
+    .closure-form-field textarea:focus {
+        border-color: #64748b;
+        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.12);
+    }
+
+    .auto-date-field {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 40px;
+        box-sizing: border-box;
+        padding: 0 10px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 9px;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .archive-confirmation-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid #fbbf24;
+        border-radius: 11px;
+        background: #fffbeb;
+        cursor: pointer;
+    }
+
+    .archive-confirmation-box input {
+        width: 17px;
+        height: 17px;
+        margin: 2px 0 0;
+        accent-color: #d97706;
+    }
+
+    .archive-confirmation-box > span {
+        display: block;
+        min-width: 0;
+    }
+
+    .archive-confirmation-box i {
+        margin-right: 5px;
+        color: #d97706;
+    }
+
+    .archive-confirmation-box strong {
+        color: #92400e;
+        font-size: 11px;
+    }
+
+    .archive-confirmation-box small {
+        display: block;
+        margin-top: 4px;
+        color: #78716c;
+        font-size: 9px;
+        line-height: 1.5;
+    }
+
+    .closure-form-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .close-shipment-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 40px;
+        padding: 0 15px;
+        border: 0;
+        border-radius: 9px;
+        background: #334155;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .close-shipment-btn:hover {
+        background: #1e293b;
+    }
+
+    .closure-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .closure-summary-item {
+        padding: 13px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+
+    .closure-summary-item span,
+    .closure-text-summary span {
+        display: block;
+        margin-bottom: 5px;
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .closure-summary-item strong {
+        color: #0f172a;
+        font-size: 12px;
+    }
+
+    .archive-confirmed-text {
+        color: #166534 !important;
+    }
+
+    .closure-text-summary {
+        padding: 13px;
+        margin-top: 10px;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+
+    .feedback-summary {
+        background: #eff6ff;
+    }
+
+    .closure-text-summary p {
+        margin: 0;
+        color: #334155;
+        font-size: 11px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .closure-audit-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        padding: 10px 12px;
+        margin-top: 12px;
+        border-radius: 9px;
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .closure-audit-bar i {
+        color: #16a34a;
+    }
+
+    .closure-lock-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 12px;
+        margin-top: 12px;
+        border-radius: 9px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .closure-admin-edit {
+        margin-top: 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 11px;
+        overflow: hidden;
+    }
+
+    .closure-admin-edit summary {
+        padding: 12px 14px;
+        background: #f8fafc;
+        color: #334155;
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .closure-admin-edit .closure-form {
+        padding: 14px;
+    }
+
+    @media (max-width: 760px) {
+        .closure-form-grid,
+        .closure-admin-edit .closure-form-grid,
+        .closure-summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .closure-form-actions {
+            display: block;
+        }
+
+        .close-shipment-btn {
+            width: 100%;
+        }
+    }
+
+
     /* ==========================================
        TABLET
        ========================================== */
@@ -1873,4 +3246,45 @@
 
 </style>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+ const radios=document.querySelectorAll('input[name="clearance_required"]');
+ const box=document.getElementById("customsConditionalFields");
+ const status=document.getElementById("clearance_status");
+ const agent=document.getElementById("clearing_agent_name");
+ const date=document.getElementById("clearance_date");
+ function sync(){
+  const chosen=document.querySelector('input[name="clearance_required"]:checked');
+  const yes=chosen&&chosen.value==="yes";
+  box.classList.toggle("is-hidden",!yes);
+  status.disabled=!yes; agent.disabled=!yes; date.disabled=!yes;
+  status.required=yes; date.required=yes&&status.value==="cleared";
+ }
+ radios.forEach(r=>r.addEventListener("change",sync));
+ status.addEventListener("change",sync); sync();
+
+ const summary=document.getElementById("customsSummaryView");
+ const form=document.getElementById("customsClearanceForm");
+ const editBtn=document.getElementById("editCustomsBtn");
+ const cancelBtn=document.getElementById("cancelCustomsBtn");
+
+ if(editBtn){
+  editBtn.addEventListener("click",function(){
+   summary.style.display="none";
+   form.classList.remove("is-edit-hidden");
+   sync();
+  });
+ }
+
+ if(cancelBtn){
+  cancelBtn.addEventListener("click",function(){
+   form.classList.add("is-edit-hidden");
+   summary.style.display="";
+  });
+ }
+});
+</script>
 {% endblock %}

@@ -45,6 +45,13 @@ Complete relationship, lifecycle and account workspace.
 
                 <div class="profile-badge-row">
 
+                    {% if client.client_reference %}
+                    <span class="category-pill">
+                        <i class="bi bi-hash"></i>
+                        {{ client.client_reference }}
+                    </span>
+                    {% endif %}
+
                     <span class="client-status-badge status-{{ client.status }}">
                         <span class="status-dot"></span>
                         {{ client.status_label }}
@@ -90,6 +97,31 @@ Complete relationship, lifecycle and account workspace.
                 <i class="bi bi-pencil-square"></i>
                 Edit Client
             </a>
+
+            {% if client.status in ["lead", "new"] or client.category == "pipeline" %}
+            <button
+                type="button"
+                class="btn btn-convert-active"
+                onclick="openConvertModal()"
+            >
+                <i class="bi bi-person-check-fill"></i>
+                Convert to Active
+            </button>
+            {% endif %}
+
+            <button
+                type="button"
+                class="btn btn-owner-action"
+                onclick="openOwnerModal()"
+            >
+                <i class="bi bi-person-gear"></i>
+                Reassign Owner
+            </button>
+
+            
+
+    
+
 
             <button
                 type="button"
@@ -265,6 +297,273 @@ Complete relationship, lifecycle and account workspace.
 
                 <div class="profile-content-main">
 
+                    <section class="profile-info-card client-pipeline-card">
+
+                        <div class="profile-section-title pipeline-title-row">
+                            <span>
+                                <i class="bi bi-diagram-3-fill"></i>
+                            </span>
+
+                            <div>
+                                <h3>Sales Pipeline / Funnel</h3>
+                                <p>Current opportunity stage and controlled movement path</p>
+                            </div>
+
+                            <div class="pipeline-current-badge">
+                                <small>Current Stage</small>
+                                <strong>
+                                    {% if client.pipeline_stage %}
+                                        {{ dict(pipeline_stages).get(
+                                            client.pipeline_stage,
+                                            client.pipeline_stage|replace('_', ' ')|title
+                                        ) }}
+                                    {% else %}
+                                        Not Started
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+
+                        <div class="pipeline-progress-shell">
+                            <div class="pipeline-stage-track">
+                                {% set current_stage = client.pipeline_stage %}
+                                {% set ns = namespace(current_index=-1) %}
+
+                                {% for value, label in pipeline_stages %}
+                                    {% if value == current_stage %}
+                                        {% set ns.current_index = loop.index0 %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% for value, label in pipeline_stages %}
+                                <div
+                                    class="
+                                        pipeline-stage-node
+                                        {% if value == current_stage %}is-current{% endif %}
+                                        {% if ns.current_index >= 0 and loop.index0 < ns.current_index %}is-complete{% endif %}
+                                        {% if value in ['won', 'lost'] %}is-outcome{% endif %}
+                                    "
+                                >
+                                    <div class="pipeline-node-marker">
+                                        {% if ns.current_index >= 0 and loop.index0 < ns.current_index %}
+                                            <i class="bi bi-check-lg"></i>
+                                        {% elif value == current_stage %}
+                                            <i class="bi bi-circle-fill"></i>
+                                        {% else %}
+                                            {{ loop.index }}
+                                        {% endif %}
+                                    </div>
+
+                                    <span>{{ label }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="pipeline-card-footer">
+                            <div class="pipeline-guidance">
+                                <i class="bi bi-shield-check"></i>
+                                <span>
+                                    {% if not client.pipeline_stage %}
+                                        Pipeline starts at Prospect.
+                                    {% elif client.pipeline_stage in ["won", "lost"] %}
+                                        This opportunity reached a terminal outcome.
+                                    {% else %}
+                                        Movement is restricted to one adjacent stage at a time.
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="pipeline-move-btn"
+                                onclick="openPipelineModal()"
+                                {% if not allowed_pipeline_stages %}disabled{% endif %}
+                            >
+                                <i class="bi bi-arrow-left-right"></i>
+                                {% if client.pipeline_stage in ["won", "lost"] %}
+                                    Pipeline Closed
+                                {% else %}
+                                    Move Stage
+                                {% endif %}
+                            </button>
+                        </div>
+
+                    </section>
+
+                    <section class="profile-info-card client-ownership-card">
+
+                        <div class="profile-section-title">
+                            <span>
+                                <i class="bi bi-person-gear"></i>
+                            </span>
+
+                            <div>
+                                <h3>Account Ownership</h3>
+                                <p>Current relationship owner and reassignment action</p>
+                            </div>
+                        </div>
+
+                        <div class="ownership-summary-row">
+                            <div class="ownership-person">
+                                <div class="ownership-avatar">
+                                    {{ client.assigned_to.full_name[:1]|upper }}
+                                </div>
+                                <div>
+                                    <small>Current Assigned Owner</small>
+                                    <strong>{{ client.assigned_to.full_name }}</strong>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="ownership-change-btn"
+                                onclick="openOwnerModal()"
+                            >
+                                <i class="bi bi-arrow-left-right"></i>
+                                Assign / Reassign
+                            </button>
+                        </div>
+
+                    </section>
+                    {% if current_user.role == "admin" %}
+<section class="profile-info-card">
+    <div class="profile-section-title">
+        <span>
+            <i class="bi bi-shield-lock-fill"></i>
+        </span>
+
+        <div>
+            <h3>Admin Actions</h3>
+            <p>Restricted record management actions</p>
+        </div>
+    </div>
+
+    <div class="admin-action-stack">
+
+        {% if not client.is_archived %}
+        <button
+            type="button"
+            class="btn btn-merge-duplicate"
+            onclick="openMergeModal()"
+        >
+            <i class="bi bi-intersect"></i>
+            Merge Duplicate Client
+        </button>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.archive_client',
+                client_id=client.id
+            ) }}"
+            class="admin-inline-form"
+            onsubmit="return confirmArchiveClient();"
+        >
+            <button
+                type="submit"
+                class="btn btn-archive-client"
+            >
+                <i class="bi bi-archive-fill"></i>
+                Archive Client
+            </button>
+        </form>
+
+        <div class="permanent-delete-locked">
+            <i class="bi bi-lock-fill"></i>
+            <span>Permanent delete becomes available only after archiving this client.</span>
+        </div>
+
+        {% else %}
+
+<form
+    method="POST"
+    action="{{ url_for(
+        'clients.restore_client',
+        client_id=client.id
+    ) }}"
+    class="admin-inline-form"
+    onsubmit="return confirmRestoreClient();"
+>
+    <button
+        type="submit"
+        class="btn btn-restore-client"
+    >
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Restore Client
+    </button>
+</form>
+
+<button
+    type="button"
+    class="btn btn-permanent-delete"
+    onclick="openPermanentDeleteModal()"
+>
+    <i class="bi bi-trash3-fill"></i>
+    Delete Permanently
+</button>
+
+{% endif %}
+    </div>
+</section>
+{% endif %}
+
+                    <section class="profile-info-card client-export-card">
+
+                        <div class="profile-section-title">
+                            <span>
+                                <i class="bi bi-box-arrow-down"></i>
+                            </span>
+
+                            <div>
+                                <h3>Export Record</h3>
+                                <p>Download the complete client CRM record for reporting and offline review</p>
+                            </div>
+                        </div>
+
+                        <div class="client-export-actions">
+                            <a
+                                href="{{ url_for(
+                                    'clients.export_client_pdf',
+                                    client_id=client.id
+                                ) }}"
+                                class="client-export-btn export-pdf-btn"
+                            >
+                                <span class="client-export-icon">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                                </span>
+
+                                <span class="client-export-copy">
+                                    <strong>Export PDF</strong>
+                                    <small>Complete printable client record</small>
+                                </span>
+
+                                <i class="bi bi-download client-export-download"></i>
+                            </a>
+
+                            <a
+                                href="{{ url_for(
+                                    'clients.export_client_excel',
+                                    client_id=client.id
+                                ) }}"
+                                class="client-export-btn export-excel-btn"
+                            >
+                                <span class="client-export-icon">
+                                    <i class="bi bi-file-earmark-excel-fill"></i>
+                                </span>
+
+                                <span class="client-export-copy">
+                                    <strong>Export Excel</strong>
+                                    <small>Structured workbook with separate sheets</small>
+                                </span>
+
+                                <i class="bi bi-download client-export-download"></i>
+                            </a>
+                        </div>
+
+                    </section>
+
+
                     <section class="profile-info-card">
 
                         <div class="profile-section-title">
@@ -280,6 +579,13 @@ Complete relationship, lifecycle and account workspace.
 
 
                         <div class="profile-detail-grid">
+
+                            <div class="profile-detail-item">
+                                <small>Client Reference</small>
+                                <strong>
+                                    {{ client.client_reference or 'Not Set' }}
+                                </strong>
+                            </div>
 
                             <div class="profile-detail-item">
                                 <small>Company Name</small>
@@ -1638,6 +1944,9 @@ Complete relationship, lifecycle and account workspace.
                             {% elif item.type == "document" %}
                                 Document
 
+                            {% elif item.type == "pipeline" %}
+                                Pipeline Movement
+
                             {% else %}
                                 Event
                             {% endif %}
@@ -2171,6 +2480,631 @@ Complete relationship, lifecycle and account workspace.
 </div>
 </section>
 
+</div>
+
+
+
+<!-- =====================================================
+     PERMANENT DELETE CLIENT MODAL
+     Admin only + archived only + exact-name confirmation
+     ===================================================== -->
+
+{% if current_user.role == "admin" and client.is_archived %}
+<div class="crm-modal-backdrop" id="permanentDeleteModal">
+    <div class="crm-modal-card permanent-delete-modal-card">
+
+        <div class="crm-modal-header">
+            <div>
+                <span class="panel-eyebrow">DANGER ZONE</span>
+                <h3>Delete Client Permanently</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closePermanentDeleteModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.delete_client_permanently',
+                client_id=client.id
+            ) }}"
+            id="permanentDeleteForm"
+            onsubmit="return confirmPermanentDeleteSubmit();"
+        >
+            <div class="crm-modal-body">
+
+                <div class="permanent-delete-warning">
+                    <span>
+                        <i class="bi bi-exclamation-octagon-fill"></i>
+                    </span>
+
+                    <div>
+                        <strong>This action cannot be undone</strong>
+                        <p>
+                            The client record and deletable internal CRM history
+                            will be permanently removed. Linked commercial records
+                            can block deletion for safety.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="permanent-delete-client">
+                    <small>Archived Client</small>
+                    <strong>{{ client.company_name }}</strong>
+                    <p>Client ID #{{ client.id }} • {{ client.email }}</p>
+                </div>
+
+                <div class="crm-field modal-field-gap">
+                    <label for="permanentDeleteConfirmation">
+                        Type the exact company name to confirm
+                        <span class="required">*</span>
+                    </label>
+
+                    <div class="permanent-delete-name-copy">
+                        {{ client.company_name }}
+                    </div>
+
+                    <input
+                        type="text"
+                        id="permanentDeleteConfirmation"
+                        name="confirmation_name"
+                        autocomplete="off"
+                        placeholder="Enter exact company name"
+                        oninput="syncPermanentDeleteState()"
+                        required
+                    >
+
+                    <small class="permanent-delete-help">
+                        The delete button remains disabled until the name matches exactly.
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="crm-modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closePermanentDeleteModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-permanent-delete-confirm"
+                    id="permanentDeleteSubmitBtn"
+                    disabled
+                >
+                    <i class="bi bi-trash3-fill"></i>
+                    Delete Permanently
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endif %}
+
+
+<!-- =====================================================
+     MERGE DUPLICATE CLIENT MODAL
+     Admin only + destructive confirmation
+     ===================================================== -->
+
+{% if current_user.role == "admin" %}
+<div class="crm-modal-backdrop" id="mergeModal">
+    <div class="crm-modal-card merge-modal-card">
+
+        <div class="crm-modal-header">
+            <div>
+                <span class="panel-eyebrow">DATA CONSOLIDATION</span>
+                <h3>Merge Duplicate Client</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeMergeModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.merge_client',
+                client_id=client.id
+            ) }}"
+            id="mergeClientForm"
+            onsubmit="return confirmClientMerge();"
+        >
+            <div class="crm-modal-body">
+
+                <div class="merge-source-panel">
+                    <span class="merge-source-icon">
+                        <i class="bi bi-files"></i>
+                    </span>
+
+                    <div>
+                        <small>Duplicate Source Record</small>
+                        <strong>{{ client.company_name }}</strong>
+                        <p>
+                            Client ID #{{ client.id }} •
+                            {{ client.email }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="merge-direction-row">
+                    <span></span>
+                    <div>
+                        <i class="bi bi-arrow-down"></i>
+                        Merge into master record
+                    </div>
+                    <span></span>
+                </div>
+
+                <div class="crm-field">
+                    <label for="target_client_id">
+                        Master Client Record
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        id="target_client_id"
+                        name="target_client_id"
+                        required
+                        onchange="updateMergeTargetPreview()"
+                    >
+                        <option value="">Select active master client</option>
+
+                        {% for target in merge_candidates %}
+                        <option
+                            value="{{ target.id }}"
+                            data-company="{{ target.company_name|e }}"
+                            data-contact="{{ target.contact_person_name|e }}"
+                            data-email="{{ target.email|e }}"
+                            data-phone="{{ target.primary_phone|e }}"
+                        >
+                            {{ target.company_name }}
+                            — {{ target.contact_person_name }}
+                            — {{ target.email }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <small class="merge-field-help">
+                        The selected master record survives. This duplicate source record is removed after verified transfer.
+                    </small>
+                </div>
+
+                <div
+                    class="merge-target-preview"
+                    id="mergeTargetPreview"
+                    hidden
+                >
+                    <span class="merge-target-avatar" id="mergeTargetAvatar">
+                        M
+                    </span>
+
+                    <div>
+                        <small>Selected Master Record</small>
+                        <strong id="mergeTargetCompany">—</strong>
+                        <p id="mergeTargetMeta">—</p>
+                    </div>
+                </div>
+
+                <div class="crm-field modal-field-gap">
+                    <label for="merge_remarks">
+                        Merge Remarks
+                    </label>
+
+                    <textarea
+                        id="merge_remarks"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Optional reason, duplicate evidence or consolidation context..."
+                    ></textarea>
+                </div>
+
+                <div class="merge-warning-panel">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+
+                    <div>
+                        <strong>Permanent consolidation action</strong>
+                        <p>
+                            Linked history, pipeline events, documents,
+                            activities, notes, tasks, enquiries and shipments
+                            are transferred to the master record. The duplicate
+                            source record is then deleted.
+                        </p>
+                    </div>
+                </div>
+
+                <label class="merge-confirm-check">
+                    <input
+                        type="checkbox"
+                        id="mergeConfirmCheck"
+                        onchange="syncMergeSubmitState()"
+                    >
+                    <span>
+                        I understand that
+                        <strong>{{ client.company_name }}</strong>
+                        will be permanently merged into the selected master record.
+                    </span>
+                </label>
+
+            </div>
+
+            <div class="crm-modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeMergeModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-merge-danger"
+                    id="mergeSubmitBtn"
+                    disabled
+                >
+                    <i class="bi bi-intersect"></i>
+                    Merge Duplicate
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endif %}
+
+
+
+<!-- =====================================================
+     MOVE PIPELINE / FUNNEL STAGE MODAL
+     ===================================================== -->
+
+<div class="crm-modal-backdrop" id="pipelineModal">
+    <div class="crm-modal-card">
+
+        <div class="crm-modal-header">
+            <div>
+                <span class="panel-eyebrow">SALES PIPELINE</span>
+                <h3>Move Pipeline Stage</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closePipelineModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.move_pipeline_stage',
+                client_id=client.id
+            ) }}"
+        >
+            <div class="crm-modal-body">
+
+                <div class="pipeline-modal-current">
+                    <span>
+                        <i class="bi bi-diagram-3-fill"></i>
+                    </span>
+
+                    <div>
+                        <small>Current Stage</small>
+                        <strong>
+                            {% if client.pipeline_stage %}
+                                {{ dict(pipeline_stages).get(
+                                    client.pipeline_stage,
+                                    client.pipeline_stage|replace('_', ' ')|title
+                                ) }}
+                            {% else %}
+                                Not Started
+                            {% endif %}
+                        </strong>
+                    </div>
+                </div>
+
+                {% if allowed_pipeline_stages %}
+
+                <div class="crm-field modal-field-gap">
+                    <label for="pipeline_stage">
+                        Move To
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        id="pipeline_stage"
+                        name="pipeline_stage"
+                        required
+                    >
+                        <option value="">Select allowed stage</option>
+
+                        {% for value, label in allowed_pipeline_stages %}
+                        <option value="{{ value }}">
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <small class="pipeline-field-help">
+                        Only valid adjacent movements are shown.
+                    </small>
+                </div>
+
+                <div class="crm-field modal-field-gap">
+                    <label for="pipeline_remarks">Remarks</label>
+
+                    <textarea
+                        id="pipeline_remarks"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Optional movement reason, sales context or decision..."
+                    ></textarea>
+                </div>
+
+                <div class="pipeline-audit-note">
+                    <i class="bi bi-clock-history"></i>
+                    <span>
+                        Every movement is timestamped and saved to permanent client history.
+                    </span>
+                </div>
+
+                {% else %}
+
+                <div class="pipeline-terminal-panel">
+                    <i class="bi bi-lock-fill"></i>
+                    <div>
+                        <strong>Pipeline movement unavailable</strong>
+                        <p>
+                            {% if client.pipeline_stage in ["won", "lost"] %}
+                                Won and Lost are terminal outcomes and cannot be moved further.
+                            {% else %}
+                                No valid pipeline movement is currently available.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                {% endif %}
+
+            </div>
+
+            <div class="crm-modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closePipelineModal()"
+                >
+                    Cancel
+                </button>
+
+                {% if allowed_pipeline_stages %}
+                <button type="submit" class="btn btn-pipeline-action">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Confirm Movement
+                </button>
+                {% endif %}
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     CONVERT TO ACTIVE MODAL
+     ===================================================== -->
+
+<div class="crm-modal-backdrop" id="convertModal">
+    <div class="crm-modal-card">
+
+        <div class="crm-modal-header">
+            <div>
+                <span class="panel-eyebrow">CLIENT CONVERSION</span>
+                <h3>Convert to Active Client</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeConvertModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.convert_to_active',
+                client_id=client.id
+            ) }}"
+            onsubmit="return confirm(
+                'Convert this record to an Active Client?'
+            );"
+        >
+            <div class="crm-modal-body">
+
+                <div class="conversion-preview">
+                    <span class="conversion-preview-icon">
+                        <i class="bi bi-arrow-up-right-circle-fill"></i>
+                    </span>
+
+                    <div>
+                        <small>Lifecycle Transition</small>
+                        <strong>
+                            {{ client.status|replace('_', ' ')|title }}
+                            <i class="bi bi-arrow-right"></i>
+                            Active Client
+                        </strong>
+                        <p>
+                            This action creates a timestamped status history
+                            and permanent audit event.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="crm-field modal-field-gap">
+                    <label for="conversion_remarks">
+                        Conversion Remarks
+                    </label>
+
+                    <textarea
+                        id="conversion_remarks"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Optional reason or context for conversion..."
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <div class="crm-modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeConvertModal()"
+                >
+                    Cancel
+                </button>
+
+                <button type="submit" class="btn btn-convert-active">
+                    <i class="bi bi-person-check-fill"></i>
+                    Confirm Conversion
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- =====================================================
+     ASSIGN / REASSIGN OWNER MODAL
+     ===================================================== -->
+
+<div class="crm-modal-backdrop" id="ownerModal">
+    <div class="crm-modal-card">
+
+        <div class="crm-modal-header">
+            <div>
+                <span class="panel-eyebrow">ACCOUNT OWNERSHIP</span>
+                <h3>Assign / Reassign Owner</h3>
+            </div>
+
+            <button
+                type="button"
+                class="modal-close-btn"
+                onclick="closeOwnerModal()"
+            >
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'clients.reassign_owner',
+                client_id=client.id
+            ) }}"
+        >
+            <div class="crm-modal-body">
+
+                <div class="current-owner-panel">
+                    <span class="current-owner-avatar">
+                        {{ client.assigned_to.full_name[:1]|upper }}
+                    </span>
+
+                    <div>
+                        <small>Current Owner</small>
+                        <strong>{{ client.assigned_to.full_name }}</strong>
+                    </div>
+                </div>
+
+                <div class="crm-field modal-field-gap">
+                    <label for="owner_assigned_to_id">
+                        New Owner
+                        <span class="required">*</span>
+                    </label>
+
+                    <select
+                        id="owner_assigned_to_id"
+                        name="assigned_to_id"
+                        required
+                    >
+                        <option value="">Select active owner</option>
+
+                        {% for user in owner_assignees %}
+                        <option
+                            value="{{ user.id }}"
+                            {% if user.id == client.assigned_to_id %}
+                            disabled
+                            {% endif %}
+                        >
+                            {{ user.full_name }}
+                            {% if user.id == client.assigned_to_id %}
+                                — Current Owner
+                            {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="crm-field modal-field-gap">
+                    <label for="owner_remarks">Remarks</label>
+
+                    <textarea
+                        id="owner_remarks"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Optional reason or handover context..."
+                    ></textarea>
+                </div>
+
+                <div class="owner-audit-note">
+                    <i class="bi bi-shield-check"></i>
+                    <span>
+                        Reassignment is saved to the permanent client audit trail.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="crm-modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary-soft"
+                    onclick="closeOwnerModal()"
+                >
+                    Cancel
+                </button>
+
+                <button type="submit" class="btn btn-owner-action">
+                    <i class="bi bi-person-gear"></i>
+                    Reassign Owner
+                </button>
+            </div>
+        </form>
+
+    </div>
 </div>
 
 
@@ -2828,6 +3762,1128 @@ Complete relationship, lifecycle and account workspace.
 
     </div>
 </div>
+
+<style>
+/* =====================================================
+   CLIENT RECORD EXPORT CARD
+   ===================================================== */
+
+.client-export-card {
+    border-top: 3px solid #0f172a;
+}
+
+.client-export-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.client-export-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f172a;
+    text-decoration: none;
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease,
+        background .18s ease;
+}
+
+.client-export-btn:hover {
+    transform: translateY(-2px);
+    color: #0f172a;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+}
+
+.client-export-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.export-pdf-btn .client-export-icon {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.export-excel-btn .client-export-icon {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.export-pdf-btn:hover {
+    border-color: #fecaca;
+    background: #fffafa;
+}
+
+.export-excel-btn:hover {
+    border-color: #a7f3d0;
+    background: #fbfffd;
+}
+
+.client-export-copy {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.client-export-copy strong {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.client-export-copy small {
+    overflow: hidden;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+}
+
+.client-export-download {
+    flex: 0 0 auto;
+    color: #94a3b8;
+    font-size: 16px;
+}
+
+.client-export-btn:hover .client-export-download {
+    color: #334155;
+}
+
+@media (max-width: 720px) {
+    .client-export-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =====================================================
+   SECTION 5 - PIPELINE / FUNNEL UI
+   ===================================================== */
+/* =====================================================
+   SECTION 5 - PIPELINE / FUNNEL UI
+   ===================================================== */
+
+.btn-pipeline-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 9px;
+    background: #4338ca;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.btn-pipeline-action:hover {
+    background: #3730a3;
+    color: #ffffff;
+}
+
+.btn-pipeline-action:disabled,
+.pipeline-move-btn:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.client-pipeline-card {
+    overflow: hidden;
+    border-top: 3px solid #4f46e5;
+}
+
+.pipeline-title-row {
+    align-items: center;
+}
+
+.pipeline-current-badge {
+    margin-left: auto;
+    padding: 8px 11px;
+    border: 1px solid #c7d2fe;
+    border-radius: 10px;
+    background: #eef2ff;
+    text-align: right;
+}
+
+.pipeline-current-badge small {
+    display: block;
+    margin-bottom: 2px;
+    color: #64748b;
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.pipeline-current-badge strong {
+    color: #3730a3;
+    font-size: 11px;
+}
+
+.pipeline-progress-shell {
+    overflow-x: auto;
+    padding: 8px 2px 12px;
+}
+
+.pipeline-stage-track {
+    display: flex;
+    min-width: 760px;
+}
+
+.pipeline-stage-node {
+    position: relative;
+    flex: 1 0 105px;
+    text-align: center;
+}
+
+.pipeline-stage-node:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 17px;
+    left: calc(50% + 19px);
+    right: calc(-50% + 19px);
+    height: 3px;
+    border-radius: 99px;
+    background: #e2e8f0;
+}
+
+.pipeline-stage-node.is-complete:not(:last-child)::after {
+    background: #818cf8;
+}
+
+.pipeline-node-marker {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 8px;
+    border: 3px solid #e2e8f0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.pipeline-stage-node.is-complete .pipeline-node-marker {
+    border-color: #818cf8;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+.pipeline-stage-node.is-current .pipeline-node-marker {
+    border-color: #4f46e5;
+    background: #eef2ff;
+    color: #4338ca;
+    box-shadow: 0 0 0 5px rgba(79, 70, 229, .10);
+}
+
+.pipeline-stage-node.is-current.is-outcome .pipeline-node-marker {
+    border-color: #0f766e;
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+.pipeline-stage-node > span {
+    display: block;
+    padding: 0 5px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.pipeline-stage-node.is-current > span {
+    color: #312e81;
+}
+
+.pipeline-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 13px;
+    border-top: 1px solid #eef2f7;
+}
+
+.pipeline-guidance {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.pipeline-guidance i {
+    color: #4f46e5;
+    font-size: 15px;
+}
+
+.pipeline-move-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #c7d2fe;
+    border-radius: 8px;
+    background: #eef2ff;
+    color: #4338ca;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.pipeline-modal-current {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 13px;
+    border: 1px solid #c7d2fe;
+    border-radius: 11px;
+    background: #eef2ff;
+}
+
+.pipeline-modal-current > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #4338ca;
+    font-size: 18px;
+}
+
+.pipeline-modal-current small {
+    display: block;
+    margin-bottom: 3px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.pipeline-modal-current strong {
+    color: #312e81;
+    font-size: 13px;
+}
+
+.pipeline-field-help {
+    display: block;
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.pipeline-audit-note,
+.pipeline-terminal-panel {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+    margin-top: 14px;
+    border-radius: 10px;
+}
+
+.pipeline-audit-note {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.pipeline-audit-note i {
+    color: #4f46e5;
+    font-size: 15px;
+}
+
+.pipeline-terminal-panel {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.pipeline-terminal-panel > i {
+    margin-top: 2px;
+    font-size: 17px;
+}
+
+.pipeline-terminal-panel strong {
+    display: block;
+    font-size: 12px;
+}
+
+.pipeline-terminal-panel p {
+    margin: 4px 0 0;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.history-icon-pipeline {
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.history-badge-pipeline {
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+@media (max-width: 760px) {
+    .btn-pipeline-action {
+        width: 100%;
+    }
+
+    .pipeline-title-row {
+        align-items: flex-start;
+    }
+
+    .pipeline-current-badge {
+        width: 100%;
+        margin-left: 0;
+        text-align: left;
+    }
+
+    .pipeline-card-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .pipeline-move-btn {
+        width: 100%;
+    }
+}
+
+/* =====================================================
+   SECTION 5 - CONVERSION & OWNER ACTIONS
+   ===================================================== */
+
+.btn-convert-active,
+.btn-owner-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.btn-convert-active {
+    background: #15803d;
+    color: #ffffff;
+}
+
+.btn-convert-active:hover {
+    background: #166534;
+    color: #ffffff;
+}
+
+.btn-owner-action {
+    background: #0f766e;
+    color: #ffffff;
+}
+
+.btn-owner-action:hover {
+    background: #115e59;
+    color: #ffffff;
+}
+
+.client-ownership-card {
+    border-top: 3px solid #0f766e;
+}
+
+.ownership-summary-row,
+.current-owner-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.ownership-person,
+.current-owner-panel {
+    min-width: 0;
+}
+
+.ownership-person {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.ownership-avatar,
+.current-owner-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #ccfbf1;
+    color: #115e59;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.ownership-person small,
+.current-owner-panel small {
+    display: block;
+    margin-bottom: 3px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.ownership-person strong,
+.current-owner-panel strong {
+    color: #0f172a;
+    font-size: 12px;
+}
+
+.ownership-change-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid #99f6e4;
+    border-radius: 8px;
+    background: #f0fdfa;
+    color: #0f766e;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.conversion-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    background: #f0fdf4;
+}
+
+.conversion-preview-icon {
+    color: #15803d;
+    font-size: 24px;
+}
+
+.conversion-preview small {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.conversion-preview strong {
+    display: block;
+    color: #166534;
+    font-size: 13px;
+}
+
+.conversion-preview strong i {
+    margin: 0 6px;
+}
+
+.conversion-preview p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.55;
+}
+
+.current-owner-panel {
+    justify-content: flex-start;
+    padding: 13px;
+    border: 1px solid #ccfbf1;
+    border-radius: 11px;
+    background: #f0fdfa;
+}
+
+.owner-audit-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 11px 12px;
+    margin-top: 14px;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.owner-audit-note i {
+    color: #0f766e;
+    font-size: 15px;
+}
+
+@media (max-width: 760px) {
+    .profile-action-row {
+        flex-wrap: wrap;
+    }
+
+    .btn-convert-active,
+    .btn-owner-action {
+        width: 100%;
+    }
+
+    .ownership-summary-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ownership-change-btn {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* =====================================================
+   ADMIN DUPLICATE MERGE UI
+   ===================================================== */
+
+.btn-merge-duplicate {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid #fed7aa;
+    border-radius: 9px;
+    background: #fff7ed;
+    color: #c2410c;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.btn-merge-duplicate:hover {
+    border-color: #fdba74;
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.merge-modal-card {
+    width: min(620px, calc(100vw - 28px));
+}
+
+.merge-source-panel,
+.merge-target-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 11px;
+}
+
+.merge-source-panel {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.merge-target-preview {
+    margin-top: 14px;
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+}
+
+.merge-source-icon,
+.merge-target-avatar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.merge-source-icon {
+    background: #ffffff;
+    color: #475569;
+}
+
+.merge-target-avatar {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.merge-source-panel small,
+.merge-target-preview small {
+    display: block;
+    margin-bottom: 3px;
+    color: #64748b;
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.merge-source-panel strong,
+.merge-target-preview strong {
+    display: block;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+.merge-source-panel p,
+.merge-target-preview p {
+    margin: 3px 0 0;
+    color: #64748b;
+    font-size: 9px;
+    line-height: 1.45;
+}
+
+.merge-direction-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+    color: #94a3b8;
+}
+
+.merge-direction-row > span {
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.merge-direction-row > div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.merge-field-help {
+    display: block;
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.merge-warning-panel {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px;
+    margin-top: 14px;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    background: #fff7f7;
+}
+
+.merge-warning-panel > i {
+    margin-top: 1px;
+    color: #dc2626;
+    font-size: 16px;
+}
+
+.merge-warning-panel strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #991b1b;
+    font-size: 11px;
+}
+
+.merge-warning-panel p {
+    margin: 0;
+    color: #7f1d1d;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.merge-confirm-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.merge-confirm-check input {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    accent-color: #b91c1c;
+}
+
+.btn-merge-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 9px;
+    background: #b91c1c;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.btn-merge-danger:hover:not(:disabled) {
+    background: #991b1b;
+}
+
+.btn-merge-danger:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+@media (max-width: 760px) {
+    .btn-merge-duplicate {
+        width: 100%;
+    }
+
+    .merge-modal-card {
+        width: calc(100vw - 20px);
+    }
+}
+
+
+
+/* =====================================================
+   PERMANENT DELETE / ADMIN DANGER ZONE
+   ===================================================== */
+
+.admin-action-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-permanent-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+    color: #be123c;
+    font-weight: 800;
+}
+
+.btn-permanent-delete:hover {
+    border-color: #fda4af;
+    background: #ffe4e6;
+    color: #9f1239;
+}
+
+.permanent-delete-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.permanent-delete-modal-card {
+    max-width: 620px;
+}
+
+.permanent-delete-warning {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: #fff1f2;
+}
+
+.permanent-delete-warning > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #ffe4e6;
+    color: #be123c;
+    font-size: 21px;
+}
+
+.permanent-delete-warning strong {
+    display: block;
+    color: #881337;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.permanent-delete-warning p {
+    margin: 5px 0 0;
+    color: #9f1239;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.permanent-delete-client {
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.permanent-delete-client small,
+.permanent-delete-client strong,
+.permanent-delete-client p {
+    display: block;
+}
+
+.permanent-delete-client small {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.permanent-delete-client strong {
+    margin-top: 4px;
+    color: #0f172a;
+    font-size: 15px;
+}
+
+.permanent-delete-client p {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.permanent-delete-name-copy {
+    margin-bottom: 8px;
+    padding: 9px 11px;
+    border-radius: 9px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    word-break: break-word;
+}
+
+.permanent-delete-help {
+    display: block;
+    margin-top: 7px;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.btn-permanent-delete-confirm {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #be123c;
+    background: #be123c;
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.btn-permanent-delete-confirm:hover:not(:disabled) {
+    background: #9f1239;
+    border-color: #9f1239;
+    color: #ffffff;
+}
+
+.btn-permanent-delete-confirm:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+@media (max-width: 640px) {
+    .admin-action-stack {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-action-stack .btn,
+    .permanent-delete-locked {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* =====================================================
+   ARCHIVE CLIENT ADMIN ACTION
+   ===================================================== */
+
+.admin-inline-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.btn-archive-client {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #fde68a;
+    background: #fffbeb;
+    color: #a16207;
+    font-weight: 800;
+}
+
+.btn-archive-client:hover {
+    border-color: #fcd34d;
+    background: #fef3c7;
+    color: #854d0e;
+}
+
+@media (max-width: 640px) {
+    .admin-inline-form {
+        width: 100%;
+    }
+
+    .admin-inline-form .btn {
+        width: 100%;
+    }
+}
+
+</style>
+
+<script>
+function openPipelineModal() {
+    const modal = document.getElementById("pipelineModal");
+    if (!modal) return;
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function closePipelineModal() {
+    const modal = document.getElementById("pipelineModal");
+    if (!modal) return;
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+function openConvertModal() {
+    const modal = document.getElementById("convertModal");
+    if (!modal) return;
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function closeConvertModal() {
+    const modal = document.getElementById("convertModal");
+    if (!modal) return;
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+function openOwnerModal() {
+    const modal = document.getElementById("ownerModal");
+    if (!modal) return;
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function closeOwnerModal() {
+    const modal = document.getElementById("ownerModal");
+    if (!modal) return;
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const pipelineModal = document.getElementById("pipelineModal");
+    const convertModal = document.getElementById("convertModal");
+    const ownerModal = document.getElementById("ownerModal");
+
+    if (pipelineModal) {
+        pipelineModal.addEventListener("click", function (event) {
+            if (event.target === pipelineModal) {
+                closePipelineModal();
+            }
+        });
+    }
+
+    if (convertModal) {
+        convertModal.addEventListener("click", function (event) {
+            if (event.target === convertModal) {
+                closeConvertModal();
+            }
+        });
+    }
+
+    if (ownerModal) {
+        ownerModal.addEventListener("click", function (event) {
+            if (event.target === ownerModal) {
+                closeOwnerModal();
+            }
+        });
+    }
+});
+</script>
 <script>
 document.querySelectorAll(".profile-tab").forEach((button) => {
     button.addEventListener("click", () => {
@@ -3322,5 +5378,190 @@ document.addEventListener(
         );
     }
 );
+
+/* =====================================================
+   ADMIN DUPLICATE MERGE MODAL
+   ===================================================== */
+
+function openMergeModal() {
+    const modal = document.getElementById("mergeModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add("show");
+    document.body.classList.add("modal-open");
+    syncMergeSubmitState();
+}
+
+function closeMergeModal() {
+    const modal = document.getElementById("mergeModal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    document.body.classList.remove("modal-open");
+}
+
+function updateMergeTargetPreview() {
+    const select = document.getElementById("target_client_id");
+    const preview = document.getElementById("mergeTargetPreview");
+
+    if (!select || !preview) {
+        return;
+    }
+
+    const option = select.options[select.selectedIndex];
+
+    if (!option || !option.value) {
+        preview.hidden = true;
+        syncMergeSubmitState();
+        return;
+    }
+
+    const company = option.dataset.company || "Master Client";
+    const contact = option.dataset.contact || "No contact";
+    const email = option.dataset.email || "No email";
+    const phone = option.dataset.phone || "No phone";
+
+    document.getElementById("mergeTargetCompany").textContent = company;
+    document.getElementById("mergeTargetMeta").textContent =
+        contact + " • " + email + " • " + phone;
+
+    document.getElementById("mergeTargetAvatar").textContent =
+        company.charAt(0).toUpperCase();
+
+    preview.hidden = false;
+    syncMergeSubmitState();
+}
+
+function syncMergeSubmitState() {
+    const select = document.getElementById("target_client_id");
+    const check = document.getElementById("mergeConfirmCheck");
+    const submit = document.getElementById("mergeSubmitBtn");
+
+    if (!select || !check || !submit) {
+        return;
+    }
+
+    submit.disabled = !(select.value && check.checked);
+}
+
+function confirmClientMerge() {
+    const select = document.getElementById("target_client_id");
+
+    if (!select || !select.value) {
+        return false;
+    }
+
+    const option = select.options[select.selectedIndex];
+    const company = option.dataset.company || "selected master client";
+
+    return window.confirm(
+        "Final confirmation: permanently merge this duplicate into " +
+        company +
+        "?"
+    );
+}
+
+
+
+// =====================================================
+// PERMANENT DELETE CLIENT MODAL
+// =====================================================
+
+function openPermanentDeleteModal() {
+    const modal = document.getElementById("permanentDeleteModal");
+    if (!modal) return;
+
+    modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+
+    const input = document.getElementById("permanentDeleteConfirmation");
+    if (input) {
+        input.value = "";
+        setTimeout(() => input.focus(), 100);
+    }
+
+    syncPermanentDeleteState();
+}
+
+function closePermanentDeleteModal() {
+    const modal = document.getElementById("permanentDeleteModal");
+    if (!modal) return;
+
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+
+    const input = document.getElementById("permanentDeleteConfirmation");
+    if (input) input.value = "";
+
+    syncPermanentDeleteState();
+}
+
+function syncPermanentDeleteState() {
+    const input = document.getElementById("permanentDeleteConfirmation");
+    const button = document.getElementById("permanentDeleteSubmitBtn");
+
+    if (!input || !button) return;
+
+    const expectedName = {{ client.company_name|tojson }};
+    button.disabled = input.value !== expectedName;
+}
+
+function confirmPermanentDeleteSubmit() {
+    const input = document.getElementById("permanentDeleteConfirmation");
+    const expectedName = {{ client.company_name|tojson }};
+
+    if (!input || input.value !== expectedName) {
+        return false;
+    }
+
+    return window.confirm(
+        "Permanently delete this archived client? This action cannot be undone."
+    );
+}
+
+document.addEventListener("click", function (event) {
+    const modal = document.getElementById("permanentDeleteModal");
+
+    if (modal && event.target === modal) {
+        closePermanentDeleteModal();
+    }
+});
+
+
+// =====================================================
+// ARCHIVE CLIENT CONFIRMATION
+// =====================================================
+
+function confirmArchiveClient() {
+    return window.confirm(
+        "Archive this client? The record will be marked as archived and permanent delete will become available to Admin users."
+    );
+}
+function confirmRestoreClient() {
+    return window.confirm(
+        "Restore this archived client back to the active client list?"
+    );
+}
 </script>
+<style>
+.profile-tag-list span {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    margin: 3px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #dfe3ff;
+    font-size: 12px;
+    font-weight: 700;
+}
+</style>
+
 {% endblock %}

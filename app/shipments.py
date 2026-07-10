@@ -5,7 +5,7 @@
 # Approved Quotation -> Shipment
 # =========================================================
 
-from datetime import datetime
+from datetime import datetime, date
 
 from flask import (
     Blueprint,
@@ -20,11 +20,15 @@ from flask_login import (
     login_required,
     current_user,
 )
+
 from app import db
 from app.models import (
     Shipment,
     Quotation,
     ShipmentMilestone,
+    ShipmentDocument,
+    ShipmentCustomsClearance,
+    ShipmentClosure,
 )
 
 
@@ -40,20 +44,118 @@ shipments_bp = Blueprint(
 
 
 # =========================================================
+# SHIPMENT WORKFLOW STAGES
+# =========================================================
+
+SHIPMENT_STAGES = [
+    "booked",
+    "cargo_picked_up",
+    "in_transit",
+    "arrived_destination",
+    "customs_clearance",
+    "out_for_delivery",
+    "delivered",
+    "closed_completed",
+]
+
+
+# =========================================================
+# WORKFLOW HELPERS
+# =========================================================
+
+def get_customs_clearance(shipment_id):
+
+    return (
+        db.session.execute(
+            db.select(ShipmentCustomsClearance)
+            .where(
+                ShipmentCustomsClearance.shipment_id
+                == shipment_id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+
+def get_effective_workflow_stages(shipment_id):
+
+    """
+    Customs Clearance is conditional.
+
+    - No clearance record yet:
+      keep Customs Clearance in the workflow so the user
+      must explicitly record whether clearance is required.
+    - Clearance Required = No:
+      skip the Customs Clearance milestone.
+    - Clearance Required = Yes:
+      keep Customs Clearance in the workflow.
+    """
+
+    customs_clearance = get_customs_clearance(
+        shipment_id
+    )
+
+    if (
+        customs_clearance is not None
+        and not customs_clearance.clearance_required
+    ):
+
+        return [
+            stage
+            for stage in SHIPMENT_STAGES
+            if stage != "customs_clearance"
+        ]
+
+    return list(
+        SHIPMENT_STAGES
+    )
+
+
+def get_shipment_summary_status(completed_stages):
+
+    if "closed_completed" in completed_stages:
+        return "closed"
+
+    if "delivered" in completed_stages:
+        return "delivered"
+
+    if "in_transit" in completed_stages:
+        return "in_transit"
+
+    return "active"
+
+
+def get_shipment_closure(shipment_id):
+
+    return (
+        db.session.execute(
+            db.select(ShipmentClosure)
+            .where(
+                ShipmentClosure.shipment_id
+                == shipment_id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+
+def shipment_is_closed(shipment_id):
+
+    return get_shipment_closure(
+        shipment_id
+    ) is not None
+
+
+# =========================================================
 # AUTO SHIPMENT REFERENCE GENERATOR
-#
-# Examples:
-# SHP-2026-000001
-# SHP-2026-000002
 # =========================================================
 
 def generate_shipment_reference():
 
     current_year = datetime.now().year
-
-    prefix = (
-        f"SHP-{current_year}-"
-    )
+    prefix = f"SHP-{current_year}-"
 
     last_shipment = (
         db.session.execute(
@@ -72,11 +174,9 @@ def generate_shipment_reference():
     )
 
     if not last_shipment:
-
         next_number = 1
 
     else:
-
         try:
             last_number = int(
                 last_shipment
@@ -84,9 +184,7 @@ def generate_shipment_reference():
                 .split("-")[-1]
             )
 
-            next_number = (
-                last_number + 1
-            )
+            next_number = last_number + 1
 
         except (
             ValueError,
@@ -103,10 +201,6 @@ def generate_shipment_reference():
 # =========================================================
 # SHIPMENT LIST
 # URL: /shipments/
-#
-# Purpose:
-# Database lo unna shipments ni newest-first order lo
-# display chestundi.
 # =========================================================
 
 @shipments_bp.route("/")
@@ -128,24 +222,12 @@ def shipment_list():
         "shipments/list.html",
         shipments=shipments
     )
-    # =========================================================
+
+
+# =========================================================
 # CONVERT APPROVED QUOTATION TO SHIPMENT
-#
-# URL:
-# /shipments/convert/<quotation_id>
-#
+# URL: /shipments/convert/<quotation_id>
 # POST only
-#
-# Workflow:
-# Approved Quotation
-#       ↓
-# Validate
-#       ↓
-# Create Shipment
-#       ↓
-# Enquiry status = converted
-#       ↓
-# Commit both in one transaction
 # =========================================================
 
 @shipments_bp.route(
@@ -155,10 +237,6 @@ def shipment_list():
 @login_required
 def convert_from_quotation(quotation_id):
 
-    # -----------------------------------------
-    # LOAD QUOTATION
-    # -----------------------------------------
-
     quotation = db.get_or_404(
         Quotation,
         quotation_id
@@ -166,9 +244,7 @@ def convert_from_quotation(quotation_id):
 
     enquiry = quotation.enquiry
 
-
     # -----------------------------------------
-    # SAFETY CHECK:
     # ONLY APPROVED QUOTATION CAN CONVERT
     # -----------------------------------------
 
@@ -190,9 +266,42 @@ def convert_from_quotation(quotation_id):
             )
         )
 
+    # -----------------------------------------
+    # PARTY DETAILS MUST EXIST
+    # -----------------------------------------
+
+    from app.models import ShipmentPartyDetails
+
+    party_details = (
+        db.session.execute(
+            db.select(ShipmentPartyDetails)
+            .where(
+                ShipmentPartyDetails.quotation_id
+                == quotation.id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    if not party_details:
+
+        flash(
+            (
+                "Agent, Shipper and Consignee details "
+                "must be completed before shipment conversion."
+            ),
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "quotations.manage_party_details",
+                quotation_id=quotation.id
+            )
+        )
 
     # -----------------------------------------
-    # SAFETY CHECK:
     # QUOTATION ALREADY CONVERTED?
     # -----------------------------------------
 
@@ -226,9 +335,7 @@ def convert_from_quotation(quotation_id):
             )
         )
 
-
     # -----------------------------------------
-    # SAFETY CHECK:
     # ENQUIRY ALREADY CONVERTED?
     # -----------------------------------------
 
@@ -262,67 +369,81 @@ def convert_from_quotation(quotation_id):
             )
         )
 
-
     # -----------------------------------------
     # CREATE SHIPMENT OBJECT
-    #
-    # Client, route, cargo and handler are
-    # copied from original enquiry.
     # -----------------------------------------
 
     shipment = Shipment(
-
         shipment_reference=(
             generate_shipment_reference()
         ),
-
         enquiry_id=enquiry.id,
-
         quotation_id=quotation.id,
-
         client_id=enquiry.client_id,
-
         origin=enquiry.origin,
-
         destination=enquiry.destination,
-
         mode_of_shipment=(
             enquiry.mode_of_shipment
         ),
-
         cargo_description=(
             enquiry.cargo_description
         ),
-
         cargo_weight_volume=(
             enquiry.cargo_weight_volume
         ),
-
         shipment_status="active",
-
         handled_by_id=(
             enquiry.handled_by_id
         ),
-
         created_by_id=(
             current_user.id
         ),
     )
 
-
-    # -----------------------------------------
-    # UPDATE ORIGINAL ENQUIRY
-    #
-    # Converted enquiry should not return
-    # to normal sales workflow.
-    # -----------------------------------------
-
+    # Original enquiry becomes converted
     enquiry.status = "converted"
 
+    # -----------------------------------------
+    # DEFAULT DOCUMENT CHECKLIST
+    # -----------------------------------------
+
+    default_documents = [
+        (
+            "booking_confirmation",
+            "Booking Confirmation"
+        ),
+        (
+            "bill_of_lading_airway_bill",
+            "Bill of Lading / Airway Bill"
+        ),
+        (
+            "commercial_invoice",
+            "Commercial Invoice"
+        ),
+        (
+            "packing_list",
+            "Packing List"
+        ),
+        (
+            "certificate_of_origin",
+            "Certificate of Origin"
+        ),
+        (
+            "insurance_certificate",
+            "Insurance Certificate"
+        ),
+        (
+            "customs_declaration",
+            "Customs Declaration"
+        ),
+        (
+            "other_supporting_document",
+            "Other Supporting Documents"
+        ),
+    ]
 
     # -----------------------------------------
-    # SAVE SHIPMENT + ENQUIRY STATUS
-    # IN ONE TRANSACTION
+    # SAVE EVERYTHING IN ONE TRANSACTION
     # -----------------------------------------
 
     try:
@@ -331,6 +452,23 @@ def convert_from_quotation(quotation_id):
             shipment
         )
 
+        # Generate shipment.id before documents
+        db.session.flush()
+
+        for document_type, document_name in default_documents:
+
+            shipment_document = ShipmentDocument(
+                shipment_id=shipment.id,
+                document_type=document_type,
+                document_name=document_name,
+                status="pending",
+                created_by_id=current_user.id,
+            )
+
+            db.session.add(
+                shipment_document
+            )
+
         db.session.commit()
 
     except Exception:
@@ -338,10 +476,7 @@ def convert_from_quotation(quotation_id):
         db.session.rollback()
 
         flash(
-            (
-                "Unable to convert quotation "
-                "to shipment. Please try again."
-            ),
+            "Unable to convert quotation to shipment.",
             "danger"
         )
 
@@ -351,11 +486,6 @@ def convert_from_quotation(quotation_id):
                 quotation_id=quotation.id
             )
         )
-
-
-    # -----------------------------------------
-    # SUCCESS
-    # -----------------------------------------
 
     flash(
         (
@@ -368,15 +498,15 @@ def convert_from_quotation(quotation_id):
 
     return redirect(
         url_for(
-            "shipments.shipment_list"
+            "shipments.view_shipment",
+            shipment_id=shipment.id
         )
     )
-    # =========================================================
+
+
+# =========================================================
 # VIEW SHIPMENT
 # URL: /shipments/<shipment_id>
-#
-# Purpose:
-# Single shipment full details display chestundi.
 # =========================================================
 
 @shipments_bp.route(
@@ -410,24 +540,61 @@ def view_shipment(shipment_id):
         for milestone in milestones
     }
 
+    effective_stages = (
+        get_effective_workflow_stages(
+            shipment.id
+        )
+    )
+
     next_stage = None
 
-    for stage in SHIPMENT_STAGES:
+    for stage in effective_stages:
 
         if stage not in completed_stages:
             next_stage = stage
             break
 
     stage_labels = {
-        "booking_confirmed": "Booking Confirmed",
-        "pickup": "Pickup",
-        "origin_handling": "Origin Handling",
+        "booked": "Booked",
+        "cargo_picked_up": "Cargo Picked Up",
         "in_transit": "In Transit",
-        "arrival": "Arrival",
+        "arrived_destination": "Arrived at Destination",
         "customs_clearance": "Customs Clearance",
-        "delivery": "Delivery",
-        "closed": "Closed",
+        "out_for_delivery": "Out for Delivery",
+        "delivered": "Delivered",
+        "closed_completed": "Closed / Completed",
     }
+
+    documents = (
+        db.session.execute(
+            db.select(ShipmentDocument)
+            .where(
+                ShipmentDocument.shipment_id
+                == shipment.id
+            )
+            .order_by(
+                ShipmentDocument.id.asc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    customs_clearance = (
+        db.session.execute(
+            db.select(ShipmentCustomsClearance)
+            .where(
+                ShipmentCustomsClearance.shipment_id
+                == shipment.id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    shipment_closure = get_shipment_closure(
+        shipment.id
+    )
 
     return render_template(
         "shipments/view.html",
@@ -435,32 +602,697 @@ def view_shipment(shipment_id):
         milestones=milestones,
         completed_stages=completed_stages,
         next_stage=next_stage,
-        shipment_stages=SHIPMENT_STAGES,
+        shipment_stages=effective_stages,
         stage_labels=stage_labels,
+        documents=documents,
+        customs_clearance=customs_clearance,
+        shipment_closure=shipment_closure,
     )
-    # =========================================================
-# SHIPMENT WORKFLOW STAGES
+
+
+# =========================================================
+# UPDATE SHIPMENT DOCUMENT STATUS
+# URL: /shipments/<shipment_id>/documents/<document_id>/status
+# POST only
 # =========================================================
 
-SHIPMENT_STAGES = [
-    "booking_confirmed",
-    "pickup",
-    "origin_handling",
-    "in_transit",
-    "arrival",
-    "customs_clearance",
-    "delivery",
-    "closed",
-]
+@shipments_bp.route(
+    "/<int:shipment_id>/documents/<int:document_id>/status",
+    methods=["POST"]
+)
+@login_required
+def update_document_status(
+    shipment_id,
+    document_id
+):
+
+    shipment = db.get_or_404(
+        Shipment,
+        shipment_id
+    )
+
+    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+
+        flash(
+            "Closed shipments can be modified only by an Admin.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    document = db.get_or_404(
+        ShipmentDocument,
+        document_id
+    )
+
+    # Prevent updating a document through another shipment URL.
+    if document.shipment_id != shipment.id:
+
+        flash(
+            "Shipment document does not belong to this shipment.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    valid_statuses = {
+        "pending",
+        "received",
+        "not_applicable",
+    }
+
+    status = request.form.get(
+        "status",
+        ""
+    ).strip().lower()
+
+    remarks = request.form.get(
+        "remarks",
+        ""
+    ).strip()
+
+    if status not in valid_statuses:
+
+        flash(
+            "Invalid shipment document status.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    try:
+
+        document.status = status
+        document.remarks = (
+            remarks or None
+        )
+
+        # Received metadata applies only when the
+        # document status is explicitly Received.
+        if status == "received":
+
+            if document.received_at is None:
+                document.received_at = datetime.now()
+
+            document.received_by_id = current_user.id
+
+        else:
+
+            document.received_at = None
+            document.received_by_id = None
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        flash(
+            "Unable to update shipment document status.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    flash(
+        (
+            f"{document.document_name} status updated to "
+            f"{status.replace('_', ' ').title()}."
+        ),
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "shipments.view_shipment",
+            shipment_id=shipment.id
+        )
+    )
+
+
+# =========================================================
+# CREATE / UPDATE CUSTOMS CLEARANCE
+# URL: /shipments/<shipment_id>/customs-clearance
+# POST only
+# =========================================================
+
+@shipments_bp.route(
+    "/<int:shipment_id>/customs-clearance",
+    methods=["POST"]
+)
+@login_required
+def update_customs_clearance(shipment_id):
+
+    shipment = db.get_or_404(
+        Shipment,
+        shipment_id
+    )
+
+    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+
+        flash(
+            "Closed shipments can be modified only by an Admin.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    clearance_required_value = request.form.get(
+        "clearance_required",
+        ""
+    ).strip().lower()
+
+    if clearance_required_value not in {
+        "yes",
+        "no",
+    }:
+
+        flash(
+            "Please select whether customs clearance is required.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    clearance_required = (
+        clearance_required_value == "yes"
+    )
+
+    valid_statuses = {
+        "not_required",
+        "pending",
+        "in_process",
+        "cleared",
+        "held_query",
+    }
+
+    clearance_status = request.form.get(
+        "clearance_status",
+        ""
+    ).strip().lower()
+
+    clearing_agent_name = request.form.get(
+        "clearing_agent_name",
+        ""
+    ).strip()
+
+    clearance_date_value = request.form.get(
+        "clearance_date",
+        ""
+    ).strip()
+
+    remarks = request.form.get(
+        "customs_remarks",
+        ""
+    ).strip()
+
+    if not clearance_required:
+
+        clearance_status = "not_required"
+        clearing_agent_name = ""
+        clearance_date_value = ""
+
+    elif clearance_status not in valid_statuses - {
+        "not_required",
+    }:
+
+        flash(
+            "Please select a valid customs clearance status.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    clearance_date = None
+
+    if clearance_date_value:
+
+        try:
+
+            clearance_date = datetime.strptime(
+                clearance_date_value,
+                "%Y-%m-%d"
+            ).date()
+
+        except ValueError:
+
+            flash(
+                "Invalid customs clearance date.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
+
+        if clearance_date > date.today():
+
+            flash(
+                "Customs clearance date cannot be in the future.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
+
+    if (
+        clearance_status == "cleared"
+        and clearance_date is None
+    ):
+
+        flash(
+            "Clearance date is required when status is Cleared.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    customs_clearance = (
+        db.session.execute(
+            db.select(ShipmentCustomsClearance)
+            .where(
+                ShipmentCustomsClearance.shipment_id
+                == shipment.id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    try:
+
+        if customs_clearance is None:
+
+            customs_clearance = ShipmentCustomsClearance(
+                shipment_id=shipment.id,
+                created_by_id=current_user.id,
+            )
+
+            db.session.add(
+                customs_clearance
+            )
+
+        customs_clearance.clearance_required = (
+            clearance_required
+        )
+
+        customs_clearance.clearance_status = (
+            clearance_status
+        )
+
+        customs_clearance.clearing_agent_name = (
+            clearing_agent_name or None
+        )
+
+        customs_clearance.clearance_date = (
+            clearance_date
+        )
+
+        customs_clearance.remarks = (
+            remarks or None
+        )
+
+        customs_clearance.updated_by_id = (
+            current_user.id
+        )
+
+        # If clearance is explicitly not required,
+        # remove any existing conditional customs milestone
+        # so the visible workflow remains consistent.
+        if not clearance_required:
+
+            existing_customs_milestone = (
+                db.session.execute(
+                    db.select(ShipmentMilestone)
+                    .where(
+                        ShipmentMilestone.shipment_id
+                        == shipment.id,
+                        ShipmentMilestone.stage
+                        == "customs_clearance"
+                    )
+                )
+                .scalars()
+                .first()
+            )
+
+            if existing_customs_milestone is not None:
+
+                db.session.delete(
+                    existing_customs_milestone
+                )
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        flash(
+            "Unable to update customs clearance details.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    flash(
+        "Customs clearance details updated successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "shipments.view_shipment",
+            shipment_id=shipment.id
+        )
+    )
+
+
+# =========================================================
+# CLOSE SHIPMENT
+# Requirements Report Section 4.8
+# URL: /shipments/<shipment_id>/close
+# POST only
+# =========================================================
+
+@shipments_bp.route(
+    "/<int:shipment_id>/close",
+    methods=["POST"]
+)
+@login_required
+def close_shipment(shipment_id):
+
+    shipment = db.get_or_404(
+        Shipment,
+        shipment_id
+    )
+
+    existing_closure = get_shipment_closure(
+        shipment.id
+    )
+
+    # Once closed, only Admin may update closure details.
+    if (
+        existing_closure is not None
+        and current_user.role != "admin"
+    ):
+
+        flash(
+            "Closed shipments can be modified only by an Admin.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    completed_stages = {
+        stage
+        for stage in db.session.execute(
+            db.select(ShipmentMilestone.stage)
+            .where(
+                ShipmentMilestone.shipment_id
+                == shipment.id
+            )
+        )
+        .scalars()
+        .all()
+    }
+
+    # Closure is allowed only after Delivered.
+    if "delivered" not in completed_stages:
+
+        flash(
+            "Shipment can be closed only after the Delivered stage is completed.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    valid_statuses = {
+        "delivered",
+        "completed",
+        "closed",
+    }
+
+    closing_status = request.form.get(
+        "closing_status",
+        ""
+    ).strip().lower()
+
+    closing_notes = request.form.get(
+        "closing_notes",
+        ""
+    ).strip()
+
+    client_feedback = request.form.get(
+        "client_feedback",
+        ""
+    ).strip()
+
+    client_rating_value = request.form.get(
+        "client_rating",
+        ""
+    ).strip()
+
+    archive_confirmed = (
+        request.form.get(
+            "document_archive_confirmed"
+        ) == "yes"
+    )
+
+    if closing_status not in valid_statuses:
+
+        flash(
+            "Please select a valid closing status.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    if not archive_confirmed:
+
+        flash(
+            "Document Archive Confirmation is required before closing the shipment.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    client_rating = None
+
+    if client_rating_value:
+
+        try:
+
+            client_rating = int(
+                client_rating_value
+            )
+
+        except ValueError:
+
+            flash(
+                "Client rating must be a number from 1 to 5.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
+
+        if client_rating not in {
+            1,
+            2,
+            3,
+            4,
+            5,
+        }:
+
+            flash(
+                "Client rating must be between 1 and 5.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
+
+    try:
+
+        if existing_closure is None:
+
+            shipment_closure = ShipmentClosure(
+                shipment_id=shipment.id,
+                closing_status=closing_status,
+                closing_date=datetime.now(),
+                closing_notes=closing_notes or None,
+                document_archive_confirmed=True,
+                client_feedback=client_feedback or None,
+                client_rating=client_rating,
+                closed_by_id=current_user.id,
+                updated_by_id=current_user.id,
+            )
+
+            db.session.add(
+                shipment_closure
+            )
+
+        else:
+
+            shipment_closure = existing_closure
+            shipment_closure.closing_status = (
+                closing_status
+            )
+            shipment_closure.closing_notes = (
+                closing_notes or None
+            )
+            shipment_closure.document_archive_confirmed = True
+            shipment_closure.client_feedback = (
+                client_feedback or None
+            )
+            shipment_closure.client_rating = (
+                client_rating
+            )
+            shipment_closure.updated_by_id = (
+                current_user.id
+            )
+
+        closed_milestone = (
+            db.session.execute(
+                db.select(ShipmentMilestone)
+                .where(
+                    ShipmentMilestone.shipment_id
+                    == shipment.id,
+                    ShipmentMilestone.stage
+                    == "closed_completed"
+                )
+            )
+            .scalars()
+            .first()
+        )
+
+        if closed_milestone is None:
+
+            closed_milestone = ShipmentMilestone(
+                shipment_id=shipment.id,
+                stage="closed_completed",
+                completed_by_id=current_user.id,
+            )
+
+            db.session.add(
+                closed_milestone
+            )
+
+        shipment.shipment_status = "closed"
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        flash(
+            "Unable to close the shipment.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    flash(
+        "Shipment closure details saved successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "shipments.view_shipment",
+            shipment_id=shipment.id
+        )
+    )
 
 
 # =========================================================
 # COMPLETE NEXT SHIPMENT STAGE
-#
-# URL:
-# /shipments/<shipment_id>/stage/<stage>
-#
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -478,12 +1310,45 @@ def complete_stage(
         shipment_id
     )
 
+    if shipment_is_closed(shipment.id):
+
+        flash(
+            "This shipment is already closed.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
+
+    if stage == "closed_completed":
+
+        flash(
+            "Use the Shipment Closing form to complete the final stage.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
 
     # -----------------------------------------
     # VALID STAGE CHECK
     # -----------------------------------------
 
-    if stage not in SHIPMENT_STAGES:
+    effective_stages = (
+        get_effective_workflow_stages(
+            shipment.id
+        )
+    )
+
+    if stage not in effective_stages:
 
         flash(
             "Invalid shipment workflow stage.",
@@ -497,9 +1362,8 @@ def complete_stage(
             )
         )
 
-
     # -----------------------------------------
-    # ALREADY COMPLETED STAGES
+    # LOAD COMPLETED MILESTONES
     # -----------------------------------------
 
     completed_milestones = (
@@ -522,7 +1386,6 @@ def complete_stage(
         for milestone in completed_milestones
     }
 
-
     # -----------------------------------------
     # DUPLICATE CHECK
     # -----------------------------------------
@@ -541,22 +1404,17 @@ def complete_stage(
             )
         )
 
-
     # -----------------------------------------
     # STRICT ORDER CHECK
-    #
-    # Only next pending stage can complete.
     # -----------------------------------------
 
     next_stage = None
 
-    for workflow_stage in SHIPMENT_STAGES:
+    for workflow_stage in effective_stages:
 
         if workflow_stage not in completed_stages:
-
             next_stage = workflow_stage
             break
-
 
     if stage != next_stage:
 
@@ -575,6 +1433,66 @@ def complete_stage(
             )
         )
 
+    # -----------------------------------------
+    # CONDITIONAL CUSTOMS GATE
+    # -----------------------------------------
+
+    if stage == "customs_clearance":
+
+        customs_clearance = get_customs_clearance(
+            shipment.id
+        )
+
+        if customs_clearance is None:
+
+            flash(
+                (
+                    "Record Customs Clearance details first "
+                    "and confirm whether clearance is required."
+                ),
+                "warning"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
+
+        if not customs_clearance.clearance_required:
+
+            flash(
+                (
+                    "Customs Clearance is not required for "
+                    "this shipment and is skipped automatically."
+                ),
+                "warning"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
+
+        if customs_clearance.clearance_status != "cleared":
+
+            flash(
+                (
+                    "Customs Clearance stage can be completed "
+                    "only after clearance status is Cleared."
+                ),
+                "warning"
+            )
+
+            return redirect(
+                url_for(
+                    "shipments.view_shipment",
+                    shipment_id=shipment.id
+                )
+            )
 
     # -----------------------------------------
     # CREATE MILESTONE
@@ -586,38 +1504,22 @@ def complete_stage(
         completed_by_id=current_user.id,
     )
 
-
     # -----------------------------------------
     # UPDATE SHIPMENT SUMMARY STATUS
     # -----------------------------------------
 
-    if stage == "in_transit":
+    prospective_completed_stages = (
+        completed_stages | {stage}
+    )
 
-        shipment.shipment_status = (
-            "in_transit"
+    shipment.shipment_status = (
+        get_shipment_summary_status(
+            prospective_completed_stages
         )
-
-    elif stage == "delivery":
-
-        shipment.shipment_status = (
-            "delivered"
-        )
-
-    elif stage == "closed":
-
-        shipment.shipment_status = (
-            "closed"
-        )
-
-    else:
-
-        shipment.shipment_status = (
-            "active"
-        )
-
+    )
 
     # -----------------------------------------
-    # SAVE IN ONE TRANSACTION
+    # SAVE
     # -----------------------------------------
 
     try:
@@ -644,11 +1546,6 @@ def complete_stage(
             )
         )
 
-
-    # -----------------------------------------
-    # SUCCESS
-    # -----------------------------------------
-
     flash(
         (
             f"Shipment stage "
@@ -664,13 +1561,10 @@ def complete_stage(
             shipment_id=shipment.id
         )
     )
-    # =========================================================
+
+
+# =========================================================
 # EDIT SHIPMENT
-#
-# URL:
-# /shipments/<shipment_id>/edit
-#
-# Active shipments only.
 # =========================================================
 
 @shipments_bp.route(
@@ -685,15 +1579,40 @@ def edit_shipment(shipment_id):
         shipment_id
     )
 
+    # -----------------------------------------
+    # CLOSED SHIPMENT LOCK
+    # Admin is the only exception.
+    # -----------------------------------------
+
+    if (
+        shipment_is_closed(shipment.id)
+        and current_user.role != "admin"
+    ):
+
+        flash(
+            "Closed shipments can be edited only by an Admin.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
 
     # -----------------------------------------
-    # LOCK AFTER TRANSIT / DELIVERY / CLOSURE
+    # LOCK AFTER MOVEMENT STARTS
+    # Existing operational rule retained for non-Admins.
     # -----------------------------------------
 
-    if shipment.shipment_status in (
-        "in_transit",
-        "delivered",
-        "closed",
+    if (
+        current_user.role != "admin"
+        and shipment.shipment_status in (
+            "in_transit",
+            "delivered",
+            "closed",
+        )
     ):
 
         flash(
@@ -710,11 +1629,6 @@ def edit_shipment(shipment_id):
                 shipment_id=shipment.id
             )
         )
-
-
-    # -----------------------------------------
-    # SAVE CHANGES
-    # -----------------------------------------
 
     if request.method == "POST":
 
@@ -738,11 +1652,6 @@ def edit_shipment(shipment_id):
             ""
         ).strip()
 
-
-        # -------------------------------------
-        # REQUIRED FIELD VALIDATION
-        # -------------------------------------
-
         if not origin:
 
             flash(
@@ -754,7 +1663,6 @@ def edit_shipment(shipment_id):
                 "shipments/edit.html",
                 shipment=shipment
             )
-
 
         if not destination:
 
@@ -768,7 +1676,6 @@ def edit_shipment(shipment_id):
                 shipment=shipment
             )
 
-
         if not cargo_description:
 
             flash(
@@ -781,27 +1688,14 @@ def edit_shipment(shipment_id):
                 shipment=shipment
             )
 
-
-        # -------------------------------------
-        # UPDATE ALLOWED FIELDS
-        # -------------------------------------
-
         shipment.origin = origin
-
         shipment.destination = destination
-
         shipment.cargo_description = (
             cargo_description
         )
-
         shipment.cargo_weight_volume = (
             cargo_weight_volume or None
         )
-
-
-        # -------------------------------------
-        # SAVE
-        # -------------------------------------
 
         try:
 
@@ -821,7 +1715,6 @@ def edit_shipment(shipment_id):
                 shipment=shipment
             )
 
-
         flash(
             (
                 f"Shipment "
@@ -838,27 +1731,14 @@ def edit_shipment(shipment_id):
             )
         )
 
-
-    # -----------------------------------------
-    # SHOW EDIT FORM
-    # -----------------------------------------
-
     return render_template(
         "shipments/edit.html",
         shipment=shipment
     )
-    # =========================================================
+
+
+# =========================================================
 # UNDO LAST SHIPMENT STAGE
-#
-# URL:
-# /shipments/<shipment_id>/undo-last-stage
-#
-# POST only
-#
-# Safety:
-# - Latest completed milestone only delete chestundi
-# - Shipment summary status recalculate chestundi
-# - One step at a time back vastundi
 # =========================================================
 
 @shipments_bp.route(
@@ -868,15 +1748,31 @@ def edit_shipment(shipment_id):
 @login_required
 def undo_last_stage(shipment_id):
 
-    # -----------------------------------------
-    # LOAD SHIPMENT
-    # -----------------------------------------
-
     shipment = db.get_or_404(
         Shipment,
         shipment_id
     )
 
+    existing_closure = get_shipment_closure(
+        shipment.id
+    )
+
+    if (
+        existing_closure is not None
+        and current_user.role != "admin"
+    ):
+
+        flash(
+            "Closed shipments can be modified only by an Admin.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "shipments.view_shipment",
+                shipment_id=shipment.id
+            )
+        )
 
     # -----------------------------------------
     # FIND LAST COMPLETED MILESTONE
@@ -898,11 +1794,6 @@ def undo_last_stage(shipment_id):
         .first()
     )
 
-
-    # -----------------------------------------
-    # NOTHING TO UNDO
-    # -----------------------------------------
-
     if not last_milestone:
 
         flash(
@@ -917,19 +1808,9 @@ def undo_last_stage(shipment_id):
             )
         )
 
-
-    # -----------------------------------------
-    # SAVE STAGE NAME FOR SUCCESS MESSAGE
-    # -----------------------------------------
-
     undone_stage = (
         last_milestone.stage
     )
-
-
-    # -----------------------------------------
-    # DELETE ONLY LAST MILESTONE
-    # -----------------------------------------
 
     try:
 
@@ -937,14 +1818,18 @@ def undo_last_stage(shipment_id):
             last_milestone
         )
 
-        # Flush delete first so remaining stages
-        # query reflects current transaction state.
+        # Admin undo of the final stage reopens the shipment
+        # and removes the closure record to keep both records aligned.
+        if (
+            undone_stage == "closed_completed"
+            and existing_closure is not None
+        ):
+
+            db.session.delete(
+                existing_closure
+            )
+
         db.session.flush()
-
-
-        # -------------------------------------
-        # LOAD REMAINING COMPLETED STAGES
-        # -------------------------------------
 
         remaining_milestones = (
             db.session.execute(
@@ -967,47 +1852,13 @@ def undo_last_stage(shipment_id):
             for milestone in remaining_milestones
         }
 
-
-        # -------------------------------------
-        # RECALCULATE SHIPMENT SUMMARY STATUS
-        #
-        # closed      -> closed
-        # delivery    -> delivered
-        # in_transit  -> in_transit
-        # otherwise   -> active
-        # -------------------------------------
-
-        if "closed" in remaining_stages:
-
-            shipment.shipment_status = (
-                "closed"
+        shipment.shipment_status = (
+            get_shipment_summary_status(
+                remaining_stages
             )
-
-        elif "delivery" in remaining_stages:
-
-            shipment.shipment_status = (
-                "delivered"
-            )
-
-        elif "in_transit" in remaining_stages:
-
-            shipment.shipment_status = (
-                "in_transit"
-            )
-
-        else:
-
-            shipment.shipment_status = (
-                "active"
-            )
-
-
-        # -------------------------------------
-        # SAVE
-        # -------------------------------------
+        )
 
         db.session.commit()
-
 
     except Exception:
 
@@ -1024,11 +1875,6 @@ def undo_last_stage(shipment_id):
                 shipment_id=shipment.id
             )
         )
-
-
-    # -----------------------------------------
-    # SUCCESS
-    # -----------------------------------------
 
     flash(
         (

@@ -120,6 +120,14 @@ class Client(db.Model):
         db.Integer,
         primary_key=True
     )
+# Auto-generated client reference
+# Example: CLI-2026-000001
+    client_reference = db.Column(
+    db.String(50),
+    unique=True,
+    nullable=True,
+    index=True
+)
     # Permanent audit history
     audit_logs = db.relationship(
         "ClientAuditLog",
@@ -148,6 +156,21 @@ class Client(db.Model):
         db.String(50),
         nullable=False,
         default="lead",
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # PIPELINE / FUNNEL STAGE
+    # Section 5 — Move Through Pipeline / Funnel Stage
+    #
+    # Current stage is stored on the client for fast
+    # filtering. Every movement is also written to
+    # ClientPipelineHistory for permanent history.
+    # -----------------------------------------------------
+
+    pipeline_stage = db.Column(
+        db.String(50),
+        nullable=True,
         index=True
     )
 
@@ -317,6 +340,14 @@ class Client(db.Model):
         order_by="ClientStatusHistory.changed_at.desc()"
     )
 
+    pipeline_history = db.relationship(
+        "ClientPipelineHistory",
+        back_populates="client",
+        cascade="all, delete-orphan",
+        lazy=True,
+        order_by="ClientPipelineHistory.moved_at.desc()"
+    )
+
     attachments = db.relationship(
         "ClientAttachment",
         back_populates="client",
@@ -373,6 +404,82 @@ class Client(db.Model):
 
     def __repr__(self):
         return f"<Client {self.company_name}>"
+
+
+# =========================================================
+# CLIENT PIPELINE / FUNNEL HISTORY
+# Section 5 — Move Through Pipeline / Funnel Stage
+#
+# Current stage lives on Client.pipeline_stage.
+# This table preserves every stage movement permanently.
+# =========================================================
+
+class ClientPipelineHistory(db.Model):
+
+    __tablename__ = "client_pipeline_history"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "clients.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False,
+        index=True
+    )
+
+    old_stage = db.Column(
+        db.String(50),
+        nullable=True,
+        index=True
+    )
+
+    new_stage = db.Column(
+        db.String(50),
+        nullable=False,
+        index=True
+    )
+
+    remarks = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    moved_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    moved_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False,
+        index=True
+    )
+
+    client = db.relationship(
+        "Client",
+        back_populates="pipeline_history"
+    )
+
+    moved_by = db.relationship(
+        "User",
+        foreign_keys=[moved_by_id]
+    )
+
+    def __repr__(self):
+
+        return (
+            f"<ClientPipelineHistory "
+            f"{self.old_stage} -> {self.new_stage}>"
+        )
 
 
 # =========================================================
@@ -1805,3 +1912,410 @@ class ShipmentMilestone(db.Model):
             f"{self.shipment_id} "
             f"{self.stage}>"
         )
+        # =========================================================
+# SHIPMENT DOCUMENT STATUS MODEL
+#
+# Document Section 4.5
+#
+# Tracks required operational documents for each shipment.
+#
+# Allowed statuses:
+# pending
+# received
+# not_applicable
+# =========================================================
+
+class ShipmentDocument(db.Model):
+
+    __tablename__ = "shipment_documents"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # -----------------------------------------
+    # LINK TO SHIPMENT
+    # -----------------------------------------
+
+    shipment_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "shipments.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------
+    # DOCUMENT TYPE
+    #
+    # Examples:
+    # booking_confirmation
+    # bill_of_lading_airway_bill
+    # commercial_invoice
+    # packing_list
+    # certificate_of_origin
+    # insurance_certificate
+    # customs_declaration
+    # other_supporting_document
+    # -----------------------------------------
+
+    document_type = db.Column(
+        db.String(100),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------
+    # DISPLAY NAME
+    # -----------------------------------------
+
+    document_name = db.Column(
+        db.String(150),
+        nullable=False
+    )
+
+    # -----------------------------------------
+    # STATUS
+    #
+    # pending
+    # received
+    # not_applicable
+    # -----------------------------------------
+
+    status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="pending",
+        index=True
+    )
+
+    # -----------------------------------------
+    # OPTIONAL REMARKS
+    # -----------------------------------------
+
+    remarks = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # -----------------------------------------
+    # RECEIVED DETAILS
+    # -----------------------------------------
+
+    received_at = db.Column(
+        db.DateTime(timezone=True),
+        nullable=True
+    )
+
+    received_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    # -----------------------------------------
+    # AUDIT FIELDS
+    # -----------------------------------------
+
+    created_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+    # -----------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------
+
+    shipment = db.relationship(
+        "Shipment",
+        foreign_keys=[shipment_id]
+    )
+
+    received_by = db.relationship(
+        "User",
+        foreign_keys=[received_by_id]
+    )
+
+    created_by = db.relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
+
+    # -----------------------------------------
+    # UNIQUE RULE
+    #
+    # Same shipment lo same document type
+    # duplicate avvakudadhu.
+    # -----------------------------------------
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "shipment_id",
+            "document_type",
+            name="uq_shipment_document_type"
+        ),
+    )
+
+    def __repr__(self):
+
+        return (
+            f"<ShipmentDocument "
+            f"{self.shipment_id} "
+            f"{self.document_type}>"
+        )
+
+# =========================================================
+# SHIPMENT CUSTOMS CLEARANCE MODEL
+# Requirements Report Section 4.6
+# =========================================================
+
+class ShipmentCustomsClearance(db.Model):
+
+    __tablename__ = "shipment_customs_clearances"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    shipment_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "shipments.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+    clearance_required = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        index=True
+    )
+
+    # Allowed:
+    # not_required
+    # pending
+    # in_process
+    # cleared
+    # held_query
+    clearance_status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="not_required",
+        index=True
+    )
+
+    clearing_agent_name = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    clearance_date = db.Column(
+        db.Date,
+        nullable=True,
+        index=True
+    )
+
+    remarks = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    created_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    updated_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+    shipment = db.relationship(
+        "Shipment",
+        foreign_keys=[shipment_id]
+    )
+
+    created_by = db.relationship(
+        "User",
+        foreign_keys=[created_by_id]
+    )
+
+    updated_by = db.relationship(
+        "User",
+        foreign_keys=[updated_by_id]
+    )
+
+    def __repr__(self):
+
+        return (
+            f"<ShipmentCustomsClearance "
+            f"{self.shipment_id} "
+            f"{self.clearance_status}>"
+        )
+
+# =========================================================
+# SHIPMENT CLOSURE MODEL
+# Requirements Report Section 4.8
+#
+# Closing Status:
+# delivered
+# completed
+# closed
+#
+# Closing Date is set automatically by application logic.
+# Document archive confirmation is mandatory before closure.
+# Client feedback / rating is optional.
+# =========================================================
+
+class ShipmentClosure(db.Model):
+
+    __tablename__ = "shipment_closures"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    # One closure record per shipment.
+    shipment_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "shipments.id",
+            ondelete="CASCADE"
+        ),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+    # Allowed:
+    # delivered
+    # completed
+    # closed
+    closing_status = db.Column(
+        db.String(30),
+        nullable=False,
+        index=True
+    )
+
+    # Automatically captured when shipment is closed.
+    closing_date = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False,
+        index=True
+    )
+
+    # Optional closing notes.
+    closing_notes = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # Mandatory confirmation before closure.
+    document_archive_confirmed = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        index=True
+    )
+
+    # Optional client feedback.
+    client_feedback = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # Optional rating; application validation will enforce 1-5.
+    client_rating = db.Column(
+        db.Integer,
+        nullable=True
+    )
+
+    # Audit fields.
+    closed_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=False
+    )
+
+    updated_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False
+    )
+
+    # Relationships.
+    shipment = db.relationship(
+        "Shipment",
+        foreign_keys=[shipment_id]
+    )
+
+    closed_by = db.relationship(
+        "User",
+        foreign_keys=[closed_by_id]
+    )
+
+    updated_by = db.relationship(
+        "User",
+        foreign_keys=[updated_by_id]
+    )
+
+    def __repr__(self):
+
+        return (
+            f"<ShipmentClosure "
+            f"{self.shipment_id} "
+            f"{self.closing_status}>"
+        )
+
