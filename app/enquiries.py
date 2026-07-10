@@ -25,6 +25,13 @@ from app.models import (
     User,
 )
 
+from app.sales_scope import (
+    is_admin_user,
+    is_sales_user,
+    scope_enquiries,
+    get_enquiry_or_404,
+)
+
 
 # =========================================================
 # BLUEPRINT
@@ -113,7 +120,9 @@ def enquiry_list():
     # Database nunchi all enquiries load chestundi
     enquiries = (
         db.session.execute(
-            db.select(Enquiry)
+            scope_enquiries(
+                db.select(Enquiry)
+            )
             .order_by(
                 Enquiry.created_at.desc()
             )
@@ -151,6 +160,11 @@ def add_enquiry():
             .where(
                 Client.is_archived.is_(False)
             )
+            .where(
+                Client.assigned_to_id == current_user.id
+                if is_sales_user()
+                else True
+            )
             .order_by(
                 Client.company_name.asc()
             )
@@ -160,17 +174,17 @@ def add_enquiry():
     )
 
     users = (
-        db.session.execute(
-            db.select(User)
-            .where(
-                User.is_active_user.is_(True)
+        [current_user]
+        if is_sales_user()
+        else (
+            db.session.execute(
+                db.select(User)
+                .where(User.is_active_user.is_(True))
+                .order_by(User.full_name.asc())
             )
-            .order_by(
-                User.full_name.asc()
-            )
+            .scalars()
+            .all()
         )
-        .scalars()
-        .all()
     )
 
     # -----------------------------------------
@@ -209,9 +223,13 @@ def add_enquiry():
             ""
         ).strip()
 
-        handled_by_id = request.form.get(
-            "handled_by_id",
-            type=int
+        handled_by_id = (
+            current_user.id
+            if is_sales_user()
+            else request.form.get(
+                "handled_by_id",
+                type=int
+            )
         )
 
         # -------------------------------------
@@ -252,6 +270,10 @@ def add_enquiry():
         if (
             not client
             or client.is_archived
+            or (
+                is_sales_user()
+                and client.assigned_to_id != current_user.id
+            )
         ):
             flash(
                 "Please select a valid client.",
@@ -370,10 +392,7 @@ def add_enquiry():
 @login_required
 def view_enquiry(enquiry_id):
 
-    enquiry = db.get_or_404(
-        Enquiry,
-        enquiry_id
-    )
+    enquiry = get_enquiry_or_404(enquiry_id)
 
     return render_template(
         "enquiries/view.html",
@@ -395,10 +414,7 @@ def view_enquiry(enquiry_id):
 def update_enquiry_status(enquiry_id):
 
     # Database nunchi enquiry record load
-    enquiry = db.get_or_404(
-        Enquiry,
-        enquiry_id
-    )
+    enquiry = get_enquiry_or_404(enquiry_id)
 
     # Form nunchi selected status receive
     new_status = request.form.get(
@@ -483,10 +499,7 @@ def edit_enquiry(enquiry_id):
     # LOAD EXISTING ENQUIRY
     # -----------------------------------------
 
-    enquiry = db.get_or_404(
-        Enquiry,
-        enquiry_id
-    )
+    enquiry = get_enquiry_or_404(enquiry_id)
 
     # -----------------------------------------
     # LOAD ACTIVE CLIENTS FOR DROPDOWN

@@ -23,6 +23,13 @@ from app.models import (
     User,
 )
 
+from app.sales_scope import (
+    is_admin_user,
+    is_sales_user,
+    scope_tasks,
+    get_task_or_404,
+)
+
 
 # =========================================================
 # BLUEPRINT
@@ -121,8 +128,8 @@ def task_list():
     ).strip()
 
 
-    query = db.select(
-        ClientTask
+    query = scope_tasks(
+        db.select(ClientTask)
     )
 
 
@@ -166,7 +173,7 @@ def task_list():
     # FILTER: ASSIGNEE
     # -----------------------------------------
 
-    if assignee_filter.isdigit():
+    if assignee_filter.isdigit() and not is_sales_user():
 
         query = query.where(
             ClientTask.assigned_to_id
@@ -192,14 +199,16 @@ def task_list():
 
 
     users = (
-        db.session.execute(
-            db.select(User)
-            .order_by(
-                User.full_name.asc()
+        [current_user]
+        if is_sales_user()
+        else (
+            db.session.execute(
+                db.select(User)
+                .order_by(User.full_name.asc())
             )
+            .scalars()
+            .all()
         )
-        .scalars()
-        .all()
     )
 
 
@@ -238,6 +247,11 @@ def create_task():
             .where(
                 Client.is_archived.is_(False)
             )
+            .where(
+                Client.assigned_to_id == current_user.id
+                if is_sales_user()
+                else True
+            )
             .order_by(
                 Client.company_name.asc()
             )
@@ -248,14 +262,16 @@ def create_task():
 
 
     users = (
-        db.session.execute(
-            db.select(User)
-            .order_by(
-                User.full_name.asc()
+        [current_user]
+        if is_sales_user()
+        else (
+            db.session.execute(
+                db.select(User)
+                .order_by(User.full_name.asc())
             )
+            .scalars()
+            .all()
         )
-        .scalars()
-        .all()
     )
 
 
@@ -302,9 +318,13 @@ def create_task():
             ""
         ).strip()
 
-        assigned_to_id = request.form.get(
-            "assigned_to_id",
-            type=int
+        assigned_to_id = (
+            current_user.id
+            if is_sales_user()
+            else request.form.get(
+                "assigned_to_id",
+                type=int
+            )
         )
 
         priority = request.form.get(
@@ -338,7 +358,13 @@ def create_task():
         )
 
 
-        if not client:
+        if (
+            not client
+            or (
+                is_sales_user()
+                and client.assigned_to_id != current_user.id
+            )
+        ):
 
             flash(
                 "Selected client was not found.",
@@ -558,10 +584,7 @@ def create_task():
 @login_required
 def start_task(task_id):
 
-    task = db.get_or_404(
-        ClientTask,
-        task_id
-    )
+    task = get_task_or_404(task_id)
 
 
     if task.status != "pending":
@@ -624,10 +647,7 @@ def start_task(task_id):
 @login_required
 def complete_task(task_id):
 
-    task = db.get_or_404(
-        ClientTask,
-        task_id
-    )
+    task = get_task_or_404(task_id)
 
 
     if task.status not in {
@@ -697,10 +717,7 @@ def complete_task(task_id):
 @login_required
 def edit_task(task_id):
 
-    task = db.get_or_404(
-        ClientTask,
-        task_id
-    )
+    task = get_task_or_404(task_id)
 
 
     # -----------------------------------------
@@ -1059,10 +1076,7 @@ def edit_task(task_id):
 @login_required
 def cancel_task(task_id):
 
-    task = db.get_or_404(
-        ClientTask,
-        task_id
-    )
+    task = get_task_or_404(task_id)
 
 
     if task.status not in {

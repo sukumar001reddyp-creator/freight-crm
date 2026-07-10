@@ -1,631 +1,124 @@
 {% extends "layouts/base.html" %}
-
-{% block title %}
-Dashboard | Freight CRM
-{% endblock %}
-
-{% block page_title %}
-Operations Dashboard
-{% endblock %}
-
-{% block page_subtitle %}
-Monitor clients, enquiries, quotations and shipments.
-{% endblock %}
+{% block title %}Dashboard | Freight CRM{% endblock %}
+{% block page_title %}{{ 'My Sales Dashboard' if permissions.is_sales_executive() else 'Operations Dashboard' }}{% endblock %}
+{% block page_subtitle %}{{ 'Only your assigned clients, enquiries, quotations and follow-ups are shown.' if permissions.is_sales_executive() else 'Live visibility across clients, enquiries, quotations, follow-ups and shipments.' }}{% endblock %}
 
 {% block content %}
-
+{% if permissions.is_sales_executive() %}
+<div style="margin-bottom:14px;padding:12px 15px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-size:12px;font-weight:700;">
+    <i class="bi bi-person-badge-fill"></i>
+    Private sales workspace — only records assigned to {{ current_user.full_name }} are included.
+</div>
+{% endif %}
 <style>
-.dashboard-followup-list,
-.dashboard-activity-list {
-    display: grid;
-    gap: 12px;
-    margin-top: 18px;
-    margin-bottom: 18px;
-}
-
-.dashboard-followup-item,
-.dashboard-activity-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 14px;
-    background: #fff;
-}
-
-.dashboard-followup-copy,
-.dashboard-activity-item .flow-copy {
-    min-width: 0;
-    flex: 1;
-}
-
-.dashboard-followup-copy strong,
-.dashboard-activity-item .flow-copy strong {
-    display: block;
-    margin-bottom: 4px;
-}
-
-.dashboard-followup-copy span,
-.dashboard-activity-item .flow-copy span {
-    display: block;
-    font-size: 0.86rem;
-    opacity: 0.72;
-}
-
-.shipment-flow .flow-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.shipment-flow .flow-copy {
-    flex: 1;
-    min-width: 0;
-}
-
-.shipment-count-badge {
-    margin-left: auto;
-    min-width: 46px;
-    height: 46px;
-    padding: 0 12px;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 1.05rem;
-    font-weight: 800;
-    line-height: 1;
-    color: #ffffff;
-    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
-    box-shadow: 0 8px 18px rgba(127, 29, 29, 0.22);
-}
-
-.shipment-count-badge.is-zero {
-    color: #64748b;
-    background: #f1f5f9;
-    box-shadow: none;
-    border: 1px solid #e2e8f0;
-}
-
-.shipment-count-label {
-    display: block;
-    margin-top: 3px;
-    font-size: 0.78rem;
-    color: #64748b;
-}
-
+.clean-dashboard{--red:#b91c1c;--dark:#172033;--muted:#64748b;--line:#e6eaf0;display:grid;gap:18px}
+.cd-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 24px;border-radius:18px;background:linear-gradient(120deg,#7f1d1d,#b91c1c);color:#fff;box-shadow:0 14px 30px rgba(127,29,29,.14)}
+.cd-hero h2{margin:4px 0 6px;font-size:27px}.cd-hero p{margin:0;max-width:650px;font-size:12px;line-height:1.6;opacity:.84}
+.cd-kicker{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.cd-actions{display:flex;gap:9px;flex-shrink:0}.cd-btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 13px;border-radius:10px;text-decoration:none;font-size:11px;font-weight:800}
+.cd-btn.light{background:#fff;color:#7f1d1d}.cd-btn.outline{border:1px solid rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.08)}
+.cd-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.cd-kpi,.cd-panel{border:1px solid var(--line);background:#fff;box-shadow:0 7px 20px rgba(15,23,42,.04)}
+.cd-kpi{padding:16px;border-radius:15px}.cd-kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cd-icon{width:37px;height:37px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
+.i-red{background:#fee2e2;color:#b91c1c}.i-orange{background:#ffedd5;color:#c2410c}.i-purple{background:#ede9fe;color:#6d28d9}.i-green{background:#dcfce7;color:#15803d}
+.cd-state{font-size:9px;font-weight:850;text-transform:uppercase;color:var(--muted)}.cd-value{font-size:26px;font-weight:850;line-height:1;color:var(--dark)}.cd-label{margin-top:4px;font-size:11px;font-weight:750;color:#475569}
+.cd-main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,.85fr);gap:16px}.cd-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cd-panel{min-width:0;padding:18px;border-radius:16px}.cd-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:15px}.cd-head small{display:block;margin-bottom:4px;color:var(--red);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.cd-head h3{margin:0;color:var(--dark);font-size:15px}.cd-head p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.cd-link{flex-shrink:0;color:var(--red);text-decoration:none;font-size:10px;font-weight:800}
+.stage-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stage{padding:11px;border:1px solid var(--line);border-radius:11px;background:#f8fafc}.stage i{color:var(--red)}.stage strong{display:block;margin-top:7px;color:var(--dark);font-size:10px;line-height:1.3}.stage-foot{display:flex;justify-content:space-between;align-items:center;margin-top:7px;color:var(--muted);font-size:8px}.stage-foot b{color:#7f1d1d;font-size:15px}
+.action-list,.task-list,.activity-list,.category-list{display:grid;gap:8px}.action{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:11px;background:#f8fafc}
+.action-icon{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px}.action-copy strong,.task-copy strong,.activity-copy strong{display:block;color:#273043;font-size:11px}.action-copy span,.task-copy span,.activity-copy span{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
+.action-count{min-width:30px;height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 7px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:11px;font-weight:850;color:var(--dark)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.summary-box{padding:12px;border:1px solid var(--line);border-radius:11px;background:#f8fafc}.summary-box span{display:block;margin-bottom:5px;color:var(--muted);font-size:9px;font-weight:700}.summary-box strong{font-size:19px;color:var(--dark)}.pending strong{color:#c2410c}.approved strong{color:#15803d}.rejected strong{color:#b91c1c}
+.divider{height:1px;margin:14px 0;background:var(--line)}.mini-title{margin:0 0 9px;color:#475569;font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}
+.task,.activity{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #edf0f4}.task:last-child,.activity:last-child{border-bottom:0}.task-copy,.activity-copy{min-width:0;flex:1}.priority{padding:4px 6px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:8px;font-weight:850;text-transform:uppercase}.priority.high,.priority.urgent{background:#fee2e2;color:#b91c1c}
+.activity-icon{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:9px;background:#f1f5f9;color:#475569}
+.life-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.life{display:flex;align-items:center;gap:7px;padding:9px;border:1px solid var(--line);border-radius:9px;background:#f8fafc}.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.life span:nth-child(2){min-width:0;flex:1;color:#475569;font-size:9px;font-weight:700}.life strong{font-size:11px;color:var(--dark)}
+.d1{background:#6366f1}.d2{background:#0ea5e9}.d3{background:#22c55e}.d4{background:#eab308}.d5{background:#f97316}.d6{background:#64748b}.d7{background:#ef4444}.d8{background:#14b8a6}.d9{background:#a855f7}
+.category{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px 0;border-bottom:1px solid #edf0f4}.category:last-child{border-bottom:0}.category span{color:#475569;font-size:10px;font-weight:700}.category strong{color:var(--dark);font-size:11px}.empty{padding:22px;text-align:center;color:var(--muted);font-size:10px}
+@media(max-width:1100px){.cd-kpis{grid-template-columns:repeat(2,1fr)}.cd-main,.cd-two{grid-template-columns:1fr}}
+@media(max-width:720px){.cd-hero{align-items:stretch;flex-direction:column}.cd-actions{width:100%}.cd-btn{flex:1}.stage-grid,.life-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.cd-kpis,.stage-grid,.life-grid,.summary{grid-template-columns:1fr}.cd-actions{flex-direction:column}}
 </style>
 
-
-<section class="welcome-banner">
-
-    <div class="welcome-content">
-
-        <span class="welcome-eyebrow">
-            <i class="bi bi-stars"></i>
-            Freight Operations Command Center
-        </span>
-
-        <h2>
-            Good to see you,
-            {{ current_user.full_name.split()[0] }}.
-        </h2>
-
-        <p>
-            Track client relationships, pending decisions,
-            follow-ups and shipment movement from one workspace.
-        </p>
-
-    </div>
-
-    <div class="welcome-actions">
-
-        <a
-            href="{{ url_for('clients.add_client') }}"
-            class="btn btn-light"
-        >
-            <i class="bi bi-person-plus-fill"></i>
-            Add Client
-        </a>
-
-        <a
-            href="{{ url_for('enquiries.add_enquiry') }}"
-            class="btn btn-dark-red"
-        >
-            <i class="bi bi-plus-circle-fill"></i>
-            New Enquiry
-        </a>
-
-    </div>
-
+<div class="clean-dashboard">
+<section class="cd-hero">
+  <div>
+    <span class="cd-kicker"><i class="bi bi-grid-1x2-fill"></i> Freight Operations Command Center</span>
+    <h2>Welcome back, {{ current_user.full_name.split()[0] }}.</h2>
+    <p>One clean view of client health, pending actions, quotation decisions and live shipment movement.</p>
+  </div>
+  <div class="cd-actions">
+    <a href="{{ url_for('clients.add_client') }}" class="cd-btn light"><i class="bi bi-person-plus-fill"></i>Add Client</a>
+    <a href="{{ url_for('enquiries.add_enquiry') }}" class="cd-btn outline"><i class="bi bi-plus-circle-fill"></i>New Enquiry</a>
+  </div>
 </section>
 
-
-<section class="stats-grid">
-
-    <article class="stat-card">
-
-        <div class="stat-card-top">
-
-            <div class="stat-icon stat-icon-red">
-                <i class="bi bi-people-fill"></i>
-            </div>
-
-            <span class="trend-badge neutral">
-                Live
-            </span>
-
-        </div>
-
-        <div class="stat-value">
-            {{ total_clients }}
-        </div>
-
-        <div class="stat-label">
-            Total Clients
-        </div>
-
-        <div class="stat-footer">
-            All lifecycle records
-        </div>
-
-    </article>
-
-
-    <article class="stat-card">
-
-        <div class="stat-card-top">
-
-            <div class="stat-icon stat-icon-orange">
-                <i class="bi bi-inbox-fill"></i>
-            </div>
-
-            <span class="trend-badge warning">
-                Pending
-            </span>
-
-        </div>
-
-        <div class="stat-value">
-            {{ total_enquiries }}
-        </div>
-
-        <div class="stat-label">
-            Open Enquiries
-        </div>
-
-        <div class="stat-footer">
-            Awaiting workflow action
-        </div>
-
-    </article>
-
-
-    <article class="stat-card">
-
-        <div class="stat-card-top">
-
-            <div class="stat-icon stat-icon-purple">
-                <i class="bi bi-file-earmark-text-fill"></i>
-            </div>
-
-            <span class="trend-badge neutral">
-                Review
-            </span>
-
-        </div>
-
-        <div class="stat-value">
-            {{ total_quotations }}
-        </div>
-
-        <div class="stat-label">
-            Pending Quotations
-        </div>
-
-        <div class="stat-footer">
-            Awaiting client decision
-        </div>
-
-    </article>
-
-
-    <article class="stat-card">
-
-        <div class="stat-card-top">
-
-            <div class="stat-icon stat-icon-green">
-                <i class="bi bi-truck"></i>
-            </div>
-
-            <span class="trend-badge success">
-                Active
-            </span>
-
-        </div>
-
-        <div class="stat-value">
-            {{ total_shipments }}
-        </div>
-
-        <div class="stat-label">
-            Active Shipments
-        </div>
-
-        <div class="stat-footer">
-            Currently in progress
-        </div>
-
-    </article>
-
+<section class="cd-kpis">
+{% set kpis = [
+("i-red","people-fill","Live Records",total_clients,"Total Clients"),
+("i-orange","inbox-fill","Pending",total_enquiries,"Open Enquiries"),
+("i-purple","file-earmark-text-fill","Decision",total_quotations,"Pending Quotations"),
+("i-green","truck","In Progress",total_shipments,"Active Shipments")
+] %}
+{% for icon_class,icon,state,value,label in kpis %}
+<article class="cd-kpi"><div class="cd-kpi-top"><span class="cd-icon {{ icon_class }}"><i class="bi bi-{{ icon }}"></i></span><span class="cd-state">{{ state }}</span></div><div class="cd-value">{{ value }}</div><div class="cd-label">{{ label }}</div></article>
+{% endfor %}
 </section>
 
+<section class="cd-main">
+<article class="cd-panel">
+<div class="cd-head"><div><small>Shipment Operations</small><h3>Current Shipment Stage</h3><p>Live workflow position across operational milestones.</p></div><a href="{{ url_for('shipments.shipment_list') }}" class="cd-link">View all <i class="bi bi-arrow-right"></i></a></div>
+{% set stages=[("booked","Booked","journal-check"),("cargo_picked_up","Cargo Picked Up","box-seam"),("in_transit","In Transit","arrow-left-right"),("arrived_destination","Arrived at Destination","geo-alt-fill"),("customs_clearance","Customs Clearance","shield-check"),("out_for_delivery","Out for Delivery","truck"),("delivered","Delivered","check-circle"),("closed_completed","Closed / Completed","check2-circle")] %}
+<div class="stage-grid">{% for key,label,icon in stages %}<div class="stage"><i class="bi bi-{{ icon }}"></i><strong>{{ label }}</strong><div class="stage-foot"><span>Shipments</span><b>{{ shipment_stage_counts.get(key,0) }}</b></div></div>{% endfor %}</div>
+</article>
 
-<section class="dashboard-grid">
-
-    <article class="panel pipeline-panel">
-
-        <div class="panel-header">
-
-            <div>
-                <span class="panel-eyebrow">
-                    Shipment Operations
-                </span>
-
-                <h3>
-                    Shipment Status Flow
-                </h3>
-
-                <p>
-                    Live visibility across the required
-                    shipment milestones.
-                </p>
-            </div>
-
-            <a
-                href="{{ url_for('shipments.shipment_list') }}"
-                class="text-link"
-            >
-                View shipments
-                <i class="bi bi-arrow-right"></i>
-            </a>
-
-        </div>
-
-        <div class="shipment-flow">
-
-            {% set shipment_stages = [
-                ("booking_confirmed", "Booking Confirmed", "journal-check"),
-                ("pickup", "Pickup", "box-seam"),
-                ("origin_handling", "Origin Handling", "building-gear"),
-                ("in_transit", "In Transit", "arrow-left-right"),
-                ("arrival", "Arrival", "geo-alt-fill"),
-                ("customs_clearance", "Customs Clearance", "shield-check"),
-                ("delivery", "Delivery", "truck"),
-                ("closed", "Closed", "check2-circle")
-            ] %}
-
-            {% for stage_key, stage_label, stage_icon in shipment_stages %}
-
-            {% set stage_count = shipment_stage_counts.get(stage_key, 0) %}
-
-            <div class="flow-item">
-
-                <div class="flow-icon">
-                    <i class="bi bi-{{ stage_icon }}"></i>
-                </div>
-
-                <div class="flow-copy">
-                    <strong>{{ stage_label }}</strong>
-
-                    <span class="shipment-count-label">
-                        Current workflow position
-                    </span>
-                </div>
-
-                <div
-                    class="shipment-count-badge
-                    {% if stage_count == 0 %}is-zero{% endif %}"
-                    title="{{ stage_count }} shipment{% if stage_count != 1 %}s{% endif %}"
-                >
-                    {{ stage_count }}
-                </div>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-    </article>
-
-
-    <article class="panel followup-panel">
-
-        <div class="panel-header">
-
-            <div>
-                <span class="panel-eyebrow">
-                    Attention Required
-                </span>
-
-                <h3>
-                    Follow-ups
-                </h3>
-
-                <p>
-                    {{ pending_followups_count }}
-                    pending or in-progress actions.
-                </p>
-            </div>
-
-            <a
-                href="{{ url_for('tasks.task_list') }}"
-                class="icon-square-btn"
-                title="View Tasks"
-            >
-                <i class="bi bi-arrow-right"></i>
-            </a>
-
-        </div>
-
-        {% if follow_up_tasks %}
-
-        <div class="dashboard-followup-list">
-
-            {% for task in follow_up_tasks %}
-
-            <div class="dashboard-followup-item">
-
-                <div class="dashboard-followup-copy">
-                    <strong>{{ task.title }}</strong>
-
-                    <span>
-                        {{ task.client.company_name }}
-                        {% if task.due_date %}
-                        • {{ task.due_date.strftime("%d %b %Y, %I:%M %p") }}
-                        {% endif %}
-                    </span>
-                </div>
-
-                <span class="trend-badge
-                    {% if task.priority in ['high', 'urgent'] %}
-                    warning
-                    {% else %}
-                    neutral
-                    {% endif %}
-                ">
-                    {{ task.priority|title }}
-                </span>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-        <a
-            href="{{ url_for('tasks.task_list') }}"
-            class="btn btn-primary-red btn-small"
-        >
-            View All Follow-ups
-        </a>
-
-        {% else %}
-
-        <div class="empty-state">
-
-            <div class="empty-icon">
-                <i class="bi bi-calendar2-check"></i>
-            </div>
-
-            <h4>
-                No pending follow-ups
-            </h4>
-
-            <p>
-                Pending and in-progress client tasks
-                will appear here automatically.
-            </p>
-
-            <a
-                href="{{ url_for('tasks.task_list') }}"
-                class="btn btn-primary-red btn-small"
-            >
-                Open Tasks
-            </a>
-
-        </div>
-
-        {% endif %}
-
-    </article>
-
+<article class="cd-panel">
+<div class="cd-head"><div><small>Attention Required</small><h3>Action Center</h3><p>Items needing sales or operations attention.</p></div></div>
+<div class="action-list">
+<div class="action"><span class="action-icon i-red"><i class="bi bi-calendar2-check"></i></span><div class="action-copy"><strong>Pending Follow-ups</strong><span>Pending or in-progress actions</span></div><span class="action-count">{{ pending_followups_count }}</span></div>
+<div class="action"><span class="action-icon i-orange"><i class="bi bi-exclamation-triangle"></i></span><div class="action-copy"><strong>At-Risk Clients</strong><span>Relationships requiring attention</span></div><span class="action-count">{{ lifecycle_counts["at_risk"] }}</span></div>
+<div class="action"><span class="action-icon i-purple"><i class="bi bi-file-earmark-text"></i></span><div class="action-copy"><strong>Pending Quotations</strong><span>Awaiting client decision</span></div><span class="action-count">{{ quotation_status_counts["pending"] }}</span></div>
+</div>
+</article>
 </section>
 
+<section class="cd-two">
+<article class="cd-panel">
+<div class="cd-head"><div><small>Commercial Pipeline</small><h3>Quotation Decisions</h3><p>Pending, approved and rejected records.</p></div><a href="{{ url_for('quotations.quotation_list') }}" class="cd-link">View quotes <i class="bi bi-arrow-right"></i></a></div>
+<div class="summary"><div class="summary-box pending"><span>Pending</span><strong>{{ quotation_status_counts["pending"] }}</strong></div><div class="summary-box approved"><span>Approved</span><strong>{{ quotation_status_counts["approved"] }}</strong></div><div class="summary-box rejected"><span>Rejected</span><strong>{{ quotation_status_counts["rejected"] }}</strong></div></div>
+<div class="divider"></div><h4 class="mini-title">Enquiry Outcome</h4>
+<div class="summary"><div class="summary-box"><span>Open</span><strong>{{ enquiry_status_counts["open"] }}</strong></div><div class="summary-box approved"><span>Converted</span><strong>{{ enquiry_status_counts["converted"] }}</strong></div><div class="summary-box"><span>Closed</span><strong>{{ enquiry_status_counts["closed"] }}</strong></div></div>
+</article>
 
-<section class="dashboard-bottom-grid">
-
-    <article class="panel">
-
-        <div class="panel-header">
-
-            <div>
-                <span class="panel-eyebrow">
-                    Client Health
-                </span>
-
-                <h3>
-                    Lifecycle Overview
-                </h3>
-
-                <p>
-                    Monitor relationship status across records.
-                </p>
-            </div>
-
-        </div>
-
-        <div class="lifecycle-list">
-
-            <div class="lifecycle-row">
-                <span class="status-dot lead"></span>
-                <span class="lifecycle-name">
-                    Lead / Prospect
-                </span>
-                <strong>{{ lifecycle_counts["lead"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot new-client"></span>
-                <span class="lifecycle-name">
-                    New Client
-                </span>
-                <strong>{{ lifecycle_counts["new"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot active-client"></span>
-                <span class="lifecycle-name">
-                    Active / Existing
-                </span>
-                <strong>{{ lifecycle_counts["active"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot key-client"></span>
-                <span class="lifecycle-name">
-                    Key / Strategic
-                </span>
-                <strong>{{ lifecycle_counts["key"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot at-risk"></span>
-                <span class="lifecycle-name">
-                    At-Risk
-                </span>
-                <strong>{{ lifecycle_counts["at_risk"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot dormant"></span>
-                <span class="lifecycle-name">
-                    Dormant / Inactive
-                </span>
-                <strong>{{ lifecycle_counts["dormant"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot churned"></span>
-                <span class="lifecycle-name">
-                    Churned / Lost
-                </span>
-                <strong>{{ lifecycle_counts["churned"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot reactivated"></span>
-                <span class="lifecycle-name">
-                    Reactivated / Win-Back
-                </span>
-                <strong>{{ lifecycle_counts["reactivated"] }}</strong>
-            </div>
-
-            <div class="lifecycle-row">
-                <span class="status-dot referral"></span>
-                <span class="lifecycle-name">
-                    Referral Client
-                </span>
-                <strong>{{ lifecycle_counts["referral"] }}</strong>
-            </div>
-
-        </div>
-
-    </article>
-
-
-    <article class="panel">
-
-        <div class="panel-header">
-
-            <div>
-                <span class="panel-eyebrow">
-                    Recent Movement
-                </span>
-
-                <h3>
-                    Activity Timeline
-                </h3>
-
-                <p>
-                    Calls, emails and meetings.
-                </p>
-            </div>
-
-        </div>
-
-        {% if recent_activities %}
-
-        <div class="dashboard-activity-list">
-
-            {% for activity in recent_activities %}
-
-            <div class="dashboard-activity-item">
-
-                <div class="flow-icon">
-                    {% if activity.activity_type == "call" %}
-                    <i class="bi bi-telephone-fill"></i>
-                    {% elif activity.activity_type == "email" %}
-                    <i class="bi bi-envelope-fill"></i>
-                    {% elif activity.activity_type == "meeting" %}
-                    <i class="bi bi-people-fill"></i>
-                    {% else %}
-                    <i class="bi bi-activity"></i>
-                    {% endif %}
-                </div>
-
-                <div class="flow-copy">
-                    <strong>{{ activity.subject }}</strong>
-
-                    <span>
-                        {{ activity.client.company_name }}
-                        •
-                        {{ activity.activity_date.strftime("%d %b %Y, %I:%M %p") }}
-                    </span>
-                </div>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-        {% else %}
-
-        <div class="empty-state compact">
-
-            <div class="empty-icon">
-                <i class="bi bi-clock-history"></i>
-            </div>
-
-            <h4>
-                No activity recorded
-            </h4>
-
-            <p>
-                Logged calls, emails and meetings
-                will appear here automatically.
-            </p>
-
-        </div>
-
-        {% endif %}
-
-    </article>
-
+<article class="cd-panel">
+<div class="cd-head"><div><small>Follow-up Needed</small><h3>Upcoming Actions</h3><p>{{ pending_followups_count }} pending or in-progress tasks.</p></div><a href="{{ url_for('tasks.task_list') }}" class="cd-link">View tasks <i class="bi bi-arrow-right"></i></a></div>
+{% if follow_up_tasks %}<div class="task-list">{% for task in follow_up_tasks %}<div class="task"><div class="task-copy"><strong>{{ task.title }}</strong><span>{{ task.client.company_name }}{% if task.due_date %} • {{ task.due_date.strftime("%d %b %Y, %I:%M %p") }}{% endif %}</span></div><span class="priority {{ task.priority }}">{{ task.priority|title }}</span></div>{% endfor %}</div>{% else %}<div class="empty">No pending follow-ups.</div>{% endif %}
+</article>
 </section>
 
+<section class="cd-two">
+<article class="cd-panel">
+<div class="cd-head"><div><small>Client Health</small><h3>Lifecycle Status</h3><p>Color-coded relationship status.</p></div><a href="{{ url_for('clients.client_list') }}" class="cd-link">View clients <i class="bi bi-arrow-right"></i></a></div>
+{% set life=[("lead","Lead / Prospect","d1"),("new","New","d2"),("active","Active","d3"),("key","Key","d4"),("at_risk","At-Risk","d5"),("dormant","Dormant","d6"),("churned","Churned","d7"),("reactivated","Reactivated","d8"),("referral","Referral","d9")] %}
+<div class="life-grid">{% for key,label,dot in life %}<div class="life"><span class="dot {{ dot }}"></span><span>{{ label }}</span><strong>{{ lifecycle_counts[key] }}</strong></div>{% endfor %}</div>
+</article>
+
+<article class="cd-panel">
+<div class="cd-head"><div><small>Category Overview</small><h3>Clients by Category</h3><p>Non-archived records grouped by category.</p></div></div>
+{% if client_category_counts %}<div class="category-list">{% for name,count in client_category_counts.items() %}<div class="category"><span>{{ name|replace("_"," ")|title }}</span><strong>{{ count }}</strong></div>{% endfor %}</div>{% else %}<div class="empty">No category data available.</div>{% endif %}
+</article>
+</section>
+
+<section class="cd-two">
+<article class="cd-panel">
+<div class="cd-head"><div><small>Recent Movement</small><h3>Activity Timeline</h3><p>Latest calls, emails and meetings.</p></div></div>
+{% if recent_activities %}<div class="activity-list">{% for activity in recent_activities %}<div class="activity"><span class="activity-icon">{% if activity.activity_type=="call" %}<i class="bi bi-telephone-fill"></i>{% elif activity.activity_type=="email" %}<i class="bi bi-envelope-fill"></i>{% elif activity.activity_type=="meeting" %}<i class="bi bi-people-fill"></i>{% else %}<i class="bi bi-activity"></i>{% endif %}</span><div class="activity-copy"><strong>{{ activity.subject }}</strong><span>{{ activity.client.company_name }} • {{ activity.activity_date.strftime("%d %b %Y, %I:%M %p") }}</span></div></div>{% endfor %}</div>{% else %}<div class="empty">No recent activity recorded.</div>{% endif %}
+</article>
+
+<article class="cd-panel">
+<div class="cd-head"><div><small>Shipment Reporting</small><h3>Progress Summary</h3><p>In-progress and completed shipment records.</p></div><a href="{{ url_for('shipments.shipment_list') }}" class="cd-link">View shipments <i class="bi bi-arrow-right"></i></a></div>
+<div class="summary"><div class="summary-box pending"><span>In Progress</span><strong>{{ total_shipments }}</strong></div><div class="summary-box approved"><span>Closed / Done</span><strong>{{ closed_shipments_count }}</strong></div><div class="summary-box"><span>Total Tracked</span><strong>{{ total_shipments + closed_shipments_count }}</strong></div></div>
+</article>
+</section>
+</div>
 {% endblock %}

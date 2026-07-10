@@ -1,0 +1,53 @@
+{% extends "layouts/base.html" %}
+{% block title %}Users & Roles | Freight CRM{% endblock %}
+
+{% block content %}
+<style>
+.users-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:22px}
+.users-head h1{margin:0;font-size:26px}.users-head p{margin:5px 0 0;color:#64748b}
+.primary-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:10px;background:#0f172a;color:#fff;text-decoration:none;font-weight:700}
+.users-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden}
+.users-table{width:100%;border-collapse:collapse}.users-table th,.users-table td{padding:14px 16px;text-align:left;border-bottom:1px solid #eef2f7}
+.users-table th{font-size:12px;text-transform:uppercase;color:#64748b;background:#f8fafc}
+.role-badge,.status-badge{display:inline-flex;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.role-badge{background:#eef2ff;color:#3730a3}.active{background:#dcfce7;color:#166534}.inactive{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.small-btn{border:1px solid #cbd5e1;background:#fff;padding:7px 9px;border-radius:8px;text-decoration:none;color:#0f172a;font-weight:650;cursor:pointer}
+.reset-box{display:flex;gap:6px}.reset-box input{width:130px;border:1px solid #cbd5e1;border-radius:8px;padding:7px}
+@media(max-width:900px){.users-card{overflow-x:auto}.users-table{min-width:850px}.users-head{align-items:flex-start;flex-direction:column}}
+</style>
+
+<div class="users-head">
+  <div><h1>Users & Roles</h1><p>Create staff logins and control role access.</p></div>
+  <a class="primary-btn" href="{{ url_for('users.create_user') }}"><i class="bi bi-person-plus-fill"></i> Create User</a>
+</div>
+
+<div class="users-card">
+<table class="users-table">
+<thead><tr><th>User</th><th>Email / Login ID</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{% for user in users %}
+<tr>
+<td><strong>{{ user.full_name }}</strong>{% if user.id == current_user.id %}<br><small>You</small>{% endif %}</td>
+<td>{{ user.email }}</td>
+<td><span class="role-badge">{{ user.role_label }}</span></td>
+<td><span class="status-badge {{ 'active' if user.is_active_user else 'inactive' }}">{{ 'Active' if user.is_active_user else 'Inactive' }}</span></td>
+<td>
+<div class="actions">
+<a class="small-btn" href="{{ url_for('users.edit_user', user_id=user.id) }}">Edit</a>
+<form method="post" action="{{ url_for('users.toggle_user_active', user_id=user.id) }}">
+<button class="small-btn" type="submit" {% if user.id == current_user.id %}disabled{% endif %}>{{ 'Deactivate' if user.is_active_user else 'Activate' }}</button>
+</form>
+<form class="reset-box" method="post" action="{{ url_for('users.reset_password', user_id=user.id) }}">
+<input type="password" name="new_password" minlength="8" placeholder="New password" required>
+<button class="small-btn" type="submit">Reset</button>
+</form>
+</div>
+</td>
+</tr>
+{% else %}
+<tr><td colspan="5">No users found.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

@@ -6,10 +6,12 @@ from flask import (
 )
 
 from flask_sqlalchemy import SQLAlchemy
+from app.permissions import permissions
 
 from flask_login import (
     LoginManager,
     login_required,
+    current_user,
 )
 
 from config import Config
@@ -110,6 +112,15 @@ def create_app():
 
 
     # ==========================================
+    # ADMIN USERS & ROLES BLUEPRINT
+    # ==========================================
+
+    from app.users import users_bp
+
+    app.register_blueprint(users_bp)
+
+
+    # ==========================================
     # IMPORT MODELS
     # ==========================================
 
@@ -127,26 +138,36 @@ def create_app():
             Client,
             Enquiry,
         )
+        from flask_login import current_user
 
-        sidebar_clients_count = (
-            Client.query
-            .filter(
-                Client.is_archived.is_(False)
-            )
-            .count()
+        client_count_query = Client.query.filter(
+            Client.is_archived.is_(False)
         )
 
-        sidebar_enquiries_count = (
-            Enquiry.query
-            .filter(
-                Enquiry.status.notin_([
-                    "closed",
-                    "cancelled",
-                    "converted",
-                ])
-            )
-            .count()
+        enquiry_count_query = Enquiry.query.join(
+            Client,
+            Enquiry.client_id == Client.id
+        ).filter(
+            Enquiry.status.notin_([
+                "closed",
+                "cancelled",
+                "converted",
+            ])
         )
+
+        if getattr(current_user, "role", None) in {
+            "sales",
+            "sales_executive",
+        }:
+            client_count_query = client_count_query.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            enquiry_count_query = enquiry_count_query.filter(
+                Client.assigned_to_id == current_user.id
+            )
+
+        sidebar_clients_count = client_count_query.count()
+        sidebar_enquiries_count = enquiry_count_query.count()
 
         return {
             "sidebar_clients_count": sidebar_clients_count,
@@ -182,49 +203,130 @@ def create_app():
         )
 
         # --------------------------------------
+        # ROLE-SCOPED DASHBOARD
+        # Admin sees all data.
+        # Sales Executive sees only data linked
+        # to clients assigned to that salesperson.
+        # --------------------------------------
+
+        is_sales_dashboard = (
+            getattr(current_user, "role", None)
+            in {"sales", "sales_executive"}
+        )
+
+        client_scope = Client.query.filter(
+            Client.is_archived.is_(False)
+        )
+        enquiry_scope = Enquiry.query.join(
+            Client,
+            Enquiry.client_id == Client.id
+        )
+        quotation_scope = Quotation.query.join(
+            Enquiry,
+            Quotation.enquiry_id == Enquiry.id
+        ).join(
+            Client,
+            Enquiry.client_id == Client.id
+        )
+        task_scope = ClientTask.query.join(
+            Client,
+            ClientTask.client_id == Client.id
+        )
+        activity_scope = ClientActivity.query.join(
+            Client,
+            ClientActivity.client_id == Client.id
+        )
+        shipment_scope = Shipment.query.join(
+            Client,
+            Shipment.client_id == Client.id
+        )
+
+        if is_sales_dashboard:
+            client_scope = client_scope.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            enquiry_scope = enquiry_scope.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            quotation_scope = quotation_scope.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            task_scope = task_scope.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            activity_scope = activity_scope.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            shipment_scope = shipment_scope.filter(
+                Client.assigned_to_id == current_user.id
+            )
+
+        # --------------------------------------
         # TOP CARDS
         # --------------------------------------
 
-        total_clients = (
-            Client.query
-            .filter(
-                Client.is_archived.is_(False)
-            )
-            .count()
-        )
+        total_clients = client_scope.count()
 
-        total_enquiries = (
-            Enquiry.query
-            .filter(
-                Enquiry.status.notin_([
-                    "closed",
-                    "cancelled",
-                    "converted",
-                ])
-            )
-            .count()
-        )
+        total_enquiries = enquiry_scope.filter(
+            Enquiry.status.notin_(["closed", "cancelled", "converted"])
+        ).count()
 
-        total_quotations = (
-            Quotation.query
-            .filter(
-                Quotation.status == "pending"
-            )
-            .count()
-        )
+        total_quotations = quotation_scope.filter(
+            Quotation.status == "pending"
+        ).count()
 
-        total_shipments = (
-            Shipment.query
-            .filter(
-                Shipment.shipment_status.notin_([
-                    "delivered",
-                    "closed",
-                    "completed",
-                    "closed_completed",
-                ])
-            )
-            .count()
+        total_shipments = shipment_scope.filter(
+            Shipment.shipment_status.notin_([
+                "delivered",
+                "closed",
+                "completed",
+                "closed_completed",
+            ])
+        ).count()
+
+        # --------------------------------------
+        # DOCUMENT-ALIGNED DASHBOARD REPORTING
+        # --------------------------------------
+        quotation_status_counts = {
+            "pending": quotation_scope.filter(Quotation.status == "pending").count(),
+            "approved": quotation_scope.filter(Quotation.status == "approved").count(),
+            "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
+        }
+
+        enquiry_status_counts = {
+            "open": total_enquiries,
+            "converted": enquiry_scope.filter(Enquiry.status == "converted").count(),
+            "closed": enquiry_scope.filter(
+                Enquiry.status.in_(["closed", "cancelled"])
+            ).count(),
+        }
+
+        closed_shipments_count = shipment_scope.filter(
+            Shipment.shipment_status.in_([
+                "delivered",
+                "closed",
+                "completed",
+                "closed_completed",
+            ])
+        ).count()
+
+        client_category_counts = {}
+        category_query = (
+            db.session.query(Client.category, db.func.count(Client.id))
+            .filter(Client.is_archived.is_(False))
         )
+        if is_sales_dashboard:
+            category_query = category_query.filter(
+                Client.assigned_to_id == current_user.id
+            )
+        category_rows = (
+            category_query
+            .group_by(Client.category)
+            .all()
+        )
+        for category_name, category_count in category_rows:
+            label = str(category_name).strip() if category_name else "Uncategorized"
+            client_category_counts[label] = category_count
 
 
         # --------------------------------------
@@ -242,14 +344,14 @@ def create_app():
         from app.models import ShipmentMilestone
 
         shipment_stage_order = [
-            "booking_confirmed",
-            "pickup",
-            "origin_handling",
+            "booked",
+            "cargo_picked_up",
             "in_transit",
-            "arrival",
+            "arrived_destination",
             "customs_clearance",
-            "delivery",
-            "closed",
+            "out_for_delivery",
+            "delivered",
+            "closed_completed",
         ]
 
         shipment_stage_counts = {
@@ -257,7 +359,7 @@ def create_app():
             for stage in shipment_stage_order
         }
 
-        all_shipments = Shipment.query.all()
+        all_shipments = shipment_scope.all()
 
         for shipment in all_shipments:
 
@@ -269,8 +371,11 @@ def create_app():
             }
 
             # Closed shipment
-            if "closed" in completed_stages:
-                shipment_stage_counts["closed"] += 1
+            if (
+                "closed_completed" in completed_stages
+                or "closed" in completed_stages
+            ):
+                shipment_stage_counts["closed_completed"] += 1
                 continue
 
             # Find first incomplete stage = current/next stage
@@ -284,9 +389,10 @@ def create_app():
 
             # All stages completed
             if current_stage is None:
-                current_stage = "closed"
+                current_stage = "closed_completed"
 
-            shipment_stage_counts[current_stage] += 1
+            if current_stage in shipment_stage_counts:
+                shipment_stage_counts[current_stage] += 1
 
 
         # --------------------------------------
@@ -294,7 +400,7 @@ def create_app():
         # --------------------------------------
 
         follow_up_tasks = (
-            ClientTask.query
+            task_scope
             .filter(
                 ClientTask.status.in_([
                     "pending",
@@ -309,7 +415,7 @@ def create_app():
         )
 
         pending_followups_count = (
-            ClientTask.query
+            task_scope
             .filter(
                 ClientTask.status.in_([
                     "pending",
@@ -328,9 +434,8 @@ def create_app():
         def client_status_count(*statuses):
 
             return (
-                Client.query
+                client_scope
                 .filter(
-                    Client.is_archived.is_(False),
                     Client.status.in_(statuses),
                 )
                 .count()
@@ -378,7 +483,7 @@ def create_app():
         # --------------------------------------
 
         recent_activities = (
-            ClientActivity.query
+            activity_scope
             .order_by(
                 ClientActivity.activity_date.desc(),
                 ClientActivity.id.desc(),
@@ -408,11 +513,20 @@ def create_app():
             lifecycle_counts=lifecycle_counts,
 
             recent_activities=recent_activities,
+
+            quotation_status_counts=quotation_status_counts,
+            enquiry_status_counts=enquiry_status_counts,
+            closed_shipments_count=closed_shipments_count,
+            client_category_counts=client_category_counts,
         )
 
 
     # ==========================================
     # RETURN FLASK APP
     # ==========================================
-
+    @app.context_processor
+    def inject_permissions():
+        return {
+            "permissions": permissions
+    }
     return app

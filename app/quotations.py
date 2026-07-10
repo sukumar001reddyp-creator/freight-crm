@@ -37,6 +37,14 @@ from app.models import (
     ShipmentPartyDetails,
 )
 
+from app.sales_scope import (
+    is_admin_user,
+    is_sales_user,
+    scope_quotations,
+    get_enquiry_or_404,
+    get_quotation_or_404,
+)
+
 
 # =========================================================
 # BLUEPRINT
@@ -167,7 +175,9 @@ def quotation_list():
 
     quotations = (
         db.session.execute(
-            db.select(Quotation)
+            scope_quotations(
+                db.select(Quotation)
+            )
             .order_by(
                 Quotation.created_at.desc()
             )
@@ -203,10 +213,7 @@ def create_quotation(enquiry_id):
     # LOAD ENQUIRY
     # -----------------------------------------
 
-    enquiry = db.get_or_404(
-        Enquiry,
-        enquiry_id
-    )
+    enquiry = get_enquiry_or_404(enquiry_id)
 
 
     # -----------------------------------------
@@ -573,10 +580,7 @@ def create_quotation(enquiry_id):
 @login_required
 def view_quotation(quotation_id):
 
-    quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
+    quotation = get_quotation_or_404(quotation_id)
 
     # -----------------------------------------
     # CHECK WHETHER ALREADY CONVERTED
@@ -646,10 +650,7 @@ def manage_party_details(quotation_id):
     # LOAD QUOTATION
     # -----------------------------------------
 
-    quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
+    quotation = get_quotation_or_404(quotation_id)
 
 
     # -----------------------------------------
@@ -972,10 +973,7 @@ def approve_quotation(quotation_id):
     # LOAD QUOTATION
     # -----------------------------------------
 
-    quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
+    quotation = get_quotation_or_404(quotation_id)
 
 
     # -----------------------------------------
@@ -1085,10 +1083,7 @@ def reject_quotation(quotation_id):
     # LOAD QUOTATION
     # -----------------------------------------
 
-    quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
+    quotation = get_quotation_or_404(quotation_id)
 
 
     # -----------------------------------------
@@ -1213,10 +1208,7 @@ def reject_quotation(quotation_id):
 @login_required
 def quotation_document(quotation_id):
 
-    quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
+    quotation = get_quotation_or_404(quotation_id)
 
     # No document attached
     if not quotation.document_stored_filename:

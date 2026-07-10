@@ -220,15 +220,12 @@ def log_client_audit(
 
 
 def get_form_options():
-    if is_sales_user():
-        owners = [current_user]
-    else:
-        owners = (
-            User.query
-            .filter_by(is_active_user=True)
-            .order_by(User.full_name.asc())
-            .all()
-        )
+    owners = (
+        User.query
+        .filter_by(is_active_user=True)
+        .order_by(User.full_name.asc())
+        .all()
+    )
 
     return {
         "categories": CLIENT_CATEGORIES,
@@ -242,41 +239,6 @@ def get_form_options():
 
 def is_admin_user():
     return getattr(current_user, "role", None) == "admin"
-
-
-def is_sales_user():
-    return getattr(current_user, "role", None) in {
-        "sales",
-        "sales_executive",
-    }
-
-
-def can_access_client(client):
-    """
-    Admin: all clients.
-    Sales Executive: only clients assigned to that user.
-    Other roles are left unchanged here for future role modules.
-    """
-    if is_admin_user():
-        return True
-
-    if is_sales_user():
-        return client.assigned_to_id == current_user.id
-
-    return True
-
-
-def get_accessible_client_or_404(client_id):
-    """
-    Prevent direct-URL access to another salesperson's client.
-    Returns 404 instead of exposing that the record exists.
-    """
-    client = db.get_or_404(Client, client_id)
-
-    if not can_access_client(client):
-        abort(404)
-
-    return client
 
 
 
@@ -862,13 +824,6 @@ def client_list():
         .filter_by(is_archived=False)
     )
 
-    # Sales data isolation:
-    # each salesperson sees only clients assigned to them.
-    if is_sales_user():
-        query = query.filter(
-            Client.assigned_to_id == current_user.id
-        )
-
 
     # -----------------------------------------
     # SEARCH
@@ -915,7 +870,7 @@ def client_list():
             Client.status == status
         )
 
-    if assigned_to and not is_sales_user():
+    if assigned_to:
         query = query.filter(
             Client.assigned_to_id == assigned_to
         )
@@ -988,50 +943,57 @@ def client_list():
     # OWNERS FOR FILTER
     # -----------------------------------------
 
-    if is_sales_user():
-        owners = [current_user]
-    else:
-        owners = (
-            User.query
-            .filter_by(is_active_user=True)
-            .order_by(User.full_name.asc())
-            .all()
-        )
+    owners = (
+        User.query
+        .filter_by(is_active_user=True)
+        .order_by(User.full_name.asc())
+        .all()
+    )
 
 
     # -----------------------------------------
     # STATS
     # -----------------------------------------
 
-    stats_query = Client.query.filter(
-        Client.is_archived.is_(False)
+    total_clients = (
+        Client.query
+        .filter_by(is_archived=False)
+        .count()
     )
 
-    if is_sales_user():
-        stats_query = stats_query.filter(
-            Client.assigned_to_id == current_user.id
+    active_clients = (
+        Client.query
+        .filter(
+            Client.is_archived.is_(False),
+            Client.status.in_([
+                "active",
+                "key",
+                "reactivated",
+            ])
         )
+        .count()
+    )
 
-    total_clients = stats_query.count()
+    lead_clients = (
+        Client.query
+        .filter(
+            Client.is_archived.is_(False),
+            Client.status.in_([
+                "lead",
+                "new",
+            ])
+        )
+        .count()
+    )
 
-    active_clients = stats_query.filter(
-        Client.status.in_([
-            "active",
-            "key",
-            "reactivated",
-        ])
-    ).count()
-
-    lead_clients = stats_query.filter(
-        Client.status.in_([
-            "lead",
-            "new",
-        ])
-    ).count()
-
-    at_risk_clients = stats_query.filter(
-        Client.status == "at_risk"
-    ).count()
+    at_risk_clients = (
+        Client.query
+        .filter(
+            Client.is_archived.is_(False),
+            Client.status == "at_risk"
+        )
+        .count()
+    )
 
     return render_template(
         "clients/list.html",
@@ -1644,13 +1606,10 @@ def add_client():
             ""
         ).strip()
 
-        if is_sales_user():
-            assigned_to_id = current_user.id
-        else:
-            assigned_to_id = request.form.get(
-                "assigned_to_id",
-                type=int
-            )
+        assigned_to_id = request.form.get(
+            "assigned_to_id",
+            type=int
+        )
 
         services_needed = request.form.getlist(
             "services_needed"
@@ -2005,7 +1964,8 @@ def add_client():
 @login_required
 def convert_to_active(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2116,10 +2076,8 @@ def convert_to_active(client_id):
 @login_required
 def reassign_owner(client_id):
 
-    if not is_admin_user():
-        abort(403)
-
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2244,7 +2202,8 @@ def reassign_owner(client_id):
 @login_required
 def move_pipeline_stage(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2459,7 +2418,8 @@ def move_pipeline_stage(client_id):
 @login_required
 def change_status(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2577,7 +2537,8 @@ def change_status(client_id):
 @login_required
 def add_activity(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2748,7 +2709,8 @@ def add_activity(client_id):
 @login_required
 def add_note(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2838,7 +2800,8 @@ def add_note(client_id):
 @login_required
 def delete_note(client_id, note_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -2918,7 +2881,8 @@ def delete_note(client_id, note_id):
 @login_required
 def add_task(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -3151,7 +3115,8 @@ def add_task(client_id):
 @login_required
 def update_task_status(client_id, task_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -3252,7 +3217,8 @@ def update_task_status(client_id, task_id):
 @login_required
 def upload_documents(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -3405,7 +3371,8 @@ def download_document(
     attachment_id
 ):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -3441,7 +3408,8 @@ def delete_document(
     attachment_id
 ):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -3537,7 +3505,8 @@ def delete_document(
 @login_required
 def delete_task(client_id, task_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -3704,7 +3673,8 @@ def delete_task(client_id, task_id):
 @login_required
 def export_client_pdf(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -4252,7 +4222,8 @@ def export_client_pdf(client_id):
 @login_required
 def export_client_excel(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -4718,7 +4689,8 @@ def export_client_excel(client_id):
 @login_required
 def view_client(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -6075,7 +6047,8 @@ def merge_client(client_id):
 @login_required
 def archive_client(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -6162,7 +6135,8 @@ def archive_client(client_id):
 @login_required
 def delete_client_permanently(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 
@@ -6394,7 +6368,8 @@ def delete_client_permanently(client_id):
 @login_required
 def restore_client(client_id):
 
-    client = get_accessible_client_or_404(
+    client = db.get_or_404(
+        Client,
         client_id
     )
 

@@ -1,0 +1,39 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ 'Edit User' if user else 'Create User' }} | Freight CRM{% endblock %}
+
+{% block content %}
+<style>
+.form-wrap{max-width:720px}.form-head{margin-bottom:20px}.form-head h1{margin:0;font-size:26px}.form-head p{color:#64748b}
+.form-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}
+.field label{font-weight:700;color:#334155}.field input,.field select{padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}
+.form-actions{display:flex;gap:10px;margin-top:22px}.save{border:0;background:#0f172a;color:#fff;padding:11px 17px;border-radius:10px;font-weight:700;cursor:pointer}.cancel{padding:11px 17px;border:1px solid #cbd5e1;border-radius:10px;text-decoration:none;color:#0f172a}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+</style>
+
+<div class="form-wrap">
+<div class="form-head">
+<h1>{{ 'Edit User' if user else 'Create User' }}</h1>
+<p>{{ 'Update login identity and role.' if user else 'Create a staff login ID, password and role.' }}</p>
+</div>
+
+<form class="form-card" method="post">
+<div class="grid">
+<div class="field"><label>Full Name</label><input name="full_name" required value="{{ user.full_name if user else request.form.get('full_name','') }}"></div>
+<div class="field"><label>Email / Login ID</label><input type="email" name="email" required value="{{ user.email if user else request.form.get('email','') }}"></div>
+<div class="field"><label>Role</label>
+<select name="role" required>
+{% set selected_role = user.role if user else request.form.get('role','sales_executive') %}
+{% for value,label in role_options %}<option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+</select></div>
+{% if not user %}
+<div class="field"><label>Temporary Password</label><input type="password" name="password" minlength="8" required><small>Minimum 8 characters</small></div>
+{% endif %}
+</div>
+<div class="form-actions">
+<button class="save" type="submit">{{ 'Save Changes' if user else 'Create User' }}</button>
+<a class="cancel" href="{{ url_for('users.user_list') }}">Cancel</a>
+</div>
+</form>
+</div>
+{% endblock %}

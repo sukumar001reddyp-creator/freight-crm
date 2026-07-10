@@ -29,6 +29,7 @@ from app.models import (
     ShipmentDocument,
     ShipmentCustomsClearance,
     ShipmentClosure,
+    Client,
 )
 
 
@@ -57,6 +58,65 @@ SHIPMENT_STAGES = [
     "delivered",
     "closed_completed",
 ]
+
+
+# =========================================================
+# CLIENT-OWNERSHIP VISIBILITY
+# =========================================================
+
+def is_admin_user():
+    return getattr(current_user, "role", None) == "admin"
+
+
+def is_sales_user():
+    return getattr(current_user, "role", None) in {
+        "sales",
+        "sales_executive",
+    }
+
+
+def can_view_shipment(shipment):
+    """
+    Admin sees every shipment.
+    Sales sees shipments belonging to clients assigned to them.
+    """
+    if is_admin_user():
+        return True
+
+    if is_sales_user():
+        client = db.session.get(
+            Client,
+            shipment.client_id
+        )
+        return bool(
+            client
+            and client.assigned_to_id == current_user.id
+        )
+
+    return False
+
+
+def get_visible_shipment_or_404(shipment_id):
+    shipment = get_visible_shipment_or_404(
+        shipment_id
+    )
+
+    if not can_view_shipment(shipment):
+        from flask import abort
+        abort(404)
+
+    return shipment
+
+
+def require_shipment_write_access():
+    """
+    Current requirement:
+    Admin manages shipment operations.
+    Sales has read-only visibility for own clients.
+    """
+    if not is_admin_user():
+        from flask import abort
+        abort(403)
 
 
 # =========================================================
@@ -207,10 +267,27 @@ def generate_shipment_reference():
 @login_required
 def shipment_list():
 
+    query = db.select(Shipment)
+
+    if is_sales_user():
+        query = (
+            query
+            .join(
+                Client,
+                Shipment.client_id == Client.id
+            )
+            .where(
+                Client.assigned_to_id
+                == current_user.id
+            )
+        )
+    elif not is_admin_user():
+        from flask import abort
+        abort(403)
+
     shipments = (
         db.session.execute(
-            db.select(Shipment)
-            .order_by(
+            query.order_by(
                 Shipment.created_at.desc()
             )
         )
@@ -236,6 +313,8 @@ def shipment_list():
 )
 @login_required
 def convert_from_quotation(quotation_id):
+
+    require_shipment_write_access()
 
     quotation = db.get_or_404(
         Quotation,
@@ -515,8 +594,7 @@ def convert_from_quotation(quotation_id):
 @login_required
 def view_shipment(shipment_id):
 
-    shipment = db.get_or_404(
-        Shipment,
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 
@@ -626,8 +704,9 @@ def update_document_status(
     document_id
 ):
 
-    shipment = db.get_or_404(
-        Shipment,
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 
@@ -763,8 +842,9 @@ def update_document_status(
 @login_required
 def update_customs_clearance(shipment_id):
 
-    shipment = db.get_or_404(
-        Shipment,
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 
@@ -1033,8 +1113,9 @@ def update_customs_clearance(shipment_id):
 @login_required
 def close_shipment(shipment_id):
 
-    shipment = db.get_or_404(
-        Shipment,
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 
@@ -1305,8 +1386,9 @@ def complete_stage(
     stage
 ):
 
-    shipment = db.get_or_404(
-        Shipment,
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 
@@ -1574,8 +1656,9 @@ def complete_stage(
 @login_required
 def edit_shipment(shipment_id):
 
-    shipment = db.get_or_404(
-        Shipment,
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 
@@ -1748,8 +1831,9 @@ def edit_shipment(shipment_id):
 @login_required
 def undo_last_stage(shipment_id):
 
-    shipment = db.get_or_404(
-        Shipment,
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(
         shipment_id
     )
 

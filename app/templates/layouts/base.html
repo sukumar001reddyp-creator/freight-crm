@@ -46,6 +46,116 @@
     >
 
     {% block extra_css %}{% endblock %}
+
+<style>
+.top-user-menu {
+    position: relative;
+}
+
+.top-user-trigger {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+
+.top-user-chevron {
+    margin-left: 6px;
+    color: #64748b;
+    font-size: 11px;
+    transition: transform .18s ease;
+}
+
+.top-user-menu.open .top-user-chevron {
+    transform: rotate(180deg);
+}
+
+.top-user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 1200;
+    width: 245px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .14);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition:
+        opacity .18s ease,
+        transform .18s ease,
+        visibility .18s ease;
+}
+
+.top-user-menu.open .top-user-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.top-user-dropdown-head {
+    display: grid;
+    gap: 3px;
+    padding: 10px 11px 12px;
+}
+
+.top-user-dropdown-head strong {
+    color: #172033;
+    font-size: 12px;
+}
+
+.top-user-dropdown-head span {
+    overflow: hidden;
+    color: #64748b;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.top-user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 11px;
+    border-radius: 9px;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.top-user-dropdown-item:hover {
+    background: #f8fafc;
+}
+
+.top-user-dropdown-item i {
+    width: 18px;
+    color: #7f1d1d;
+    font-size: 14px;
+}
+
+.top-user-dropdown-item.danger {
+    color: #b91c1c;
+}
+
+.top-user-dropdown-divider {
+    height: 1px;
+    margin: 6px 3px;
+    background: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+    .top-user-dropdown {
+        width: min(245px, calc(100vw - 28px));
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -87,6 +197,7 @@
 
             <nav class="sidebar-nav">
 
+                {% if permissions.can_access_dashboard() %}
                 <a
                     href="{{ url_for('dashboard') }}"
                     class="nav-item
@@ -97,33 +208,29 @@
                     <span class="nav-icon">
                         <i class="bi bi-grid-1x2-fill"></i>
                     </span>
-
                     <span>Dashboard</span>
                 </a>
+                {% endif %}
 
+                {% if permissions.can_access_clients() %}
                 <a
-    href="{{ url_for('clients.client_list') }}"
-    class="nav-item
-    {% if request.blueprint == 'clients' %}
-        active
-    {% endif %}"
->
+                    href="{{ url_for('clients.client_list') }}"
+                    class="nav-item
+                    {% if request.blueprint == 'clients' %}
+                        active
+                    {% endif %}"
+                >
                     <span class="nav-icon">
                         <i class="bi bi-people-fill"></i>
                     </span>
-
                     <span>Clients</span>
-
                     <span class="nav-count">
-                    {{ sidebar_clients_count }}
+                        {{ sidebar_clients_count }}
                     </span>
                 </a>
+                {% endif %}
 
-                
-                 <!-- ======================================
-                     ENQUIRIES
-                     ====================================== -->
-
+                {% if permissions.can_access_enquiries() %}
                 <a
                     href="{{ url_for('enquiries.enquiry_list') }}"
                     class="nav-item
@@ -134,56 +241,58 @@
                     <span class="nav-icon">
                         <i class="bi bi-inbox-fill"></i>
                     </span>
-
                     <span>Enquiries</span>
-
                     <span class="nav-count">
-    {{ sidebar_enquiries_count }}
-</span>
+                        {{ sidebar_enquiries_count }}
+                    </span>
                 </a>
-               <a
-    href="{{ url_for('quotations.quotation_list') }}"
-    class="nav-item
-    {% if request.blueprint == 'quotations' %}
-        active
-    {% endif %}"
->
-    <span class="nav-icon">
-        <i class="bi bi-file-earmark-text-fill"></i>
-    </span>
+                {% endif %}
 
-    <span>Quotations</span>
-</a>
-
+                {% if permissions.can_access_quotations() %}
                 <a
-    href="{{ url_for('shipments.shipment_list') }}"
-    class="nav-item
-    {% if request.blueprint == 'shipments' %}
-        active
-    {% endif %}"
->
-    <span class="nav-icon">
-        <i class="bi bi-box-seam-fill"></i>
-    </span>
+                    href="{{ url_for('quotations.quotation_list') }}"
+                    class="nav-item
+                    {% if request.blueprint == 'quotations' %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </span>
+                    <span>Quotations</span>
+                </a>
+                {% endif %}
 
-    <span>Shipments</span>
-</a>
-
+                {% if permissions.can_access_shipments() %}
                 <a
-    href="{{ url_for('tasks.task_list') }}"
-    class="nav-item
-        {% if request.endpoint
-            and request.endpoint.startswith('tasks.') %}
-            active
-        {% endif %}
-    "
->
-    <span class="nav-icon">
-        <i class="bi bi-check2-square"></i>
-    </span>
+                    href="{{ url_for('shipments.shipment_list') }}"
+                    class="nav-item
+                    {% if request.blueprint == 'shipments' %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </span>
+                    <span>Shipments</span>
+                </a>
+                {% endif %}
 
-    <span>Tasks & Follow-ups</span>
-</a>
+                {% if permissions.can_access_tasks() %}
+                <a
+                    href="{{ url_for('tasks.task_list') }}"
+                    class="nav-item
+                    {% if request.endpoint
+                        and request.endpoint.startswith('tasks.') %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-check2-square"></i>
+                    </span>
+                    <span>Tasks & Follow-ups</span>
+                </a>
+                {% endif %}
 
             </nav>
 
@@ -193,6 +302,7 @@
 
             <nav class="sidebar-nav">
 
+                {% if permissions.can_access_reports() %}
                 <a
                     href="#"
                     class="nav-item"
@@ -200,34 +310,35 @@
                     <span class="nav-icon">
                         <i class="bi bi-bar-chart-fill"></i>
                     </span>
-
                     <span>Reports</span>
                 </a>
+                {% endif %}
 
-                {% if current_user.role == "admin" %}
+                {% if permissions.can_manage_users() %}
+                <a
+                    href="{{ url_for('users.user_list') }}"
+                    class="nav-item
+                    {% if request.blueprint == 'users' %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-person-gear"></i>
+                    </span>
+                    <span>Users & Roles</span>
+                </a>
+                {% endif %}
 
-                    <a
-                        href="#"
-                        class="nav-item"
-                    >
-                        <span class="nav-icon">
-                            <i class="bi bi-person-gear"></i>
-                        </span>
-
-                        <span>Users & Roles</span>
-                    </a>
-
-                    <a
-                        href="#"
-                        class="nav-item"
-                    >
-                        <span class="nav-icon">
-                            <i class="bi bi-gear-fill"></i>
-                        </span>
-
-                        <span>Settings</span>
-                    </a>
-
+                {% if permissions.can_access_settings() %}
+                <a
+                    href="#"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-gear-fill"></i>
+                    </span>
+                    <span>Settings</span>
+                </a>
                 {% endif %}
 
             </nav>
@@ -318,20 +429,62 @@
                     <span class="notification-dot"></span>
                 </button>
 
-                <div class="top-user">
+                <div class="top-user-menu" id="topUserMenu">
 
-                    <div class="top-user-avatar">
-                        {{ current_user.full_name[0]|upper }}
-                    </div>
+                    <button
+                        type="button"
+                        class="top-user top-user-trigger"
+                        id="topUserTrigger"
+                        aria-expanded="false"
+                        aria-haspopup="true"
+                    >
 
-                    <div class="top-user-copy">
-                        <strong>
-                            {{ current_user.full_name }}
-                        </strong>
+                        <div class="top-user-avatar">
+                            {{ current_user.full_name[0]|upper }}
+                        </div>
 
-                        <span>
-                            {{ current_user.role_label }}
-                        </span>
+                        <div class="top-user-copy">
+                            <strong>
+                                {{ current_user.full_name }}
+                            </strong>
+
+                            <span>
+                                {{ current_user.role_label }}
+                            </span>
+                        </div>
+
+                        <i class="bi bi-chevron-down top-user-chevron"></i>
+
+                    </button>
+
+                    <div
+                        class="top-user-dropdown"
+                        id="topUserDropdown"
+                    >
+
+                        <div class="top-user-dropdown-head">
+                            <strong>{{ current_user.full_name }}</strong>
+                            <span>{{ current_user.email }}</span>
+                        </div>
+
+                        <a
+                            href="{{ url_for('auth.change_password') }}"
+                            class="top-user-dropdown-item"
+                        >
+                            <i class="bi bi-shield-lock-fill"></i>
+                            <span>Change Password</span>
+                        </a>
+
+                        <div class="top-user-dropdown-divider"></div>
+
+                        <a
+                            href="{{ url_for('auth.logout') }}"
+                            class="top-user-dropdown-item danger"
+                        >
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
+                        </a>
+
                     </div>
 
                 </div>
@@ -389,6 +542,44 @@
 <script
     src="{{ url_for('static', filename='js/crm.js') }}"
 ></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const menu = document.getElementById("topUserMenu");
+    const trigger = document.getElementById("topUserTrigger");
+
+    if (!menu || !trigger) {
+        return;
+    }
+
+    trigger.addEventListener("click", function (event) {
+        event.stopPropagation();
+
+        const isOpen = menu.classList.toggle("open");
+
+        trigger.setAttribute(
+            "aria-expanded",
+            isOpen ? "true" : "false"
+        );
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!menu.contains(event.target)) {
+            menu.classList.remove("open");
+            trigger.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            menu.classList.remove("open");
+            trigger.setAttribute("aria-expanded", "false");
+        }
+    });
+});
+</script>
+
 
 {% block extra_js %}{% endblock %}
 
