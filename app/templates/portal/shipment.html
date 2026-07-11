@@ -1,0 +1,41 @@
+{% extends "portal/layout.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+<h2>
+Shipment Found ✅
+</h2>
+
+<p>
+
+Reference :
+
+<strong>
+
+{{ shipment.shipment_reference }}
+
+</strong>
+
+</p>
+
+<p>
+
+Origin :
+
+{{ shipment.origin }}
+
+</p>
+
+<p>
+
+Destination :
+
+{{ shipment.destination }}
+
+</p>
+
+</div>
+
+{% endblock %}

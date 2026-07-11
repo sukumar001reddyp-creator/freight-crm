@@ -97,7 +97,9 @@ def can_view_shipment(shipment):
 
 
 def get_visible_shipment_or_404(shipment_id):
-    shipment = get_visible_shipment_or_404(
+
+    shipment = db.get_or_404(
+        Shipment,
         shipment_id
     )
 

@@ -119,6 +119,12 @@ def create_app():
 
     app.register_blueprint(users_bp)
 
+    from app.portal import portal_bp
+
+    app.register_blueprint(
+    portal_bp
+    )
+
 
     # ==========================================
     # IMPORT MODELS
