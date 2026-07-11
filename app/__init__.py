@@ -537,5 +537,6 @@ def create_app():
     def inject_permissions():
         return {
             "permissions": permissions
-    }
+        }
+
     return app
