@@ -1,0 +1,73 @@
+<!-- app/templates/portal/dashboard.html -->
+{% extends "portal/base.html" %}
+{% block content %}
+<h2>Welcome back, Client!</h2>
+<p>Track your shipments in real-time.</p>
+
+<div class="row">
+    {% for shipment in shipments %}
+<div class="col-md-6 mb-4">
+
+    <div class="card shadow-sm border-0 h-100">
+
+        <div class="card-body">
+
+            <h5 class="card-title">
+                {{ shipment.shipment_reference }}
+            </h5>
+
+            <p class="mb-2">
+                <strong>
+                    {{ shipment.origin }}
+                    →
+                    {{ shipment.destination }}
+                </strong>
+            </p>
+
+            <p class="text-muted">
+                {{ shipment.cargo_description }}
+            </p>
+
+            <p>
+                <span class="badge bg-primary">
+                    {{ shipment.shipment_status|replace('_', ' ')|title }}
+                </span>
+            </p>
+
+            <small class="text-muted">
+                Created:
+                {{ shipment.created_at.strftime("%d %b %Y") }}
+            </small>
+
+            <div class="mt-3">
+
+                <a
+                    href="{{ url_for('portal.shipment', id=shipment.id) }}"
+                    class="btn btn-primary btn-sm"
+                >
+                    View Shipment
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% else %}
+
+<div class="col-12">
+
+    <div class="alert alert-info">
+
+        No shipments available.
+
+    </div>
+
+</div>
+
+{% endfor %}
+</div>
+{% endblock %}

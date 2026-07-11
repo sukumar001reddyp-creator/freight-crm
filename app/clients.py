@@ -16,6 +16,7 @@ from flask import (
     abort,
     send_file,
     send_from_directory,
+    
 )
 
 from flask_login import (
@@ -60,6 +61,7 @@ from app.models import (
     Enquiry,
     Quotation,
     Shipment,
+    ClientPortalUser,
 )
 
 
@@ -5149,8 +5151,67 @@ def view_client(client_id):
             ("urgent", "Urgent"),
         ],
     )
+@clients_bp.route(
+    "/<int:client_id>/portal-account",
+    methods=["POST"]
+)
+@login_required
+def create_portal_account(client_id):
 
+    client = get_accessible_client_or_404(client_id)
 
+    existing = ClientPortalUser.query.filter_by(
+        client_id=client.id
+    ).first()
+
+    if existing:
+        flash(
+            "Portal account already exists.",
+            "warning"
+        )
+        return redirect(
+            url_for(
+                "clients.view_client",
+                client_id=client.id
+            )
+        )
+
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "").strip()
+
+    if not email or not password:
+        flash(
+            "Email and password are required.",
+            "danger"
+        )
+        return redirect(
+            url_for(
+                "clients.view_client",
+                client_id=client.id
+            )
+        )
+
+    account = ClientPortalUser(
+        client_id=client.id,
+        email=email,
+    )
+
+    account.set_password(password)
+
+    db.session.add(account)
+    db.session.commit()
+
+    flash(
+        "Portal account created successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for(
+            "clients.view_client",
+            client_id=client.id
+        )
+    )
 # =========================================================
 # EDIT CLIENT
 # =========================================================

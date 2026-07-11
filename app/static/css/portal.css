@@ -1,0 +1,4 @@
+/* app/static/css/portal.css */
+.card { transition: transform 0.2s; }
+.card:hover { transform: translateY(-5px); }
+.badge { font-size: 0.9em; }

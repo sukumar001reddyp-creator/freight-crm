@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from flask_login import UserMixin
 from werkzeug.security import (
     generate_password_hash,
@@ -2319,3 +2321,77 @@ class ShipmentClosure(db.Model):
             f"{self.closing_status}>"
         )
 
+class ClientPortalUser(db.Model):
+    __tablename__ = "client_portal_users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False, unique=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(
+    db.DateTime(timezone=True),
+    default=utc_now,
+    nullable=False
+)
+
+    client = db.relationship(
+        "Client",
+        backref=db.backref("portal_account", uselist=False)
+    )
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+class SupportTicket(db.Model):
+    __tablename__ = "support_tickets"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    client_id = db.Column(
+        db.Integer,
+        db.ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    subject = db.Column(
+        db.String(200),
+        nullable=False,
+    )
+
+    message = db.Column(
+        db.Text,
+        nullable=False,
+    )
+
+    status = db.Column(
+        db.String(30),
+        default="open",
+        nullable=False,
+        index=True,
+    )
+
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        nullable=False,
+    )
+
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False,
+    )
+
+    client = db.relationship(
+        "Client",
+        foreign_keys=[client_id],
+    )
+
+    def __repr__(self):
+        return f"<SupportTicket {self.id}>"

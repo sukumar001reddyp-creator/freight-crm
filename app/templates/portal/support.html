@@ -1,0 +1,215 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Support{% endblock %}
+
+{% block page_title %}
+Support Center
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- Support Form -->
+
+        <div class="col-lg-8">
+
+            <div class="portal-card">
+
+                <h3 class="mb-4">
+
+                    Contact Support
+
+                </h3>
+
+                <form method="POST">
+
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+
+                        {{ form.subject.label(class="form-label") }}
+
+                        {{ form.subject(class="form-control") }}
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        {{ form.message.label(class="form-label") }}
+
+                        {{ form.message(
+                            class="form-control",
+                            rows="6",
+                            placeholder="Describe your issue..."
+                        ) }}
+
+                    </div>
+
+                    <button
+                        class="btn btn-primary btn-lg"
+                        type="submit">
+
+                        <i class="bi bi-send"></i>
+
+                        Send Request
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+        <div class="col-12 mt-4">
+
+    <div class="portal-card">
+
+        <h3 class="mb-4">
+            My Support Requests
+        </h3>
+
+        {% if tickets %}
+
+            <div class="table-responsive">
+
+                <table class="table align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for ticket in tickets %}
+
+                        <tr>
+
+                            <td>#{{ ticket.id }}</td>
+
+                            <td>{{ ticket.subject }}</td>
+
+                            <td>
+
+                                <span class="badge
+                                {% if ticket.status == 'open' %}
+                                    bg-danger
+                                {% elif ticket.status == 'in_progress' %}
+                                    bg-warning
+                                {% else %}
+                                    bg-success
+                                {% endif %}
+                                ">
+                                    {{ ticket.status|replace("_"," ")|title }}
+                                </span>
+
+                            </td>
+
+                            <td>
+                                {{ ticket.created_at.strftime("%d %b %Y") }}
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-info">
+
+                No support requests found.
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+        <!-- Contact Details -->
+
+        <div class="col-lg-4">
+
+            <div class="portal-card">
+
+                <h4 class="mb-4">
+
+                    Contact Information
+
+                </h4>
+
+                <div class="mb-3">
+
+                    <strong>Email</strong>
+
+                    <p class="text-muted">
+
+                        support@company.com
+
+                    </p>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <strong>Phone</strong>
+
+                    <p class="text-muted">
+
+                        +965 XXXXXXXX
+
+                    </p>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <strong>Office Hours</strong>
+
+                    <p class="text-muted">
+
+                        Sunday - Thursday
+
+                        <br>
+
+                        08:00 AM - 05:00 PM
+
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <strong>Response Time</strong>
+
+                    <p class="text-muted">
+
+                        Within 24 Hours
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

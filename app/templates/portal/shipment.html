@@ -1,41 +1,48 @@
-{% extends "portal/layout.html" %}
-
+{% extends "portal/base.html" %}
 {% block content %}
+{% if shipment %}
+<h2>Shipment #{{ shipment.id }}</h2>
+<p><strong>{{ shipment.origin }} → {{ shipment.destination }}</strong> | {{ shipment.cargo }}</p>
 
-<div class="container py-5">
-
-<h2>
-Shipment Found ✅
-</h2>
-
-<p>
-
-Reference :
-
-<strong>
-
-{{ shipment.shipment_reference }}
-
-</strong>
-
-</p>
-
-<p>
-
-Origin :
-
-{{ shipment.origin }}
-
-</p>
-
-<p>
-
-Destination :
-
-{{ shipment.destination }}
-
-</p>
-
+<!-- Progress Timeline -->
+<div class="mb-4">
+    <h5>Tracking Milestones</h5>
+    <ul class="list-group">
+        <li class="list-group-item">✅ Booked</li>
+        <li class="list-group-item">✅ Cargo Picked Up</li>
+        <li class="list-group-item active">🚛 In Transit ({{ shipment.progress }}%)</li>
+        <li class="list-group-item">Arrived at Destination</li>
+        <li class="list-group-item">Customs Clearance</li>
+        <li class="list-group-item">Delivered</li>
+    </ul>
 </div>
 
+<p>ETA: <strong>{{ shipment.eta }}</strong></p>
+
+<a href="#" class="btn btn-success">Download All Documents</a>
+{% else %}
+<h2>My Shipments</h2>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Shipment ID</th>
+            <th>Route</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in shipments %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.origin }} → {{ s.destination }}</td>
+            <td><span class="badge bg-primary">{{ s.status }}</span></td>
+            <td>{{ s.progress }}%</td>
+            <td><a href="{{ url_for('portal.shipment', id=s.id) }}" class="btn btn-sm btn-primary">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 {% endblock %}
