@@ -1,6 +1,8 @@
 {% extends "portal/base.html" %}
 
-{% block title %}Client Login{% endblock %}
+{% block title %}
+Client Login
+{% endblock %}
 
 {% block page_title %}
 Client Login
@@ -8,69 +10,263 @@ Client Login
 
 {% block content %}
 
-<div class="container-fluid">
+<style>
 
-    <div class="row justify-content-center">
+body{
 
-        <div class="col-lg-5 col-md-7">
+background:
+linear-gradient(
+135deg,
+#7f1d1d,
+#f5f7fb
+);
 
-            <div class="portal-card login-card">
+}
 
-                <div class="text-center mb-4">
+.login-wrapper{
 
-                    <i class="bi bi-box-seam display-3 text-primary"></i>
+display:flex;
 
-                    <h2 class="mt-3">
-                        Freight Client Portal
-                    </h2>
+justify-content:center;
 
-                    <p class="text-muted">
-                        Login to track your shipments
-                    </p>
+align-items:center;
 
-                </div>
+min-height:78vh;
 
-                <form method="POST">
+}
 
-                    {{ form.hidden_tag() }}
+.login-card{
 
-                    <div class="mb-3">
+width:100%;
 
-                        {{ form.username.label(class="form-label") }}
+max-width:480px;
 
-                        {{ form.username(
-                            class="form-control",
-                            placeholder="Username or Email"
-                        ) }}
+background:#fff;
 
-                    </div>
+padding:40px;
 
-                    <div class="mb-4">
+border-radius:24px;
 
-                        {{ form.password.label(class="form-label") }}
+box-shadow:
+0 20px 50px rgba(15,23,42,.15);
 
-                        {{ form.password(
-                            class="form-control",
-                            placeholder="Password"
-                        ) }}
+}
 
-                    </div>
+.logo-circle{
 
-                    <div class="d-grid">
+width:90px;
 
-                        {{ form.submit(
-                            class="btn btn-primary btn-lg"
-                        ) }}
+height:90px;
 
-                    </div>
+margin:auto;
 
-                </form>
+border-radius:50%;
 
-            </div>
+background:
+linear-gradient(
+135deg,
+#7f1d1d,
+#b91c1c
+);
 
-        </div>
+display:flex;
 
-    </div>
+justify-content:center;
+
+align-items:center;
+
+color:#fff;
+
+font-size:42px;
+
+margin-bottom:25px;
+
+}
+
+.login-card h2{
+
+text-align:center;
+
+font-size:30px;
+
+font-weight:800;
+
+margin-bottom:8px;
+
+}
+
+.login-card p{
+
+text-align:center;
+
+color:#64748b;
+
+margin-bottom:30px;
+
+}
+
+.form-label{
+
+font-weight:600;
+
+}
+
+.form-control{
+
+height:52px;
+
+border-radius:12px;
+
+}
+
+.form-control:focus{
+
+border-color:#7f1d1d;
+
+box-shadow:
+0 0 0 .15rem rgba(127,29,29,.15);
+
+}
+
+.btn-login{
+
+width:100%;
+
+height:52px;
+
+border:none;
+
+border-radius:12px;
+
+background:#7f1d1d;
+
+color:#fff;
+
+font-size:16px;
+
+font-weight:700;
+
+transition:.25s;
+
+}
+
+.btn-login:hover{
+
+background:#651818;
+
+}
+
+.footer-text{
+
+text-align:center;
+
+margin-top:25px;
+
+font-size:13px;
+
+color:#64748b;
+
+}
+
+</style>
+
+<div class="login-wrapper">
+
+<div class="login-card">
+
+<div class="logo-circle">
+
+<i class="bi bi-box-seam"></i>
+
+</div>
+
+<h2>
+
+Freight Client Portal
+
+</h2>
+
+<p>
+
+Login to track your shipments anytime.
+
+</p>
+
+<form method="POST">
+
+{{ form.hidden_tag() }}
+
+<div class="mb-3">
+
+{{ form.username.label(class="form-label") }}
+
+{{ form.username(
+
+class="form-control",
+
+placeholder="Username / Email"
+
+) }}
+
+</div>
+
+<div class="mb-4">
+
+{{ form.password.label(class="form-label") }}
+
+{{ form.password(
+
+class="form-control",
+
+placeholder="Password"
+
+) }}
+
+</div>
+
+<div class="d-grid mb-3">
+
+{{ form.submit(
+
+class="btn-login"
+
+) }}
+
+</div>
+
+<div class="text-center mb-3">
+
+<a
+href="#"
+style="
+text-decoration:none;
+color:#7f1d1d;
+font-weight:600;
+">
+
+Forgot Password?
+
+</a>
+
+</div>
+
+</form>
+
+<div class="footer-text">
+
+<i class="bi bi-shield-lock"></i>
+
+Secure Client Portal
+
+<br>
+
+© {{ current_year if current_year else "2026" }}
+
+Freight CRM. All Rights Reserved.
+
+</div>
+
+</div>
 
 </div>
 

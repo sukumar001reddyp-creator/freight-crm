@@ -855,7 +855,21 @@
             Sign in with your authorized account
             to access the Freight CRM dashboard.
         </p>
+        <div style="text-align:right;margin-bottom:20px;">
 
+    <a href="{{ url_for('portal.login') }}"
+       style="
+            color:#7f1d1d;
+            text-decoration:none;
+            font-weight:700;
+            font-size:14px;
+       ">
+
+        Client Portal Login →
+
+    </a>
+
+</div>
 
         {% with messages =
             get_flashed_messages(

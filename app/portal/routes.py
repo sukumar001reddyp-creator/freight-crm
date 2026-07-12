@@ -16,6 +16,7 @@ from app.models import (
     Shipment,
     ClientAttachment,
     SupportTicket,
+    SupportMessage,
 )
 
 from app.portal.forms import (
@@ -111,12 +112,22 @@ def support():
     if form.validate_on_submit():
 
         ticket = SupportTicket(
-            client_id=session["portal_client_id"],
-            subject=form.subject.data,
-            message=form.message.data,
-        )
+        client_id=session["portal_client_id"],
+        subject=form.subject.data,
+        message=form.message.data,
+        status="waiting_admin",
+)
 
         db.session.add(ticket)
+        db.session.flush()
+
+        message = SupportMessage(
+    ticket_id=ticket.id,
+    sender="client",
+    message=form.message.data,
+)
+
+        db.session.add(message)
         db.session.commit()
 
         flash(
@@ -190,6 +201,61 @@ def login():
         "portal/login.html",
         form=form
     )
+@portal_bp.route(
+    "/support/<int:ticket_id>",
+    methods=["GET", "POST"]
+)
+def support_ticket(ticket_id):
+
+    if "portal_user_id" not in session:
+        return redirect(url_for("portal.login"))
+
+    ticket = SupportTicket.query.filter_by(
+        id=ticket_id,
+        client_id=session["portal_client_id"]
+    ).first_or_404()
+
+    if request.method == "POST":
+
+        reply = request.form.get(
+            "message",
+            ""
+        ).strip()
+
+        if reply:
+
+            db.session.add(
+
+                SupportMessage(
+                    ticket_id=ticket.id,
+                    sender="client",
+                    message=reply,
+                )
+
+            )
+
+            ticket.status = "waiting_admin"
+
+            db.session.commit()
+
+            flash(
+                "Reply sent successfully.",
+                "success"
+            )
+
+            return redirect(
+                url_for(
+                    "portal.support_ticket",
+                    ticket_id=ticket.id,
+                )
+            )
+
+    return render_template(
+        "portal/support_ticket.html",
+        ticket=ticket,
+        messages=ticket.messages,
+    )
+
 @portal_bp.route("/logout")
 def logout():
 

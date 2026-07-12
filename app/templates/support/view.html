@@ -1,0 +1,285 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Support Ticket #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+
+<style>
+.ticket-wrapper {
+    max-width: 960px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.ticket-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.ticket-header {
+    padding: 22px 28px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.ticket-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.ticket-sub {
+    color: #64748b;
+    font-size: 14px;
+    margin: 4px 0 0;
+}
+
+.status {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.status-admin { background: #fee2e2; color: #991b1b; }
+.status-client { background: #fef3c7; color: #92400e; }
+.status-closed { background: #dcfce7; color: #166534; }
+
+.ticket-body {
+    padding: 28px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #1e2937;
+}
+
+.chat-box {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 20px;
+    max-height: 480px;
+    overflow-y: auto;
+    margin-bottom: 25px;
+}
+
+.message {
+    margin-bottom: 20px;
+    display: flex;
+}
+
+.message.client { justify-content: flex-start; }
+.message.admin { justify-content: flex-end; }
+
+.bubble {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    font-size: 14.5px;
+    line-height: 1.65;
+}
+
+.client .bubble {
+    background: #ffffff;
+    border-left: 4px solid #22c55e;
+}
+
+.admin .bubble {
+    background: #eff6ff;
+    border-right: 4px solid #2563eb;
+}
+
+.sender {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.sender.client { color: #15803d; }
+.sender.admin { color: #1d4ed8; }
+
+.message-time {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.reply-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.reply-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 140px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 14px;
+    resize: vertical;
+    outline: none;
+    font-size: 14.5px;
+}
+
+textarea:focus {
+    border-color: #7f1d1d;
+    box-shadow: 0 0 0 3px rgba(127,29,29,0.1);
+}
+
+.action-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.btn-send {
+    background: #7f1d1d;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.btn-send:hover {
+    background: #651818;
+}
+
+.btn-close {
+    background: #16a34a;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.btn-close:hover {
+    background: #15803d;
+    color: #fff;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #64748b;
+}
+
+.back-link:hover {
+    color: #7f1d1d;
+}
+
+@media (max-width: 768px) {
+    .ticket-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .bubble { max-width: 100%; }
+}
+</style>
+
+<div class="ticket-wrapper">
+
+    <a href="{{ url_for('support.admin_list') }}" class="back-link">
+        ← Back to Tickets
+    </a>
+
+    <div class="ticket-card">
+
+        <div class="ticket-header">
+            <div>
+                <div class="ticket-title">Ticket #{{ ticket.id }}</div>
+                <div class="ticket-sub">{{ ticket.subject }}</div>
+            </div>
+
+            <div>
+                {% if ticket.status == "waiting_admin" %}
+                    <span class="status status-admin">Waiting for Admin</span>
+                {% elif ticket.status == "waiting_client" %}
+                    <span class="status status-client">Waiting for Client</span>
+                {% else %}
+                    <span class="status status-closed">Closed</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="ticket-body">
+
+            <div class="section-title">Conversation</div>
+
+            <div class="chat-box">
+                {% for msg in messages %}
+                <div class="message {{ msg.sender }}">
+                    <div class="bubble">
+                        <div class="sender {{ msg.sender }}">
+                            {% if msg.sender == "admin" %}Admin{% else %}Client{% endif %}
+                        </div>
+                        <div class="message-text">{{ msg.message }}</div>
+                        <div class="message-time">
+                            {{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not messages %}
+                <div style="text-align:center; padding:60px 20px; color:#94a3b8;">
+                    No messages yet. Start the conversation.
+                </div>
+                {% endif %}
+            </div>
+
+            {% if ticket.status != "closed" %}
+            <div class="reply-card">
+                <div class="reply-title">Reply to Client</div>
+                <form method="POST">
+                    <textarea 
+                        name="admin_reply" 
+                        placeholder="Type your reply here..." 
+                        required></textarea>
+                    
+                    <div class="action-row">
+                        <button type="submit" class="btn-send">
+                            <i class="bi bi-send-fill"></i> Send Reply
+                        </button>
+                        
+                        <a href="{{ url_for('support.close_ticket', ticket_id=ticket.id) }}" 
+                           class="btn-close">
+                            <i class="bi bi-check-circle-fill"></i> Close Ticket
+                        </a>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div style="margin-top:30px; padding:20px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:12px; text-align:center; font-weight:700; color:#166534;">
+                <i class="bi bi-check-circle-fill"></i> This ticket has been closed.
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,4 +1,1119 @@
-/* app/static/css/portal.css */
-.card { transition: transform 0.2s; }
-.card:hover { transform: translateY(-5px); }
-.badge { font-size: 0.9em; }
+/* =========================================================
+   FREIGHT CRM - CLIENT PORTAL
+   PART 1 - GLOBAL / SIDEBAR / TOPBAR
+========================================================= */
+
+:root{
+
+    --primary:#7f1d1d;
+    --primary-dark:#641616;
+    --primary-light:#a52b2b;
+
+    --success:#16a34a;
+    --warning:#f59e0b;
+    --danger:#dc2626;
+    --info:#2563eb;
+
+    --bg:#f5f7fb;
+    --card:#ffffff;
+
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#e5e7eb;
+
+    --radius:18px;
+
+    --shadow:
+        0 10px 30px rgba(15,23,42,.08);
+
+    --transition:.25s ease;
+
+}
+
+*{
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+body{
+
+    background:var(--bg);
+    color:var(--text);
+
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size:15px;
+
+}
+
+/* ========================================================= */
+
+a{
+
+    text-decoration:none;
+
+}
+
+img{
+
+    max-width:100%;
+
+}
+
+.portal-wrapper{
+
+    display:flex;
+
+    min-height:100vh;
+
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar{
+
+    width:270px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #7f1d1d,
+            #5f1717
+        );
+
+    color:#fff;
+
+    position:fixed;
+
+    top:0;
+    left:0;
+    bottom:0;
+
+    overflow-y:auto;
+
+    box-shadow:
+        6px 0 30px rgba(0,0,0,.08);
+
+    z-index:999;
+
+}
+
+.logo{
+
+    padding:30px 25px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,.08);
+
+}
+
+.logo h3{
+
+    font-size:24px;
+
+    font-weight:800;
+
+    margin-bottom:4px;
+
+}
+
+.logo small{
+
+    color:#f3d6d6;
+
+    letter-spacing:.5px;
+
+}
+
+.sidebar-menu{
+
+    list-style:none;
+
+    margin:20px 0;
+
+    padding:0;
+
+}
+
+.sidebar-menu li{
+
+    margin:6px 14px;
+
+}
+
+.sidebar-menu a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:14px 16px;
+
+    border-radius:12px;
+
+    color:#fff;
+
+    transition:var(--transition);
+
+    font-weight:600;
+
+}
+
+.sidebar-menu a:hover{
+
+    background:
+        rgba(255,255,255,.12);
+
+    transform:translateX(4px);
+
+}
+
+.sidebar-menu i{
+
+    font-size:18px;
+
+    width:22px;
+
+    text-align:center;
+
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.portal-main{
+
+    flex:1;
+
+    margin-left:270px;
+
+    min-height:100vh;
+
+}
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.topbar{
+
+    height:82px;
+
+    background:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:0 35px;
+
+    border-bottom:
+        1px solid var(--border);
+
+    box-shadow:
+        0 4px 18px rgba(0,0,0,.04);
+
+}
+
+.topbar h4{
+
+    font-size:24px;
+
+    font-weight:700;
+
+}
+
+.topbar-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+}
+
+.topbar-right span{
+
+    color:var(--muted);
+
+    font-weight:600;
+
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.page-content{
+
+    padding:35px;
+
+}
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.portal-card{
+
+    background:var(--card);
+
+    border-radius:18px;
+
+    padding:28px;
+
+    border:1px solid var(--border);
+
+    box-shadow:var(--shadow);
+
+    margin-bottom:25px;
+
+    transition:var(--transition);
+
+}
+
+.portal-card:hover{
+
+    transform:translateY(-4px);
+
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.btn-primary{
+
+    background:var(--primary);
+
+    border-color:var(--primary);
+
+}
+
+.btn-primary:hover{
+
+    background:var(--primary-dark);
+
+    border-color:var(--primary-dark);
+
+}
+
+.btn-outline-danger{
+
+    border-radius:10px;
+
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.badge{
+
+    padding:8px 14px;
+
+    border-radius:50px;
+
+    font-weight:600;
+
+    letter-spacing:.3px;
+
+}
+
+/* =========================================================
+   TABLES
+========================================================= */
+
+.table{
+
+    margin-bottom:0;
+
+}
+
+.table thead{
+
+    background:#f8fafc;
+
+}
+
+.table th{
+
+    font-weight:700;
+
+    color:#334155;
+
+    border-bottom:1px solid var(--border);
+
+}
+
+.table td{
+
+    vertical-align:middle;
+
+}
+/* =========================================================
+   PART 2 - DASHBOARD / CARDS / TABLES
+========================================================= */
+
+/* Dashboard Heading */
+
+.page-content h2{
+
+    font-size:30px;
+
+    font-weight:800;
+
+    margin-bottom:8px;
+
+}
+
+.page-content>p{
+
+    color:var(--muted);
+
+    margin-bottom:30px;
+
+}
+
+/* Shipment Cards */
+
+.card{
+
+    border:none;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    background:#fff;
+
+    box-shadow:var(--shadow);
+
+    transition:all .25s ease;
+
+}
+
+.card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:
+        0 20px 40px rgba(15,23,42,.12);
+
+}
+
+.card-body{
+
+    padding:24px;
+
+}
+
+.card-title{
+
+    color:var(--primary);
+
+    font-size:22px;
+
+    font-weight:700;
+
+    margin-bottom:18px;
+
+}
+
+.card strong{
+
+    color:#0f172a;
+
+}
+
+.card p{
+
+    margin-bottom:12px;
+
+}
+
+.card small{
+
+    color:var(--muted);
+
+}
+
+/* Shipment Status */
+
+.badge.bg-primary{
+
+    background:#2563eb !important;
+
+}
+
+.badge.bg-success{
+
+    background:#16a34a !important;
+
+}
+
+.badge.bg-warning{
+
+    background:#f59e0b !important;
+
+    color:#fff;
+
+}
+
+.badge.bg-danger{
+
+    background:#dc2626 !important;
+
+}
+
+/* View Button */
+
+.card .btn{
+
+    border-radius:10px;
+
+    padding:10px 18px;
+
+    font-weight:600;
+
+}
+
+/* Empty State */
+
+.alert-info{
+
+    border:none;
+
+    border-radius:14px;
+
+    background:#eff6ff;
+
+    color:#1e3a8a;
+
+    padding:18px;
+
+}
+
+/* Portal Statistics */
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(220px,1fr));
+
+    gap:22px;
+
+    margin-bottom:30px;
+
+}
+
+.stat-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    border:1px solid var(--border);
+
+    box-shadow:var(--shadow);
+
+}
+
+.stat-card h3{
+
+    font-size:34px;
+
+    font-weight:800;
+
+    color:var(--primary);
+
+}
+
+.stat-card span{
+
+    color:var(--muted);
+
+    font-weight:600;
+
+}
+
+/* Tables */
+
+.table-responsive{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    border:1px solid var(--border);
+
+    box-shadow:var(--shadow);
+
+}
+
+.table{
+
+    margin-bottom:0;
+
+}
+
+.table thead{
+
+    background:#f8fafc;
+
+}
+
+.table thead th{
+
+    padding:16px;
+
+    font-size:14px;
+
+    color:#334155;
+
+}
+
+.table tbody td{
+
+    padding:16px;
+
+}
+
+.table-hover tbody tr:hover{
+
+    background:#fafafa;
+
+}
+
+/* Download Buttons */
+
+.btn-outline-primary{
+
+    border-radius:10px;
+
+    font-weight:600;
+
+}
+
+.btn-outline-primary:hover{
+
+    background:var(--primary);
+
+    border-color:var(--primary);
+
+}
+
+/* List Group */
+
+.list-group{
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+}
+
+.list-group-item{
+
+    padding:18px;
+
+    border-color:#eef2f7;
+
+}
+
+/* Timeline */
+
+.timeline{
+
+    position:relative;
+
+    margin:25px 0;
+
+}
+
+.timeline::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:18px;
+
+    top:0;
+
+    bottom:0;
+
+    width:3px;
+
+    background:#e2e8f0;
+
+}
+
+.timeline-item{
+
+    position:relative;
+
+    padding-left:55px;
+
+    margin-bottom:28px;
+
+}
+
+.timeline-item::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:9px;
+
+    top:5px;
+
+    width:20px;
+
+    height:20px;
+
+    border-radius:50%;
+
+    background:var(--success);
+
+    border:4px solid #fff;
+
+    box-shadow:0 0 0 3px var(--success);
+
+}
+
+/* Progress */
+
+.progress{
+
+    height:10px;
+
+    border-radius:50px;
+
+    overflow:hidden;
+
+}
+
+.progress-bar{
+
+    background:var(--primary);
+
+}
+
+/* Hover Animation */
+
+.portal-card,
+.card,
+.stat-card{
+
+    transition:all .25s ease;
+
+}
+
+.portal-card:hover,
+.stat-card:hover{
+
+    transform:translateY(-5px);
+
+}
+/* =========================================================
+   PART 3 - LOGIN / PROFILE / SUPPORT / RESPONSIVE
+========================================================= */
+
+/* Login */
+
+.login-card{
+
+    max-width:520px;
+
+    margin:70px auto;
+
+    border-radius:24px;
+
+    padding:45px;
+
+}
+
+.login-card .display-3{
+
+    color:var(--primary);
+
+}
+
+.login-card h2{
+
+    font-size:32px;
+
+    font-weight:800;
+
+}
+
+.login-card p{
+
+    color:var(--muted);
+
+}
+
+.form-control{
+
+    height:50px;
+
+    border-radius:12px;
+
+    border:1px solid #dbe2ea;
+
+    box-shadow:none;
+
+}
+
+.form-control:focus{
+
+    border-color:var(--primary);
+
+    box-shadow:0 0 0 .2rem rgba(127,29,29,.15);
+
+}
+
+textarea.form-control{
+
+    min-height:150px;
+
+}
+
+/* Profile */
+
+.profile-avatar{
+
+    width:110px;
+
+    height:110px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        #b91c1c
+    );
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:44px;
+
+    font-weight:700;
+
+}
+
+.portal-card table th{
+
+    color:#475569;
+
+    width:230px;
+
+}
+
+/* Support */
+
+.alert{
+
+    border:none;
+
+    border-radius:14px;
+
+}
+
+.alert-success{
+
+    background:#dcfce7;
+
+    color:#166534;
+
+}
+
+.alert-danger{
+
+    background:#fee2e2;
+
+    color:#991b1b;
+
+}
+
+.alert-warning{
+
+    background:#fef3c7;
+
+    color:#92400e;
+
+}
+
+/* Shipment */
+
+.list-group-item.active{
+
+    background:var(--primary);
+
+    border-color:var(--primary);
+
+}
+
+.progress{
+
+    background:#e2e8f0;
+
+}
+
+.progress-bar{
+
+    background:linear-gradient(
+        90deg,
+        var(--primary),
+        #dc2626
+    );
+
+}
+
+/* Documents */
+
+.list-group-item{
+
+    transition:.25s;
+
+}
+
+.list-group-item:hover{
+
+    background:#fafafa;
+
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar{
+
+    width:8px;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#cbd5e1;
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#94a3b8;
+
+}
+
+/* Responsive */
+
+@media(max-width:991px){
+
+.sidebar{
+
+    width:80px;
+
+}
+
+.logo h3,
+.logo small,
+.sidebar-menu span{
+
+    display:none;
+
+}
+
+.sidebar-menu a{
+
+    justify-content:center;
+
+}
+
+.portal-main{
+
+    margin-left:80px;
+
+}
+
+.topbar{
+
+    padding:0 20px;
+
+}
+
+.page-content{
+
+    padding:20px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.portal-wrapper{
+
+    display:block;
+
+}
+
+.sidebar{
+
+    position:relative;
+
+    width:100%;
+
+    height:auto;
+
+}
+
+.portal-main{
+
+    margin-left:0;
+
+}
+
+.topbar{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    height:auto;
+
+    padding:20px;
+
+    gap:15px;
+
+}
+
+.topbar-right{
+
+    width:100%;
+
+    justify-content:space-between;
+
+}
+
+.card-body{
+
+    padding:18px;
+
+}
+
+.portal-card{
+
+    padding:20px;
+
+}
+
+.login-card{
+
+    margin:25px;
+
+    padding:25px;
+
+}
+
+.page-content h2{
+
+    font-size:24px;
+
+}
+
+}
+
+@media(max-width:576px){
+
+.table-responsive{
+
+    font-size:13px;
+
+}
+
+.btn{
+
+    width:100%;
+
+}
+
+.card-title{
+
+    font-size:18px;
+
+}
+
+.logo{
+
+    text-align:center;
+
+}
+
+}
+
+/* =========================================================
+   FINISH
+========================================================= */
+
+.fade-up{
+
+    animation:fadeUp .45s ease;
+
+}
+
+@keyframes fadeUp{
+
+from{
+
+    opacity:0;
+
+    transform:translateY(18px);
+
+}
+
+to{
+
+    opacity:1;
+
+    transform:translateY(0);
+
+}
+
+}

@@ -16,4 +16,9 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
+    BACKUP_ENABLED = True
+
+    BACKUP_TIME = "02:00"
+
+    MAX_BACKUPS = 30
