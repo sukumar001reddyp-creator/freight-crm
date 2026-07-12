@@ -1,0 +1,101 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Support Ticket{% endblock %}
+
+{% block page_title %}Support Ticket{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm p-4">
+
+    <h3>#{{ ticket.id }} - {{ ticket.subject }}</h3>
+
+    <p>
+        <strong>Status:</strong>
+
+        {% if ticket.status=="waiting_admin" %}
+            <span class="badge bg-danger">
+                Waiting for Admin Reply
+            </span>
+
+        {% elif ticket.status=="waiting_client" %}
+            <span class="badge bg-warning text-dark">
+                Waiting for Your Reply
+            </span>
+
+        {% else %}
+            <span class="badge bg-success">
+                Closed
+            </span>
+        {% endif %}
+    </p>
+
+    <hr>
+
+    {% for msg in messages %}
+
+    <div class="mb-3 p-3 border rounded">
+
+        <strong>
+
+            {% if msg.sender=="admin" %}
+
+                Admin
+
+            {% else %}
+
+                You
+
+            {% endif %}
+
+        </strong>
+
+        <br>
+
+        {{ msg.message }}
+
+        <br>
+
+        <small class="text-muted">
+
+            {{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}
+
+        </small>
+
+    </div>
+
+    {% endfor %}
+
+    {% if ticket.status != "closed" %}
+
+    <form method="POST">
+
+        <div class="mb-3">
+
+            <label class="form-label">
+
+                Your Reply
+
+            </label>
+
+            <textarea
+                class="form-control"
+                name="message"
+                rows="5"
+                required></textarea>
+
+        </div>
+
+        <button class="btn btn-primary">
+
+            Send Reply
+
+        </button>
+
+    </form>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

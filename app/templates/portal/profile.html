@@ -10,214 +10,431 @@ My Profile
 
 {% block content %}
 
-<div class="container-fluid">
+<style>
 
-    <div class="row">
+.profile-header{
 
-        <!-- Profile Card -->
+display:flex;
 
-        <div class="col-lg-4">
+align-items:center;
 
-            <div class="portal-card text-center">
+gap:25px;
 
-                <div class="mb-4">
+background:#fff;
 
-                    <i class="bi bi-person-circle"
-                       style="font-size:90px;"></i>
+padding:30px;
 
-                </div>
+border-radius:20px;
 
-                <h3>
+box-shadow:0 10px 30px rgba(15,23,42,.08);
 
-                    {{ client.contact_person_name }}
+margin-bottom:30px;
 
-                </h3>
+}
 
-                <p class="text-muted">
+.profile-avatar{
 
-                    {{ client.company_name }}
+width:120px;
 
-                </p>
+height:120px;
 
-                <span class="badge bg-success">
+border-radius:50%;
 
-                    {{ client.status|replace("_"," ")|title }}
+background:linear-gradient(135deg,#7f1d1d,#b91c1c);
 
-                </span>
+display:flex;
 
-            </div>
+justify-content:center;
 
-        </div>
+align-items:center;
 
-        <!-- Profile Details -->
+font-size:45px;
 
-        <div class="col-lg-8">
+font-weight:700;
 
-            <div class="portal-card">
+color:#fff;
 
-                <h3 class="mb-4">
+}
 
-                    Profile Information
+.profile-name{
 
-                </h3>
+font-size:30px;
 
-                <table class="table table-borderless">
+font-weight:800;
 
-                    <tr>
+margin-bottom:6px;
 
-                        <th width="220">
+}
 
-                            Company
+.profile-company{
 
-                        </th>
+color:#64748b;
 
-                        <td>
+margin-bottom:10px;
 
-                            {{ client.company_name }}
+}
 
-                        </td>
+.profile-badge{
 
-                    </tr>
+display:inline-block;
 
-                    <tr>
+padding:8px 18px;
 
-                        <th>
+border-radius:30px;
 
-                            Contact Person
+background:#16a34a;
 
-                        </th>
+color:#fff;
 
-                        <td>
+font-size:13px;
 
-                            {{ client.contact_person_name }}
+font-weight:700;
 
-                        </td>
+}
 
-                    </tr>
+.details-card{
 
-                    <tr>
+background:#fff;
 
-                        <th>
+border-radius:20px;
 
-                            Email
+padding:28px;
 
-                        </th>
+box-shadow:0 10px 30px rgba(15,23,42,.08);
 
-                        <td>
+}
 
-                            {{ client.email or "-" }}
+.details-card h3{
 
-                        </td>
+margin-bottom:25px;
 
-                    </tr>
+font-size:24px;
 
-                    <tr>
+font-weight:700;
 
-                        <th>
+}
 
-                            Phone
+.info-table{
 
-                        </th>
+width:100%;
 
-                        <td>
+border-collapse:collapse;
 
-                            {{ client.phone_number or "-" }}
+}
 
-                        </td>
+.info-table tr{
 
-                    </tr>
+border-bottom:1px solid #eef2f7;
 
-                    <tr>
+}
 
-                        <th>
+.info-table th{
 
-                            Address
+width:220px;
 
-                        </th>
+padding:16px;
 
-                        <td>
+color:#64748b;
 
-                            {{ client.address or "-" }}
+font-weight:600;
 
-                        </td>
+}
 
-                    </tr>
+.info-table td{
 
-                    <tr>
+padding:16px;
 
-                        <th>
+font-weight:600;
 
-                            Client Reference
+}
 
-                        </th>
+@media(max-width:768px){
 
-                        <td>
+.profile-header{
 
-                            {{ client.client_reference }}
+flex-direction:column;
 
-                        </td>
+text-align:center;
 
-                    </tr>
+}
 
-                    <tr>
+.info-table th{
 
-                        <th>
+width:150px;
 
-                            Category
+}
 
-                        </th>
+}
 
-                        <td>
+</style>
 
-                            {{ client.category|replace("_"," ")|title }}
+<div class="profile-header">
 
-                        </td>
+<div class="profile-avatar">
 
-                    </tr>
+{{ client.company_name[:1] }}
 
-                    <tr>
+</div>
 
-                        <th>
+<div>
 
-                            Pipeline Stage
+<div class="profile-name">
 
-                        </th>
+{{ client.contact_person_name }}
 
-                        <td>
+</div>
 
-                            {{ client.pipeline_stage|replace("_"," ")|title }}
+<div class="profile-company">
 
-                        </td>
+{{ client.company_name }}
 
-                    </tr>
+</div>
 
-                    <tr>
+<div class="profile-badge">
 
-                        <th>
+{{ client.status|replace("_"," ")|title }}
 
-                            Client Since
+</div>
 
-                        </th>
+</div>
 
-                        <td>
+</div>
 
-                            {% if client.created_at %}
-                                {{ client.created_at.strftime("%d %b %Y") }}
-                            {% else %}
-                                -
-                            {% endif %}
+<div class="details-card">
 
-                        </td>
+<h3>
 
-                    </tr>
+Client Information
 
-                </table>
+</h3>
 
-            </div>
+<table class="info-table">
 
-        </div>
+<tr>
 
-    </div>
+<th>
+
+Company
+
+</th>
+
+<td>
+
+{{ client.company_name }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Contact Person
+
+</th>
+
+<td>
+
+{{ client.contact_person_name }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Email
+
+</th>
+
+<td>
+
+{{ client.email or "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Phone
+
+</th>
+
+<td>
+
+{{ client.phone_number or "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Address
+
+</th>
+
+<td>
+
+{{ client.address or "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Client Reference
+
+</th>
+
+<td>
+
+{{ client.client_reference }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Category
+
+</th>
+
+<td>
+
+{{ client.category|replace("_"," ")|title if client.category else "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Pipeline Stage
+
+</th>
+
+<td>
+
+{{ client.pipeline_stage|replace("_"," ")|title if client.pipeline_stage else "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Client Since
+
+</th>
+
+<td>
+
+{% if client.created_at %}
+
+{{ client.created_at.strftime("%d %b %Y") }}
+
+{% else %}
+
+-
+
+{% endif %}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Last Contact
+
+</th>
+
+<td>
+
+{% if client.last_contact_date %}
+
+{{ client.last_contact_date.strftime("%d %b %Y") }}
+
+{% else %}
+
+-
+
+{% endif %}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Assigned Sales Person
+
+</th>
+
+<td>
+
+{{ client.assigned_sales_person or "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Industry
+
+</th>
+
+<td>
+
+{{ client.industry or "-" }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Country
+
+</th>
+
+<td>
+
+{{ client.country or "-" }}
+
+</td>
+
+</tr>
+
+</table>
 
 </div>
 

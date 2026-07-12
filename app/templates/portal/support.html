@@ -1,6 +1,8 @@
 {% extends "portal/base.html" %}
 
-{% block title %}Support{% endblock %}
+{% block title %}
+Support
+{% endblock %}
 
 {% block page_title %}
 Support Center
@@ -8,207 +10,420 @@ Support Center
 
 {% block content %}
 
-<div class="container-fluid">
+<style>
 
-    <div class="row">
+.support-header{
 
-        <!-- Support Form -->
+display:flex;
+justify-content:space-between;
+align-items:center;
 
-        <div class="col-lg-8">
+margin-bottom:30px;
 
-            <div class="portal-card">
+}
 
-                <h3 class="mb-4">
+.support-header h2{
 
-                    Contact Support
+font-size:32px;
+font-weight:800;
 
-                </h3>
+margin:0;
 
-                <form method="POST">
+}
 
-                    {{ form.hidden_tag() }}
+.support-header p{
 
-                    <div class="mb-3">
+margin-top:5px;
 
-                        {{ form.subject.label(class="form-label") }}
+color:#64748b;
 
-                        {{ form.subject(class="form-control") }}
+}
 
-                    </div>
+.support-grid{
 
-                    <div class="mb-4">
+display:grid;
 
-                        {{ form.message.label(class="form-label") }}
+grid-template-columns:2fr 1fr;
 
-                        {{ form.message(
-                            class="form-control",
-                            rows="6",
-                            placeholder="Describe your issue..."
-                        ) }}
+gap:25px;
 
-                    </div>
+}
 
-                    <button
-                        class="btn btn-primary btn-lg"
-                        type="submit">
+.support-card{
 
-                        <i class="bi bi-send"></i>
+background:#fff;
 
-                        Send Request
+border-radius:20px;
 
-                    </button>
+padding:28px;
 
-                </form>
+box-shadow:0 10px 30px rgba(15,23,42,.08);
 
-            </div>
+margin-bottom:25px;
 
-        </div>
-        <div class="col-12 mt-4">
+}
 
-    <div class="portal-card">
+.support-card h3{
 
-        <h3 class="mb-4">
-            My Support Requests
-        </h3>
+font-size:24px;
 
-        {% if tickets %}
+font-weight:700;
 
-            <div class="table-responsive">
+margin-bottom:20px;
 
-                <table class="table align-middle">
+}
 
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Subject</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                        </tr>
-                    </thead>
+.form-control{
 
-                    <tbody>
+border-radius:12px;
 
-                    {% for ticket in tickets %}
+padding:12px;
 
-                        <tr>
+}
 
-                            <td>#{{ ticket.id }}</td>
+.btn-send{
 
-                            <td>{{ ticket.subject }}</td>
+background:#7f1d1d;
 
-                            <td>
+color:#fff;
 
-                                <span class="badge
-                                {% if ticket.status == 'open' %}
-                                    bg-danger
-                                {% elif ticket.status == 'in_progress' %}
-                                    bg-warning
-                                {% else %}
-                                    bg-success
-                                {% endif %}
-                                ">
-                                    {{ ticket.status|replace("_"," ")|title }}
-                                </span>
+padding:12px 22px;
 
-                            </td>
+border:none;
 
-                            <td>
-                                {{ ticket.created_at.strftime("%d %b %Y") }}
-                            </td>
+border-radius:10px;
 
-                        </tr>
+font-weight:600;
 
-                    {% endfor %}
+}
 
-                    </tbody>
+.btn-send:hover{
 
-                </table>
+background:#651818;
 
-            </div>
+}
 
-        {% else %}
+.info-box{
 
-            <div class="alert alert-info">
+padding:18px;
 
-                No support requests found.
+border-radius:14px;
 
-            </div>
+background:#f8fafc;
 
-        {% endif %}
+margin-bottom:15px;
 
-    </div>
+}
+
+.ticket-table{
+
+margin-top:25px;
+
+}
+
+.badge-open{
+
+background:#dc2626;
+
+}
+
+.badge-progress{
+
+background:#f59e0b;
+
+}
+
+.badge-closed{
+
+background:#16a34a;
+
+}
+
+@media(max-width:991px){
+
+.support-grid{
+
+grid-template-columns:1fr;
+
+}
+
+}
+
+</style>
+
+<div class="support-header">
+
+<div>
+
+<h2>
+
+Support Center
+
+</h2>
+
+<p>
+
+Need help? Contact our logistics team.
+
+</p>
 
 </div>
 
-        <!-- Contact Details -->
+</div>
 
-        <div class="col-lg-4">
+<div class="support-grid">
 
-            <div class="portal-card">
+<div>
 
-                <h4 class="mb-4">
+<div class="support-card">
 
-                    Contact Information
+<h3>
 
-                </h4>
+Create Support Request
 
-                <div class="mb-3">
+</h3>
 
-                    <strong>Email</strong>
+<form method="POST">
 
-                    <p class="text-muted">
+{{ form.hidden_tag() }}
 
-                        support@company.com
+<div class="mb-3">
 
-                    </p>
+{{ form.subject.label(class="form-label") }}
 
-                </div>
+{{ form.subject(class="form-control") }}
 
-                <div class="mb-3">
+</div>
 
-                    <strong>Phone</strong>
+<div class="mb-4">
 
-                    <p class="text-muted">
+{{ form.message.label(class="form-label") }}
 
-                        +965 XXXXXXXX
+{{ form.message(
 
-                    </p>
+class="form-control",
 
-                </div>
+rows="6",
 
-                <div class="mb-3">
+placeholder="Describe your issue..."
 
-                    <strong>Office Hours</strong>
+) }}
 
-                    <p class="text-muted">
+</div>
 
-                        Sunday - Thursday
+<button
+type="submit"
+class="btn-send">
 
-                        <br>
+<i class="bi bi-send"></i>
 
-                        08:00 AM - 05:00 PM
+Send Request
 
-                    </p>
+</button>
 
-                </div>
+</form>
 
-                <div>
+</div>
 
-                    <strong>Response Time</strong>
+<div class="support-card ticket-table">
 
-                    <p class="text-muted">
+<h3>
 
-                        Within 24 Hours
+My Requests
 
-                    </p>
+</h3>
 
-                </div>
+{% if tickets %}
 
-            </div>
+<div class="table-responsive">
 
-        </div>
+<table class="table align-middle">
 
-    </div>
+<thead>
+
+<tr>
+
+<th>ID</th>
+
+<th>Subject</th>
+
+<th>Status</th>
+
+<th>Date</th>
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for ticket in tickets %}
+
+<tr>
+
+<td>
+
+#{{ ticket.id }}
+
+</td>
+
+<td>
+
+{{ ticket.subject }}
+
+</td>
+
+<td>
+
+{% if ticket.status == "waiting_admin" %}
+
+<span class="badge badge-open">
+Waiting for Admin Reply
+</span>
+
+{% elif ticket.status == "waiting_client" %}
+
+<span class="badge badge-progress">
+Waiting for Your Reply
+</span>
+
+{% else %}
+
+<span class="badge badge-closed">
+Closed
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+{{ ticket.created_at.strftime("%d %b %Y") }}
+</td>
+
+<td>
+<a
+href="{{ url_for('portal.support_ticket', ticket_id=ticket.id) }}"
+class="btn-send"
+style="padding:7px 15px;text-decoration:none;">
+View
+</a>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info">
+
+No support requests found.
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+<div>
+
+<div class="support-card">
+
+<h3>
+
+Contact Information
+
+</h3>
+
+<div class="info-box">
+
+<strong>
+
+<i class="bi bi-envelope-fill"></i>
+
+Email
+
+</strong>
+
+<p class="mb-0 mt-2">
+
+support@company.com
+
+</p>
+
+</div>
+
+<div class="info-box">
+
+<strong>
+
+<i class="bi bi-telephone-fill"></i>
+
+Phone
+
+</strong>
+
+<p class="mb-0 mt-2">
+
++965 XXXXXXXX
+
+</p>
+
+</div>
+
+<div class="info-box">
+
+<strong>
+
+<i class="bi bi-clock-fill"></i>
+
+Office Hours
+
+</strong>
+
+<p class="mb-0 mt-2">
+
+Sunday - Thursday
+
+<br>
+
+08:00 AM - 05:00 PM
+
+</p>
+
+</div>
+
+<div class="info-box">
+
+<strong>
+
+<i class="bi bi-lightning-fill"></i>
+
+Average Response
+
+</strong>
+
+<p class="mb-0 mt-2">
+
+Within 24 Hours
+
+</p>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
 
