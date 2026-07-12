@@ -1097,7 +1097,7 @@ class Enquiry(db.Model):
     status = db.Column(
         db.String(30),
         nullable=False,
-        default="waiting_admin",
+        default="open",
         index=True
     )
 
@@ -2370,7 +2370,7 @@ class SupportTicket(db.Model):
 
     status = db.Column(
         db.String(30),
-        default="waiting_admin",
+        default="open",
         nullable=False,
         index=True,
     )
@@ -2379,11 +2379,6 @@ class SupportTicket(db.Model):
         db.DateTime(timezone=True),
         default=utc_now,
         nullable=False,
-    )
-
-    admin_reply = db.Column(
-    db.Text,
-    nullable=True,
     )
 
     updated_at = db.Column(
@@ -2400,41 +2395,3 @@ class SupportTicket(db.Model):
 
     def __repr__(self):
         return f"<SupportTicket {self.id}>"
-
-class SupportMessage(db.Model):
-    __tablename__ = "support_messages"
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    ticket_id = db.Column(
-        db.Integer,
-        db.ForeignKey("support_tickets.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-
-    sender = db.Column(
-        db.String(20),
-        nullable=False,
-    )  # admin / client
-
-    message = db.Column(
-        db.Text,
-        nullable=False,
-    )
-
-    created_at = db.Column(
-        db.DateTime(timezone=True),
-        default=utc_now,
-        nullable=False,
-    )
-
-    ticket = db.relationship(
-        "SupportTicket",
-        backref=db.backref(
-            "messages",
-            lazy=True,
-            order_by="SupportMessage.created_at.asc()",
-            cascade="all, delete-orphan",
-        ),
-    )

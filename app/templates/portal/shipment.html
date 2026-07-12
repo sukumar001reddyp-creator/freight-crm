@@ -1,48 +1,655 @@
 {% extends "portal/base.html" %}
-{% block content %}
-{% if shipment %}
-<h2>Shipment #{{ shipment.id }}</h2>
-<p><strong>{{ shipment.origin }} → {{ shipment.destination }}</strong> | {{ shipment.cargo }}</p>
 
-<!-- Progress Timeline -->
-<div class="mb-4">
-    <h5>Tracking Milestones</h5>
-    <ul class="list-group">
-        <li class="list-group-item">✅ Booked</li>
-        <li class="list-group-item">✅ Cargo Picked Up</li>
-        <li class="list-group-item active">🚛 In Transit ({{ shipment.progress }}%)</li>
-        <li class="list-group-item">Arrived at Destination</li>
-        <li class="list-group-item">Customs Clearance</li>
-        <li class="list-group-item">Delivered</li>
-    </ul>
+{% block title %}
+My Shipments
+{% endblock %}
+
+{% block page_title %}
+Shipment Tracking
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+.page-header{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+margin-bottom:30px;
+
+}
+
+.page-header h2{
+
+font-size:32px;
+font-weight:800;
+
+margin:0;
+
+}
+
+.page-header p{
+
+color:#64748b;
+margin-top:5px;
+
+}
+
+.shipment-card{
+
+background:#fff;
+
+border-radius:20px;
+
+padding:25px;
+
+box-shadow:0 10px 30px rgba(15,23,42,.08);
+
+margin-bottom:25px;
+
+transition:.25s;
+
+}
+
+.shipment-card:hover{
+
+transform:translateY(-5px);
+
+}
+
+.shipment-top{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin-bottom:20px;
+
+}
+
+.shipment-ref{
+
+font-size:22px;
+
+font-weight:800;
+
+color:#7f1d1d;
+
+}
+
+.status{
+
+padding:8px 16px;
+
+border-radius:30px;
+
+font-size:13px;
+
+font-weight:700;
+
+color:#fff;
+
+}
+
+.status-booked{
+
+background:#2563eb;
+
+}
+
+.status-transit{
+
+background:#f59e0b;
+
+}
+
+.status-delivered{
+
+background:#16a34a;
+
+}
+
+.info-grid{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(220px,1fr));
+
+gap:18px;
+
+margin-top:20px;
+
+}
+
+.info{
+
+background:#f8fafc;
+
+padding:18px;
+
+border-radius:14px;
+
+}
+
+.info small{
+
+display:block;
+
+color:#64748b;
+
+margin-bottom:6px;
+
+}
+
+.progress{
+
+height:12px;
+
+border-radius:50px;
+
+background:#e5e7eb;
+
+margin-top:20px;
+
+}
+
+.progress-bar{
+
+background:#7f1d1d;
+
+}
+
+.action-btn{
+
+margin-top:22px;
+
+display:inline-block;
+
+background:#7f1d1d;
+
+color:#fff;
+
+padding:10px 18px;
+
+border-radius:10px;
+
+text-decoration:none;
+
+font-weight:600;
+
+}
+
+.action-btn:hover{
+
+background:#651818;
+
+color:#fff;
+
+}
+
+.timeline{
+
+margin-top:35px;
+
+border-left:3px solid #7f1d1d;
+
+padding-left:25px;
+
+}
+
+.timeline-item{
+
+position:relative;
+
+margin-bottom:25px;
+
+}
+
+.timeline-item::before{
+
+content:"";
+
+position:absolute;
+
+left:-34px;
+
+top:5px;
+
+width:16px;
+
+height:16px;
+
+border-radius:50%;
+
+background:#7f1d1d;
+
+}
+
+.empty{
+
+background:#fff;
+
+padding:50px;
+
+text-align:center;
+
+border-radius:20px;
+
+box-shadow:0 10px 30px rgba(15,23,42,.08);
+
+}
+
+</style>
+
+<div class="page-header">
+
+<div>
+
+<h2>
+
+My Shipments
+
+</h2>
+
+<p>
+
+Track all your shipments in real time.
+
+</p>
+
 </div>
 
-<p>ETA: <strong>{{ shipment.eta }}</strong></p>
+</div>
 
-<a href="#" class="btn btn-success">Download All Documents</a>
+{% if shipment %}
+
+<div class="shipment-card">
+
+<div class="shipment-top">
+
+<div class="shipment-ref">
+
+{{ shipment.shipment_reference }}
+
+</div>
+
+<div>
+
+<span class="status status-transit">
+
+{{ shipment.shipment_status|replace("_"," ")|title }}
+
+</span>
+
+</div>
+
+</div>
+
+<div class="info-grid">
+
+<div class="info">
+
+<small>
+
+Origin
+
+</small>
+
+<strong>
+
+{{ shipment.origin }}
+
+</strong>
+
+</div>
+
+<div class="info">
+
+<small>
+
+Destination
+
+</small>
+
+<strong>
+
+{{ shipment.destination }}
+
+</strong>
+
+</div>
+
+<div class="info">
+
+<small>
+
+Cargo
+
+</small>
+
+<strong>
+
+{{ shipment.cargo_description }}
+
+</strong>
+
+</div>
+
+<div class="info">
+
+<small>
+
+ETA
+
+</small>
+
+<strong>
+
+{{ shipment.eta if shipment.eta else "-" }}
+
+</strong>
+
+</div>
+
+</div>
+
+<div class="progress">
+
+<div
+class="progress-bar"
+style="width:60%;">
+
+</div>
+
+</div>
+
+<div class="timeline">
+
+<div class="timeline-item">
+
+<strong>
+
+Shipment Created
+
+</strong>
+
+<br>
+
+<small>
+
+Booking confirmed.
+
+</small>
+
+</div>
+
+<div class="timeline-item">
+
+<strong>
+
+Cargo Picked Up
+
+</strong>
+
+<br>
+
+<small>
+
+Shipment collected.
+
+</small>
+
+</div>
+
+<div class="timeline-item">
+
+<strong>
+
+In Transit
+
+</strong>
+
+<br>
+
+<small>
+
+Currently moving to destination.
+
+</small>
+
+</div>
+
+<div class="timeline-item">
+
+<strong>
+
+Arrived at Destination
+
+</strong>
+
+<br>
+
+<small>
+
+Shipment reached destination country.
+
+</small>
+
+</div>
+
+<div class="timeline-item">
+
+<strong>
+
+Delivered
+
+</strong>
+
+<br>
+
+<small>
+
+Successfully delivered to customer.
+
+</small>
+
+</div>
+
+</div>
+
+<a
+href="{{ url_for('portal.documents') }}"
+class="action-btn">
+
+<i class="bi bi-folder2-open"></i>
+
+View Documents
+
+</a>
+
+</div>
+
 {% else %}
-<h2>My Shipments</h2>
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>Shipment ID</th>
-            <th>Route</th>
-            <th>Status</th>
-            <th>Progress</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for s in shipments %}
-        <tr>
-            <td>{{ s.id }}</td>
-            <td>{{ s.origin }} → {{ s.destination }}</td>
-            <td><span class="badge bg-primary">{{ s.status }}</span></td>
-            <td>{{ s.progress }}%</td>
-            <td><a href="{{ url_for('portal.shipment', id=s.id) }}" class="btn btn-sm btn-primary">View</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+{% if shipments %}
+
+{% for s in shipments %}
+
+<div class="shipment-card">
+
+<div class="shipment-top">
+
+<div>
+
+<div class="shipment-ref">
+
+{{ s.shipment_reference }}
+
+</div>
+
+<small style="color:#64748b;">
+
+{{ s.origin }}
+
+→
+
+{{ s.destination }}
+
+</small>
+
+</div>
+
+<div>
+
+{% set status = s.shipment_status|lower %}
+
+<span class="status
+{% if 'deliver' in status %}
+status-delivered
+{% elif 'transit' in status %}
+status-transit
+{% else %}
+status-booked
 {% endif %}
+">
+
+{{ s.shipment_status|replace("_"," ")|title }}
+
+</span>
+
+</div>
+
+</div>
+
+<div class="info-grid">
+
+<div class="info">
+
+<small>
+
+Cargo
+
+</small>
+
+<strong>
+
+{{ s.cargo_description or "-" }}
+
+</strong>
+
+</div>
+
+<div class="info">
+
+<small>
+
+Reference
+
+</small>
+
+<strong>
+
+{{ s.shipment_reference }}
+
+</strong>
+
+</div>
+
+<div class="info">
+
+<small>
+
+ETA
+
+</small>
+
+<strong>
+
+{{ s.eta if s.eta else "-" }}
+
+</strong>
+
+</div>
+
+<div class="info">
+
+<small>
+
+Created
+
+</small>
+
+<strong>
+
+{% if s.created_at %}
+{{ s.created_at.strftime("%d %b %Y") }}
+{% else %}
+-
+{% endif %}
+
+</strong>
+
+</div>
+
+</div>
+
+<a
+href="{{ url_for('portal.shipment', id=s.id) }}"
+class="action-btn">
+
+<i class="bi bi-eye"></i>
+
+View Shipment
+
+</a>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<div class="empty">
+
+<i
+class="bi bi-truck"
+style="
+font-size:70px;
+color:#7f1d1d;
+">
+
+</i>
+
+<h3
+style="
+margin-top:20px;
+font-weight:700;
+">
+
+No Shipments Found
+
+</h3>
+
+<p
+style="
+color:#64748b;
+margin-top:10px;
+">
+
+Your shipments will appear here once they are created.
+
+</p>
+
+</div>
+
+{% endif %}
+
+{% endif %}
+
 {% endblock %}
