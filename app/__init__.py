@@ -302,5 +302,9 @@ def create_app():
         return {
             "permissions": permissions
         }
-
+    @app.teardown_request
+    def teardown_request(exception=None):
+        if exception:
+            db.session.rollback()
+    db.session.remove()
     return app
