@@ -4,8 +4,9 @@ import subprocess
 from datetime import datetime
 from urllib.parse import urlparse
 
-from flask import current_app
 
+from flask import current_app
+from app.services.google_drive import upload_to_google_drive
 
 def backup_directory():
     folder = os.path.join(current_app.root_path, "backups")
@@ -49,7 +50,14 @@ def create_backup():
         )
 
         shutil.copy2(db_path, backup_file)
+
         cleanup_old_backups()
+
+# Google Drive upload
+        upload_to_google_drive(
+            backup_file
+)
+
         return backup_file
 
     # ----------------------------------
@@ -87,7 +95,13 @@ def create_backup():
             raise Exception(f"pg_dump failed: {result.stderr}")
 
         cleanup_old_backups()
-        return backup_file
+
+        try:
+            upload_to_google_drive(backup_file)
+        except Exception as e:
+            print("Google Drive Upload Failed:", e)
+
+        return backup_file  
 
     raise Exception("Unsupported database type.")
 
