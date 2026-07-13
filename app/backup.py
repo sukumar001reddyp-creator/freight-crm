@@ -1,4 +1,6 @@
 import os
+import shutil
+from datetime import datetime
 from flask import (
     Blueprint,
     render_template,
@@ -6,7 +8,6 @@ from flask import (
     url_for,
     flash,
     send_from_directory,
-    request,
     current_app,
     session
 )
@@ -29,24 +30,15 @@ backup_bp = Blueprint(
 
 
 def admin_only():
-    return getattr(
-        current_user,
-        "role",
-        ""
-    ) == "admin"
+    return getattr(current_user, "role", "") == "admin"
 
 
 @backup_bp.route("/")
 @login_required
 def index():
     if not admin_only():
-        flash(
-            "Access denied.",
-            "danger"
-        )
-        return redirect(
-            url_for("dashboard")
-        )
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard"))
 
     return render_template(
         "backup/index.html",
@@ -59,29 +51,19 @@ def index():
 @login_required
 def create():
     if not admin_only():
-        flash(
-            "Access denied.",
-            "danger"
-        )
-        return redirect(
-            url_for("dashboard")
-        )
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard"))
 
-    # Step 1: Google Drive OAuth credentials check
+    # FIX: Direct dynamic string check - routing matrix build error raadhu ika
     if 'credentials' not in session:
-        flash(
-            "Google Drive authorization missing! Redirecting to Google Login...", 
-            "warning"
-        )
-        return redirect(
-            url_for('drive.login_google')
-        )
+        flash("Google Drive authorization missing! Redirecting to Google Login...", "warning")
+        return redirect("/login/google")
 
     try:
-        # Step 2: Create local backup file
+        # 1. Create local backup file
         create_backup()
         
-        # Step 3: Pick the latest backup file path
+        # 2. Pick the latest backup file path
         history = backup_history()
         if history:
             latest_backup_filename = history[0]['filename']
@@ -91,47 +73,30 @@ def create():
                 latest_backup_filename
             )
             
-            # FIX: Circular Import avvadaniki lazy import function lopaliki move chesam
+            # FIX: Lazy import inside function block to prevent cyclic error
             from app.google_drive import upload_backup_to_drive 
             
-            # Step 4: Stream backup directly to Google Drive
+            # 3. Stream backup directly to Google Drive
             success, drive_response = upload_backup_to_drive(
                 local_backup_path, 
                 folder_name="Freight_CRM_Prod_Backups"
             )
             
             if success:
-                flash(
-                    f"Database backup created and synced to Google Drive successfully! File ID: {drive_response}",
-                    "success"
-                )
+                flash(f"Database backup created and synced to Google Drive successfully! File ID: {drive_response}", "success")
             else:
-                flash(
-                    f"Backup created locally, but Google Drive Sync Failed: {drive_response}",
-                    "warning"
-                )
+                flash(f"Backup created locally, but Google Drive Sync Failed: {drive_response}", "warning")
         else:
-            flash(
-                "Database backup created locally, but failed to locate file for Google Drive sync.",
-                "warning"
-            )
+            flash("Database backup created locally, but failed to locate file for Google Drive sync.", "warning")
 
     except Exception as e:
-        flash(
-            str(e),
-            "danger"
-        )
+        flash(str(e), "danger")
 
-    return redirect(
-        url_for("backup.index")
-    )
+    return redirect(url_for("backup.index"))
 
 
 @backup_bp.route("/auto")
 def auto_backup():
-    token = current_app.config.get(
-        "SECRET_KEY"
-    )
     try:
         create_backup()
         return "Backup Created", 200
@@ -143,45 +108,25 @@ def auto_backup():
 @login_required
 def download(filename):
     if not admin_only():
-        return redirect(
-            url_for("dashboard")
-        )
+        return redirect(url_for("dashboard"))
 
-    folder = os.path.join(
-        current_app.root_path,
-        "backups"
-    )
-
-    return send_from_directory(
-        folder,
-        filename,
-        as_attachment=True
-    )
+    folder = os.path.join(current_app.root_path, "backups")
+    return send_from_directory(folder, filename, as_attachment=True)
 
 
 @backup_bp.route("/restore/<filename>")
 @login_required
 def restore(filename):
     if not admin_only():
-        return redirect(
-            url_for("dashboard")
-        )
+        return redirect(url_for("dashboard"))
 
     try:
         restore_backup(filename)
-        flash(
-            "Database restored successfully. Please restart the application.",
-            "success"
-        )
+        flash("Database restored successfully. Please restart the application.", "success")
     except Exception as e:
-        flash(
-            str(e),
-            "danger"
-        )
+        flash(str(e), "danger")
 
-    return redirect(
-        url_for("backup.index")
-    )
+    return redirect(url_for("backup.index"))
 
 
 @backup_bp.route("/delete/<filename>")
@@ -190,24 +135,12 @@ def delete(filename):
     if not admin_only():
         return redirect(url_for("dashboard"))
 
-    file_path = os.path.join(
-        current_app.root_path,
-        "backups",
-        filename
-    )
+    file_path = os.path.join(current_app.root_path, "backups", filename)
 
     if os.path.exists(file_path):
         os.remove(file_path)
-        flash(
-            "Backup deleted successfully.",
-            "success"
-        )
+        flash("Backup deleted successfully.", "success")
     else:
-        flash(
-            "Backup file not found.",
-            "danger"
-        )
+        flash("Backup file not found.", "danger")
 
-    return redirect(
-        url_for("backup.index")
-    )
+    return redirect(url_for("backup.index"))
