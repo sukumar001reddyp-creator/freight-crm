@@ -27,11 +27,12 @@ class Config:
     BACKUP_ENABLED = True
     BACKUP_TIME = "02:00"
     MAX_BACKUPS = 30
-    GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv(
-    "GOOGLE_SERVICE_ACCOUNT_JSON"
-)
 
-GOOGLE_DRIVE_BACKUP_FOLDER = os.getenv(
-    "GOOGLE_DRIVE_BACKUP_FOLDER",
-    "FreightCRM_Backups"
-)
+    GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv(
+        "GOOGLE_SERVICE_ACCOUNT_JSON"
+    )
+
+    GOOGLE_DRIVE_BACKUP_FOLDER = os.getenv(
+        "GOOGLE_DRIVE_BACKUP_FOLDER",
+        "FreightCRM_Backups"
+    )
