@@ -3775,73 +3775,79 @@ Complete relationship, lifecycle and account workspace.
      id="portalAccountModal"
      tabindex="-1">
 
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
 
-        <div class="modal-content">
+        <div class="modal-content portal-modal">
 
             <form
                 method="POST"
                 action="{{ url_for('clients.create_portal_account', client_id=client.id) }}"
             >
+                <div class="portal-account-card">
 
-                <div class="modal-header">
+    <div class="modal-header">
 
-                    <h5 class="modal-title">
-                        Create Client Portal Account
-                    </h5>
+        <h5 class="modal-title">
+            Create Client Portal Account
+        </h5>
 
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                    </button>
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal">
+        </button>
 
-                </div>
+    </div>
 
-                <div class="modal-body">
+    <div class="modal-body portal-modal-body">
 
-                    <div class="mb-3">
+        <div class="mb-3">
 
-                        <label class="form-label">
-                            Email
-                        </label>
+            <label class="form-label">
+                Email Address
+            </label>
 
-                        <input
-                            type="email"
-                            name="email"
-                            class="form-control"
-                            value="{{ client.email }}"
-                            required>
+            <input
+                type="email"
+                name="email"
+                class="form-control form-control-lg"
+                value="{{ client.email }}"
+                readonly>
 
-                    </div>
+        </div>
 
-                    <div class="mb-3">
+        <div class="mb-3">
 
-                        <label class="form-label">
-                            Password
-                        </label>
+            <label class="form-label">
+                Temporary Password
+            </label>
 
-                        <input
-                            type="password"
-                            name="password"
-                            class="form-control"
-                            required>
+            <input
+                type="password"
+                name="password"
+                class="form-control form-control-lg"
+                placeholder="Enter temporary password"
+                required>
 
-                    </div>
+        </div>
 
-                </div>
+    </div>
 
-                <div class="modal-footer">
+    <div class="modal-footer">
 
-                    <button
-                        type="submit"
-                        class="btn btn-primary">
+        <button
+            type="submit"
+            class="btn btn-primary btn-lg w-100">
 
-                        Create Account
+            <i class="bi bi-person-check-fill me-2"></i>
 
-                    </button>
+            Create Portal Account
 
-                </div>
+        </button>
+
+    </div>
+
+</div>
 
             </form>
 
@@ -4895,6 +4901,68 @@ Complete relationship, lifecycle and account workspace.
     .admin-inline-form .btn {
         width: 100%;
     }
+}
+.portal-modal .form-control{
+
+    border-radius:12px;
+
+    min-height:52px;
+
+    border:1px solid #d1d5db;
+
+    transition:.2s;
+
+}
+
+.portal-modal .form-control:focus{
+
+    border-color:#7f1d1d;
+
+    box-shadow:0 0 0 .2rem rgba(127,29,29,.15);
+
+}
+
+.portal-modal .modal-footer{
+
+    border-top:1px solid #f1f5f9;
+
+    padding:20px 30px;
+
+}
+
+.portal-modal .btn-primary{
+
+    background:#7f1d1d;
+
+    border:none;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+.portal-modal .btn-primary:hover{
+
+    background:#991b1b;
+
+}
+.portal-account-card{
+
+    width:650px;
+
+    background:#fff;
+
+    border-radius:16px;
+
+    padding:30px;
+
+    margin-top:35px;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.06);
+
 }
 
 </style>

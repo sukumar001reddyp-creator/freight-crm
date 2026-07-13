@@ -7,426 +7,305 @@ Dashboard
 {% block content %}
 
 <style>
-
-body{
-    background:#f5f7fb;
+body {
+    background: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.dashboard-header{
-
-    background:linear-gradient(135deg,#7f1d1d,#b22222);
-
-    color:#fff;
-
-    padding:35px;
-
-    border-radius:20px;
-
-    margin-bottom:30px;
-
-    box-shadow:0 15px 40px rgba(127,29,29,.18);
-
+/* Header Section UI Clean Up */
+.dashboard-header {
+    background: linear-gradient(135deg, #7f1d1d, #b22222);
+    color: #fff;
+    padding: 24px 32px; /* Content area sizes balanced */
+    border-radius: 20px;
+    margin-bottom: 35px;
+    box-shadow: 0 12px 30px rgba(127, 29, 29, 0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.dashboard-header h2{
-
-    font-size:34px;
-
-    font-weight:800;
-
-    margin-bottom:8px;
-
+.dashboard-header h2 {
+    font-size: 24px; /* Perfectly balanced premium sizing */
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
 }
 
-.dashboard-header p{
-
-    margin:0;
-
-    opacity:.92;
-
+.dashboard-header p {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 14px;
+    font-weight: 400;
 }
 
-.stats{
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(auto-fit,minmax(220px,1fr));
-
-    gap:20px;
-
-    margin-bottom:35px;
-
+/* Stats Section */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 45px;
 }
 
-.stat-card{
-
-    background:#fff;
-
-    border-radius:18px;
-
-    padding:24px;
-
-    box-shadow:0 8px 30px rgba(15,23,42,.08);
-
-    transition:.25s;
-
+.stat-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03), 0 10px 30px rgba(15, 23, 42, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.stat-card:hover{
-
-    transform:translateY(-6px);
-
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
-.stat-icon{
-
-    width:60px;
-
-    height:60px;
-
-    border-radius:15px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    font-size:28px;
-
-    color:#fff;
-
-    margin-bottom:15px;
-
+.stat-main {
+    display: flex;
+    flex-direction: column-reverse;
 }
 
-.bg-red{
-
-    background:#7f1d1d;
-
+.stat-card span {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
 }
 
-.bg-blue{
-
-    background:#2563eb;
-
+.stat-card h3 {
+    font-size: 36px;
+    font-weight: 800;
+    margin: 0;
+    color: #0f172a;
+    letter-spacing: -1px;
 }
 
-.bg-green{
-
-    background:#16a34a;
-
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #fff;
 }
 
-.stat-card h3{
+.bg-red { background: #7f1d1d; }
+.bg-blue { background: #2563eb; }
+.bg-green { background: #16a34a; }
 
-    font-size:34px;
-
-    font-weight:800;
-
-    margin-bottom:5px;
-
+/* Shipments Section */
+.shipment-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 25px;
+    letter-spacing: -0.5px;
 }
 
-.stat-card span{
-
-    color:#64748b;
-
+.shipment-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03), 0 10px 30px rgba(15, 23, 42, 0.04);
+    padding: 30px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.shipment-title{
-
-    font-size:28px;
-
-    font-weight:700;
-
-    margin-bottom:25px;
-
+.shipment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
-.shipment-card{
-
-    background:#fff;
-
-    border-radius:20px;
-
-    box-shadow:0 10px 35px rgba(15,23,42,.08);
-
-    padding:25px;
-
-    transition:.25s;
-
-    height:100%;
-
+.shipment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 15px;
 }
 
-.shipment-card:hover{
-
-    transform:translateY(-6px);
-
+.shipment-ref {
+    font-size: 18px;
+    color: #7f1d1d;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    background: rgba(127, 29, 29, 0.05);
+    padding: 6px 14px;
+    border-radius: 10px;
 }
 
-.shipment-ref{
-
-    font-size:22px;
-
-    color:#7f1d1d;
-
-    font-weight:700;
-
+.badge-status {
+    display: inline-block;
+    background: rgba(37, 99, 243, 0.1);
+    color: #2563eb;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
 }
 
-.route{
-
-    font-weight:700;
-
-    margin:15px 0;
-
+.route {
+    font-weight: 700;
+    font-size: 16px;
+    color: #0f172a;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.desc{
-
-    color:#64748b;
-
-    min-height:45px;
-
+.route-arrow {
+    color: #64748b;
+    font-weight: 400;
 }
 
-.badge-status{
-
-    display:inline-block;
-
-    background:#2563eb;
-
-    color:#fff;
-
-    padding:8px 16px;
-
-    border-radius:40px;
-
-    font-size:13px;
-
-    margin:15px 0;
-
+.desc {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    min-height: 44px;
 }
 
-.view-btn{
-
-    display:inline-block;
-
-    margin-top:15px;
-
-    background:#7f1d1d;
-
-    color:#fff;
-
-    text-decoration:none;
-
-    padding:10px 18px;
-
-    border-radius:10px;
-
-    font-weight:600;
-
+.shipment-footer {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
 }
 
-.view-btn:hover{
-
-    background:#641616;
-
-    color:#fff;
-
+.date-info {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
 }
 
+.date-info strong {
+    color: #334155;
+}
+
+.view-btn {
+    display: inline-block;
+    background: #7f1d1d;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.view-btn:hover {
+    background: #641616;
+    color: #fff;
+}
+
+/* Empty State */
+.empty-state {
+    background: #fff;
+    padding: 60px 40px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.03);
+    border: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.empty-state h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+}
 </style>
 
 <div class="dashboard-header">
-
-    <h2>
-
-        Welcome Back 👋
-
-    </h2>
-
-    <p>
-
-        Track your shipments in real-time.
-
-    </p>
-
+    <h2>Welcome Back 👋</h2>
+    <p>Track your shipments in real-time.</p>
 </div>
 
 <div class="stats">
-
     <div class="stat-card">
-
-        <div class="stat-icon bg-red">
-
-            📦
-
+        <div class="stat-main">
+            <h3>{{ shipments|length }}</h3>
+            <span>Total Shipments</span>
         </div>
-
-        <h3>
-
-            {{ shipments|length }}
-
-        </h3>
-
-        <span>
-
-            Total Shipments
-
-        </span>
-
+        <div class="stat-icon bg-red">📦</div>
     </div>
-
+    
     <div class="stat-card">
-
-        <div class="stat-icon bg-blue">
-
-            🚚
-
+        <div class="stat-main">
+            <h3>{{ shipments|length }}</h3>
+            <span>Active Shipments</span>
         </div>
-
-        <h3>
-
-            {{ shipments|length }}
-
-        </h3>
-
-        <span>
-
-            Active Shipments
-
-        </span>
-
+        <div class="stat-icon bg-blue">🚚</div>
     </div>
-
+    
     <div class="stat-card">
-
-        <div class="stat-icon bg-green">
-
-            ✔
-
+        <div class="stat-main">
+            <h3>{{ shipments|length }}</h3>
+            <span>Delivered</span>
         </div>
-
-        <h3>
-
-            {{ shipments|length }}
-
-        </h3>
-
-        <span>
-
-            Delivered
-
-        </span>
-
+        <div class="stat-icon bg-green">✔</div>
     </div>
-
 </div>
 
-<h3 class="shipment-title">
-
-My Shipments
-
-</h3>
+<h3 class="shipment-title">My Shipments</h3>
 
 <div class="row">
+    {% for shipment in shipments %}
+    <div class="col-lg-6 mb-4">
+        <div class="shipment-card">
+            <div>
+                <div class="shipment-header">
+                    <span class="shipment-ref">{{ shipment.shipment_reference }}</span>
+                    <span class="badge-status">{{ shipment.shipment_status|replace("_"," ")|title }}</span>
+                </div>
+                
+                <div class="route">
+                    <span>{{ shipment.origin }}</span>
+                    <span class="route-arrow">→</span>
+                    <span>{{ shipment.destination }}</span>
+                </div>
+                
+                <div class="desc">
+                    {{ shipment.cargo_description }}
+                </div>
+            </div>
 
-{% for shipment in shipments %}
-
-<div class="col-lg-6 mb-4">
-
-<div class="shipment-card">
-
-<div class="shipment-ref">
-
-{{ shipment.shipment_reference }}
-
-</div>
-
-<div class="route">
-
-{{ shipment.origin }}
-
-→
-
-{{ shipment.destination }}
-
-</div>
-
-<div class="desc">
-
-{{ shipment.cargo_description }}
-
-</div>
-
-<div class="badge-status">
-
-{{ shipment.shipment_status|replace("_"," ")|title }}
-
-</div>
-<p style="margin-top:15px;color:#64748b;">
-
-Created:
-
-<strong>
-
-{{ shipment.created_at.strftime("%d %b %Y") }}
-
-</strong>
-
-</p>
-
-<a
-href="{{ url_for('portal.shipment', id=shipment.id) }}"
-class="view-btn">
-
-View Shipment
-
-</a>
-
-</div>
-
-</div>
-
-{% else %}
-
-<div class="col-12">
-
-<div
-style="
-background:#fff;
-padding:40px;
-border-radius:20px;
-text-align:center;
-box-shadow:0 10px 30px rgba(0,0,0,.08);
-">
-
-<h3>
-
-No Shipments Found
-
-</h3>
-
-<p
-style="
-color:#64748b;
-margin-top:10px;
-">
-
-Your shipments will appear here once they are created.
-
-</p>
-
-</div>
-
-</div>
-
-{% endfor %}
-
+            <div class="shipment-footer">
+                <p class="date-info">
+                    Created: <strong>{{ shipment.created_at.strftime("%d %b %Y") }}</strong>
+                </p>
+                <a href="{{ url_for('portal.shipment', id=shipment.id) }}" class="view-btn">
+                    View Shipment
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="empty-state">
+            <h3>No Shipments Found</h3>
+            <p style="color:#64748b; margin-top:10px; margin-bottom:0;">
+                Your shipments will appear here once they are created.
+            </p>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 {% endblock %}

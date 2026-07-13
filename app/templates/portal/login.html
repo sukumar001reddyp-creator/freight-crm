@@ -1,273 +1,282 @@
-{% extends "portal/base.html" %}
-
-{% block title %}
-Client Login
-{% endblock %}
-
-{% block page_title %}
-Client Login
-{% endblock %}
-
-{% block content %}
-
-<style>
-
-body{
-
-background:
-linear-gradient(
-135deg,
-#7f1d1d,
-#f5f7fb
-);
-
-}
-
-.login-wrapper{
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-min-height:78vh;
-
-}
-
-.login-card{
-
-width:100%;
-
-max-width:480px;
-
-background:#fff;
-
-padding:40px;
-
-border-radius:24px;
-
-box-shadow:
-0 20px 50px rgba(15,23,42,.15);
-
-}
-
-.logo-circle{
-
-width:90px;
-
-height:90px;
-
-margin:auto;
-
-border-radius:50%;
-
-background:
-linear-gradient(
-135deg,
-#7f1d1d,
-#b91c1c
-);
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-color:#fff;
-
-font-size:42px;
-
-margin-bottom:25px;
-
-}
-
-.login-card h2{
-
-text-align:center;
-
-font-size:30px;
-
-font-weight:800;
-
-margin-bottom:8px;
-
-}
-
-.login-card p{
-
-text-align:center;
-
-color:#64748b;
-
-margin-bottom:30px;
-
-}
-
-.form-label{
-
-font-weight:600;
-
-}
-
-.form-control{
-
-height:52px;
-
-border-radius:12px;
-
-}
-
-.form-control:focus{
-
-border-color:#7f1d1d;
-
-box-shadow:
-0 0 0 .15rem rgba(127,29,29,.15);
-
-}
-
-.btn-login{
-
-width:100%;
-
-height:52px;
-
-border:none;
-
-border-radius:12px;
-
-background:#7f1d1d;
-
-color:#fff;
-
-font-size:16px;
-
-font-weight:700;
-
-transition:.25s;
-
-}
-
-.btn-login:hover{
-
-background:#651818;
-
-}
-
-.footer-text{
-
-text-align:center;
-
-margin-top:25px;
-
-font-size:13px;
-
-color:#64748b;
-
-}
-
-</style>
-
-<div class="login-wrapper">
-
-<div class="login-card">
-
-<div class="logo-circle">
-
-<i class="bi bi-box-seam"></i>
-
-</div>
-
-<h2>
-
-Freight Client Portal
-
-</h2>
-
-<p>
-
-Login to track your shipments anytime.
-
-</p>
-
-<form method="POST">
-
-{{ form.hidden_tag() }}
-
-<div class="mb-3">
-
-{{ form.username.label(class="form-label") }}
-
-{{ form.username(
-
-class="form-control",
-
-placeholder="Username / Email"
-
-) }}
-
-</div>
-
-<div class="mb-4">
-
-{{ form.password.label(class="form-label") }}
-
-{{ form.password(
-
-class="form-control",
-
-placeholder="Password"
-
-) }}
-
-</div>
-
-<div class="d-grid mb-3">
-
-{{ form.submit(
-
-class="btn-login"
-
-) }}
-
-</div>
-
-<div class="text-center mb-3">
-
-<a
-href="#"
-style="
-text-decoration:none;
-color:#7f1d1d;
-font-weight:600;
-">
-
-Forgot Password?
-
-</a>
-
-</div>
-
-</form>
-
-<div class="footer-text">
-
-<i class="bi bi-shield-lock"></i>
-
-Secure Client Portal
-
-<br>
-
-© {{ current_year if current_year else "2026" }}
-
-Freight CRM. All Rights Reserved.
-
-</div>
-
-</div>
-
-</div>
-
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Login | Freight CRM</title>
+
+    <!-- Base Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Premium Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Split Layout Container */
+        .login-split-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Left Side: Premium Brand Visual Panel */
+        .brand-visual-panel {
+            flex: 1.2;
+            background: linear-gradient(135deg, #7f1d1d 0%, #3b0a0a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 60px;
+            position: relative;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* Decorative background element for premium feel */
+        .brand-visual-panel::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(185, 28, 28, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .brand-logo h2 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(120deg, #ffffff, #fca5a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-logo small {
+            opacity: 0.6;
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: block;
+        }
+
+        .brand-hero-text h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+        }
+
+        .brand-hero-text p {
+            color: #fca5a5;
+            font-size: 18px;
+            font-weight: 500;
+            max-width: 480px;
+        }
+
+        .brand-footer {
+            font-size: 14px;
+            opacity: 0.5;
+            font-weight: 500;
+        }
+
+        /* Right Side: Clean Form Panel */
+        .form-panel {
+            flex: 1;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+        }
+
+        .form-box {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .form-box h3 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .form-box p {
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 35px;
+        }
+
+        /* Premium Input Elements */
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            height: 52px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #0f172a;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-control:focus {
+            background: #ffffff;
+            border-color: #7f1d1d;
+            box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
+            outline: none;
+        }
+
+        /* CTA Login Button */
+        .btn-login {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            background: #7f1d1d;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(127, 29, 29, 0.15);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background: #641616;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(127, 29, 29, 0.25);
+        }
+
+        .secure-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 40px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .secure-badge i {
+            color: #16a34a;
+        }
+
+        /* Responsive Breakdowns */
+        @media (max-width: 992px) {
+            .brand-visual-panel {
+                display: none;
+            }
+            .form-panel {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-split-container">
+        
+        <!-- Left Banner View Group -->
+        <div class="brand-visual-panel">
+            <div class="brand-logo">
+                <h2>Freight CRM</h2>
+                <small>Client Portal</small>
+            </div>
+            
+            <div class="brand-hero-text">
+                <h1>Modern Logistics,<br>Simplified Tracking.</h1>
+                <p>Access your digital dashboard, manage documents, and stream seamless real-time fleet operations updates instantly.</p>
+            </div>
+            
+            <div class="brand-footer">
+                © {{ current_year if current_year else "2026" }} Freight CRM. Global Supply Chain Solutions.
+            </div>
+        </div>
+
+        <!-- Right Core Action Form Block -->
+        <div class="form-panel">
+            <div class="form-box">
+                
+                <!-- Display Flash Error/Success Messages Directly Inside Form Box -->
+                {% with messages=get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category,message in messages %}
+                            <div class="alert alert-{{category}} mb-4 rounded-3 py-3 border-0">
+                                {{message}}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <h3>Welcome Back</h3>
+                <p>Please enter your account details to continue.</p>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control", placeholder="Username or Email") }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", placeholder="••••••••") }}
+                    </div>
+
+                    <div class="d-grid">
+                        {{ form.submit(class="btn-login") }}
+                    </div>
+                </form>
+
+                <div class="text-center">
+                    <div class="secure-badge">
+                        <i class="bi bi-shield-check"></i> End-to-End Encrypted Session
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

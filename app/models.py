@@ -1712,6 +1712,12 @@ class Shipment(db.Model):
         index=True
     )
 
+    current_stage = db.Column(
+        db.String(50),
+        nullable=False,
+        default="booked",
+        index=True
+    )
 
     # -----------------------------------------------------
     # HANDLED BY

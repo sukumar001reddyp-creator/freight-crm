@@ -3,6 +3,7 @@ from flask import (
     redirect,
     url_for,
     render_template,
+    
 )
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_sqlalchemy import SQLAlchemy
@@ -94,7 +95,8 @@ def create_app():
     from app.backup import backup_bp
     app.register_blueprint(backup_bp)
 
-
+    from app.reports import reports_bp
+    app.register_blueprint(reports_bp)
     # ==========================================
     # IMPORT MODELS
     # ==========================================
@@ -180,6 +182,7 @@ def create_app():
             Enquiry,
             Quotation,
             Shipment,
+            ShipmentMilestone,
             ClientTask,
             ClientActivity,
         )
@@ -236,16 +239,17 @@ def create_app():
 
         # Shipment Stages (simplified)
         shipment_stage_counts = {
-            "booked": 0,
-            "cargo_picked_up": 0,
-            "in_transit": 0,
-            "arrived_destination": 0,
-            "customs_clearance": 0,
-            "out_for_delivery": 0,
-            "delivered": 0,
-            "closed_completed": 0,
+            "booked": shipment_scope.filter(Shipment.current_stage == "booked").count(),
+            "cargo_picked_up": shipment_scope.filter(Shipment.current_stage == "cargo_picked_up").count(),
+            "in_transit": shipment_scope.filter(Shipment.current_stage == "in_transit").count(),
+            "arrived_destination": shipment_scope.filter(Shipment.current_stage == "arrived_destination").count(),
+            "customs_clearance": shipment_scope.filter(Shipment.current_stage == "customs_clearance").count(),
+            "out_for_delivery": shipment_scope.filter(Shipment.current_stage == "out_for_delivery").count(),
+            "delivered": shipment_scope.filter(Shipment.current_stage == "delivered").count(),
+            "closed_completed": shipment_scope.filter(Shipment.current_stage == "closed_completed").count(),
         }
 
+        
         # Follow-ups
         follow_up_tasks = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).order_by(ClientTask.due_date.asc()).limit(5).all()
         pending_followups_count = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).count()
@@ -268,7 +272,37 @@ def create_app():
 
         # Recent Activities
         recent_activities = activity_scope.order_by(ClientActivity.activity_date.desc(), ClientActivity.id.desc()).limit(6).all()
+                # Recent Activities
+        recent_activities = activity_scope.order_by(
+            ClientActivity.activity_date.desc(),
+            ClientActivity.id.desc()
+        ).limit(6).all()
 
+        # Shipment Stage Counts
+        print(shipment_stage_counts)
+
+        return render_template(
+            "dashboard/index.html",
+
+            total_clients=total_clients,
+            total_enquiries=total_enquiries,
+            total_quotations=total_quotations,
+            total_shipments=total_shipments,
+
+            shipment_stage_counts=shipment_stage_counts,
+
+            follow_up_tasks=follow_up_tasks,
+            pending_followups_count=pending_followups_count,
+
+            lifecycle_counts=lifecycle_counts,
+
+            recent_activities=recent_activities,
+
+            quotation_status_counts=quotation_status_counts,
+            enquiry_status_counts=enquiry_status_counts,
+            closed_shipments_count=closed_shipments_count,
+            client_category_counts=client_category_counts,
+        )
         return render_template(
             "dashboard/index.html",
 

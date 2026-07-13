@@ -1,440 +1,282 @@
 {% extends "portal/base.html" %}
 
-{% block title %}
-My Profile
-{% endblock %}
+{% block title %}My Profile{% endblock %}
 
-{% block page_title %}
-My Profile
-{% endblock %}
+{% block page_title %}My Profile{% endblock %}
 
 {% block content %}
 
 <style>
-
-.profile-header{
-
-display:flex;
-
-align-items:center;
-
-gap:25px;
-
-background:#fff;
-
-padding:30px;
-
-border-radius:20px;
-
-box-shadow:0 10px 30px rgba(15,23,42,.08);
-
-margin-bottom:30px;
-
+body {
+    background: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.profile-avatar{
-
-width:120px;
-
-height:120px;
-
-border-radius:50%;
-
-background:linear-gradient(135deg,#7f1d1d,#b91c1c);
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-font-size:45px;
-
-font-weight:700;
-
-color:#fff;
-
+.profile-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
 }
 
-.profile-name{
-
-font-size:30px;
-
-font-weight:800;
-
-margin-bottom:6px;
-
+/* Premium Profile Header */
+.profile-hero {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px 40px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02), 0 15px 40px rgba(15, 23, 42, 0.04);
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.profile-company{
-
-color:#64748b;
-
-margin-bottom:10px;
-
+.profile-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    box-shadow: 0 10px 25px rgba(127, 29, 29, 0.2);
 }
 
-.profile-badge{
-
-display:inline-block;
-
-padding:8px 18px;
-
-border-radius:30px;
-
-background:#16a34a;
-
-color:#fff;
-
-font-size:13px;
-
-font-weight:700;
-
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-.details-card{
-
-background:#fff;
-
-border-radius:20px;
-
-padding:28px;
-
-box-shadow:0 10px 30px rgba(15,23,42,.08);
-
+.profile-info h1 {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 0 0 2px 0;
+    color: #64748b;
 }
 
-.details-card h3{
-
-margin-bottom:25px;
-
-font-size:24px;
-
-font-weight:700;
-
+.profile-company {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
 }
 
-.info-table{
-
-width:100%;
-
-border-collapse:collapse;
-
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: rgba(34, 197, 94, 0.09);
+    color: #166534;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
 }
 
-.info-table tr{
-
-border-bottom:1px solid #eef2f7;
-
+/* Data Grid Grid blocks */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 30px;
 }
 
-.info-table th{
-
-width:220px;
-
-padding:16px;
-
-color:#64748b;
-
-font-weight:600;
-
+.info-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02), 0 15px 40px rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.info-table td{
-
-padding:16px;
-
-font-weight:600;
-
+.info-card h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: #0f172a;
+    letter-spacing: -0.3px;
 }
 
-@media(max-width:768px){
-
-.profile-header{
-
-flex-direction:column;
-
-text-align:center;
-
+.info-row {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.info-table th{
-
-width:150px;
-
+.info-row:last-child { 
+    border-bottom: none; 
 }
 
+.info-label {
+    width: 180px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 14.5px;
 }
 
+.info-value {
+    flex: 1;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14.5px;
+}
+
+/* Form Settings Update */
+.password-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02), 0 15px 40px rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    margin-top: 30px;
+}
+
+.password-card h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-card label {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #475569;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.password-card .form-control {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14.5px;
+    color: #334155;
+    outline: none;
+    transition: all 0.2s ease;
+    box-shadow: none;
+}
+
+.password-card .form-control:focus {
+    background: #fff;
+    border-color: #7f1d1d;
+    box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
+}
+
+.btn-danger {
+    background: #7f1d1d;
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14.5px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-danger:hover {
+    background: #651818;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .profile-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    .profile-info {
+        align-items: center;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .info-label {
+        width: 100%;
+    }
+}
 </style>
 
-<div class="profile-header">
-
-<div class="profile-avatar">
-
-{{ client.company_name[:1] }}
-
-</div>
-
-<div>
-
-<div class="profile-name">
-
-{{ client.contact_person_name }}
-
-</div>
-
-<div class="profile-company">
-
-{{ client.company_name }}
-
-</div>
-
-<div class="profile-badge">
-
-{{ client.status|replace("_"," ")|title }}
-
-</div>
-
-</div>
-
-</div>
-
-<div class="details-card">
-
-<h3>
-
-Client Information
-
-</h3>
-
-<table class="info-table">
-
-<tr>
-
-<th>
-
-Company
-
-</th>
-
-<td>
-
-{{ client.company_name }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Contact Person
-
-</th>
-
-<td>
-
-{{ client.contact_person_name }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Email
-
-</th>
-
-<td>
-
-{{ client.email or "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Phone
-
-</th>
-
-<td>
-
-{{ client.phone_number or "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Address
-
-</th>
-
-<td>
-
-{{ client.address or "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Client Reference
-
-</th>
-
-<td>
-
-{{ client.client_reference }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Category
-
-</th>
-
-<td>
-
-{{ client.category|replace("_"," ")|title if client.category else "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Pipeline Stage
-
-</th>
-
-<td>
-
-{{ client.pipeline_stage|replace("_"," ")|title if client.pipeline_stage else "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Client Since
-
-</th>
-
-<td>
-
-{% if client.created_at %}
-
-{{ client.created_at.strftime("%d %b %Y") }}
-
-{% else %}
-
--
-
-{% endif %}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Last Contact
-
-</th>
-
-<td>
-
-{% if client.last_contact_date %}
-
-{{ client.last_contact_date.strftime("%d %b %Y") }}
-
-{% else %}
-
--
-
-{% endif %}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Assigned Sales Person
-
-</th>
-
-<td>
-
-{{ client.assigned_sales_person or "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Industry
-
-</th>
-
-<td>
-
-{{ client.industry or "-" }}
-
-</td>
-
-</tr>
-
-<tr>
-
-<th>
-
-Country
-
-</th>
-
-<td>
-
-{{ client.country or "-" }}
-
-</td>
-
-</tr>
-
-</table>
+<div class="profile-container">
+
+    <div class="profile-hero">
+        <div class="profile-avatar">
+            {{ client.company_name[0] }}
+        </div>
+        <div class="profile-info">
+            <h1>{{ client.contact_person_name }}</h1>
+            <div class="profile-company">{{ client.company_name }}</div>
+            <span class="status-badge">
+                <i class="bi bi-check-circle-fill"></i>
+                {{ client.status|replace("_", " ")|title }}
+            </span>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <h3>Company Details</h3>
+            <div class="info-row"><div class="info-label">Company</div><div class="info-value">{{ client.company_name }}</div></div>
+            <div class="info-row"><div class="info-label">Contact Person</div><div class="info-value">{{ client.contact_person_name }}</div></div>
+            <div class="info-row"><div class="info-label">Email</div><div class="info-value">{{ client.email or "—" }}</div></div>
+            <div class="info-row"><div class="info-label">Phone</div><div class="info-value">{{ client.primary_phone or "—" }}</div></div>
+            <div class="info-row"><div class="info-label">Address</div><div class="info-value">{{ client.address_line_1 or "—" }}</div></div>
+        </div>
+
+        <div class="info-card">
+            <h3>Account Information</h3>
+            <div class="info-row"><div class="info-label">Client ID</div><div class="info-value">{{ client.client_reference }}</div></div>
+            <div class="info-row"><div class="info-label">Category</div><div class="info-value">{{ client.category|replace("_"," ")|title if client.category else "—" }}</div></div>
+            <div class="info-row"><div class="info-label">Pipeline Stage</div><div class="info-value">{{ client.pipeline_stage|replace("_"," ")|title if client.pipeline_stage else "—" }}</div></div>
+            <div class="info-row"><div class="info-label">Member Since</div><div class="info-value">{{ client.created_at.strftime("%d %b %Y") if client.created_at else "—" }}</div></div>
+            <div class="info-row"><div class="info-label">Assigned To</div><div class="info-value">{{ client.assigned_to.full_name if client.assigned_to else "—" }}</div></div>
+        </div>
+    </div>
+
+    <div class="password-card">
+        <h3><i class="bi bi-shield-lock"></i> Change Password</h3>
+        <form method="POST" action="{{ url_for('portal.change_password') }}">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label>Current Password</label>
+                    <input type="password" name="current_password" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>New Password</label>
+                    <input type="password" name="new_password" class="form-control" minlength="6" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Confirm Password</label>
+                    <input type="password" name="confirm_password" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-check-circle"></i> Update Password
+            </button>
+        </form>
+    </div>
 
 </div>
 

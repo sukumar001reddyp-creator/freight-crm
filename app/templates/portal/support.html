@@ -1,7 +1,7 @@
 {% extends "portal/base.html" %}
 
 {% block title %}
-Support
+Support Center
 {% endblock %}
 
 {% block page_title %}
@@ -11,419 +11,302 @@ Support Center
 {% block content %}
 
 <style>
-
-.support-header{
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-
-margin-bottom:30px;
-
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #f1f5f9;
 }
 
-.support-header h2{
-
-font-size:32px;
-font-weight:800;
-
-margin:0;
-
+/* Header Area */
+.support-header {
+    margin-bottom: 25px;
+}
+.support-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
 }
 
-.support-header p{
-
-margin-top:5px;
-
-color:#64748b;
-
+/* 1. TOP LAYOUT: Contact & Info horizontal row */
+.info-row-layout {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+}
+.mini-info-card {
+    background: var(--card-bg);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.mini-info-card .icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.mini-info-card .card-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+    font-weight: 600;
+}
+.mini-info-card .card-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0;
 }
 
-.support-grid{
-
-display:grid;
-
-grid-template-columns:2fr 1fr;
-
-gap:25px;
-
+/* 2. MAIN LAYOUT: Two-column workspace split */
+.main-workspace-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1.3fr;
+    gap: 30px;
+    align-items: start;
 }
 
-.support-card{
-
-background:#fff;
-
-border-radius:20px;
-
-padding:28px;
-
-box-shadow:0 10px 30px rgba(15,23,42,.08);
-
-margin-bottom:25px;
-
+.workspace-card {
+    background: var(--card-bg);
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.workspace-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-main);
 }
 
-.support-card h3{
-
-font-size:24px;
-
-font-weight:700;
-
-margin-bottom:20px;
-
+/* Forms styling */
+.form-label {
+    font-weight: 500;
+    font-size: 13.5px;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+.form-control {
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+}
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-.form-control{
-
-border-radius:12px;
-
-padding:12px;
-
+/* Buttons */
+.btn-send {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.btn-send:hover {
+    background: var(--primary-hover);
+}
+.btn-action {
+    background: #f1f5f9;
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+}
+.btn-action:hover {
+    background: #e2e8f0;
 }
 
-.btn-send{
-
-background:#7f1d1d;
-
-color:#fff;
-
-padding:12px 22px;
-
-border:none;
-
-border-radius:10px;
-
-font-weight:600;
-
+/* Premium Table View */
+.table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 12px 8px;
+    border-bottom: 2px solid #f1f5f9;
+}
+.table td {
+    padding: 14px 8px;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.btn-send:hover{
-
-background:#651818;
-
+/* Status Tags */
+.status-tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
 }
+.tag-open { background: #fee2e2; color: #ef4444; }
+.tag-progress { background: #fef3c7; color: #d97706; }
+.tag-closed { background: #dcfce7; color: #15803d; }
 
-.info-box{
-
-padding:18px;
-
-border-radius:14px;
-
-background:#f8fafc;
-
-margin-bottom:15px;
-
+/* Responsive Media Queries */
+@media(max-width: 1200px) {
+    .info-row-layout {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
-
-.ticket-table{
-
-margin-top:25px;
-
+@media(max-width: 991px) {
+    .main-workspace-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 }
-
-.badge-open{
-
-background:#dc2626;
-
+@media(max-width: 576px) {
+    .info-row-layout {
+        grid-template-columns: 1fr;
+    }
 }
-
-.badge-progress{
-
-background:#f59e0b;
-
-}
-
-.badge-closed{
-
-background:#16a34a;
-
-}
-
-@media(max-width:991px){
-
-.support-grid{
-
-grid-template-columns:1fr;
-
-}
-
-}
-
 </style>
 
+<!-- Header -->
 <div class="support-header">
-
-<div>
-
-<h2>
-
-Support Center
-
-</h2>
-
-<p>
-
-Need help? Contact our logistics team.
-
-</p>
-
+    <h2>Support Center</h2>
+    <p class="text-muted m-0">Submit a ticket or track your ongoing support requests.</p>
 </div>
 
+<!-- 1. Top Layout Row: Info Widgets -->
+<div class="info-row-layout">
+    <div class="mini-info-card">
+        <div class="icon-wrapper"><i class="bi bi-envelope-fill"></i></div>
+        <div>
+            <div class="card-label">Email Support</div>
+            <p class="card-value">support@company.com</p>
+        </div>
+    </div>
+    <div class="mini-info-card">
+        <div class="icon-wrapper"><i class="bi bi-telephone-fill"></i></div>
+        <div>
+            <div class="card-label">Hotline</div>
+            <p class="card-value">+965 XXXXXXXX</p>
+        </div>
+    </div>
+    <div class="mini-info-card">
+        <div class="icon-wrapper"><i class="bi bi-clock-fill"></i></div>
+        <div>
+            <div class="card-label">Office Hours</div>
+            <p class="card-value">Sun - Thu (8am - 5pm)</p>
+        </div>
+    </div>
+    <div class="mini-info-card" style="border-left: 3px solid var(--primary);">
+        <div class="icon-wrapper" style="background: rgba(79, 70, 229, 0.05);"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div>
+            <div class="card-label">Avg Response</div>
+            <p class="card-value" style="color: var(--primary);">Under 24 Hours</p>
+        </div>
+    </div>
 </div>
 
-<div class="support-grid">
-
-<div>
-
-<div class="support-card">
-
-<h3>
-
-Create Support Request
-
-</h3>
-
-<form method="POST">
-
-{{ form.hidden_tag() }}
-
-<div class="mb-3">
-
-{{ form.subject.label(class="form-label") }}
-
-{{ form.subject(class="form-control") }}
-
-</div>
-
-<div class="mb-4">
-
-{{ form.message.label(class="form-label") }}
-
-{{ form.message(
-
-class="form-control",
-
-rows="6",
-
-placeholder="Describe your issue..."
-
-) }}
-
-</div>
-
-<button
-type="submit"
-class="btn-send">
-
-<i class="bi bi-send"></i>
-
-Send Request
-
-</button>
-
-</form>
-
-</div>
-
-<div class="support-card ticket-table">
-
-<h3>
-
-My Requests
-
-</h3>
-
-{% if tickets %}
-
-<div class="table-responsive">
-
-<table class="table align-middle">
-
-<thead>
-
-<tr>
-
-<th>ID</th>
-
-<th>Subject</th>
-
-<th>Status</th>
-
-<th>Date</th>
-<th></th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for ticket in tickets %}
-
-<tr>
-
-<td>
-
-#{{ ticket.id }}
-
-</td>
-
-<td>
-
-{{ ticket.subject }}
-
-</td>
-
-<td>
-
-{% if ticket.status == "waiting_admin" %}
-
-<span class="badge badge-open">
-Waiting for Admin Reply
-</span>
-
-{% elif ticket.status == "waiting_client" %}
-
-<span class="badge badge-progress">
-Waiting for Your Reply
-</span>
-
-{% else %}
-
-<span class="badge badge-closed">
-Closed
-</span>
-
-{% endif %}
-
-</td>
-
-<td>
-{{ ticket.created_at.strftime("%d %b %Y") }}
-</td>
-
-<td>
-<a
-href="{{ url_for('portal.support_ticket', ticket_id=ticket.id) }}"
-class="btn-send"
-style="padding:7px 15px;text-decoration:none;">
-View
-</a>
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
-{% else %}
-
-<div class="alert alert-info">
-
-No support requests found.
-
-</div>
-
-{% endif %}
-
-</div>
-
-</div>
-
-<div>
-
-<div class="support-card">
-
-<h3>
-
-Contact Information
-
-</h3>
-
-<div class="info-box">
-
-<strong>
-
-<i class="bi bi-envelope-fill"></i>
-
-Email
-
-</strong>
-
-<p class="mb-0 mt-2">
-
-support@company.com
-
-</p>
-
-</div>
-
-<div class="info-box">
-
-<strong>
-
-<i class="bi bi-telephone-fill"></i>
-
-Phone
-
-</strong>
-
-<p class="mb-0 mt-2">
-
-+965 XXXXXXXX
-
-</p>
-
-</div>
-
-<div class="info-box">
-
-<strong>
-
-<i class="bi bi-clock-fill"></i>
-
-Office Hours
-
-</strong>
-
-<p class="mb-0 mt-2">
-
-Sunday - Thursday
-
-<br>
-
-08:00 AM - 05:00 PM
-
-</p>
-
-</div>
-
-<div class="info-box">
-
-<strong>
-
-<i class="bi bi-lightning-fill"></i>
-
-Average Response
-
-</strong>
-
-<p class="mb-0 mt-2">
-
-Within 24 Hours
-
-</p>
-
-</div>
-
-</div>
-
-</div>
+<!-- 2. Bottom Layout Row: Two Column Workspace Split -->
+<div class="main-workspace-grid">
+    
+    <!-- Left Column: Form -->
+    <div class="workspace-card">
+        <h3>Create Support Request</h3>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                {{ form.subject.label(class="form-label") }}
+                {{ form.subject(class="form-control", placeholder="What do you need help with?") }}
+            </div>
+            
+            <div class="mb-4">
+                {{ form.message.label(class="form-label") }}
+                {{ form.message(
+                    class="form-control",
+                    rows="5",
+                    placeholder="Provide details about your logistics issue..."
+                ) }}
+            </div>
+            
+            <button type="submit" class="btn-send">
+                <i class="bi bi-plus-circle-fill"></i>
+                Submit New Request
+            </button>
+        </form>
+    </div>
+
+    <!-- Right Column: Tickets Table View -->
+    <div class="workspace-card">
+        <h3>My Requests</h3>
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--text-muted);">#{{ ticket.id }}</td>
+                        <td style="font-weight: 500; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ ticket.subject }}
+                        </td>
+                        <td>
+                            {% if ticket.status == "waiting_admin" %}
+                            <span class="status-tag tag-open">Open</span>
+                            {% elif ticket.status == "waiting_client" %}
+                            <span class="status-tag tag-progress">Pending</span>
+                            {% else %}
+                            <span class="status-tag tag-closed">Closed</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('portal.support_ticket', ticket_id=ticket.id) }}" class="btn-action">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+            <i class="bi bi-folder2-open" style="font-size: 32px; color: #cbd5e1; display: block; margin-bottom: 10px;"></i>
+            <span style="font-size: 14px;">No active support tickets found.</span>
+        </div>
+        {% endif %}
+    </div>
 
 </div>
 

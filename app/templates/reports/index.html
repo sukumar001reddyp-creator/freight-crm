@@ -1,0 +1,430 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/reports.css') }}">
+
+<div class="page-header">
+
+    <h1>Reports Dashboard</h1>
+
+    <p>
+        Business analytics, reporting and export center.
+    </p>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- SUMMARY CARDS -->
+<!-- ===================================================== -->
+
+<div class="report-cards">
+
+    <div class="report-card">
+
+        <h4>Total Clients</h4>
+
+        <h2>{{ stats.clients }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Total Enquiries</h4>
+
+        <h2>{{ stats.enquiries }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Total Quotations</h4>
+
+        <h2>{{ stats.quotations }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Total Shipments</h4>
+
+        <h2>{{ stats.shipments }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Active Clients</h4>
+
+        <h2>{{ stats.active_clients }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Pending Enquiries</h4>
+
+        <h2>{{ stats.pending_enquiries }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Approved Quotations</h4>
+
+        <h2>{{ stats.approved_quotes }}</h2>
+
+    </div>
+
+    <div class="report-card">
+
+        <h4>Open Support Tickets</h4>
+
+        <h2>{{ stats.open_support }}</h2>
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- FILTERS -->
+<!-- ===================================================== -->
+
+<div class="report-section">
+
+    <div class="section-header">
+
+        <h3>Filters</h3>
+
+    </div>
+
+    <form
+        method="GET"
+        class="report-filter-form"
+    >
+
+        <input
+            type="date"
+            name="from_date"
+            value="{{ filters.from_date }}"
+        >
+
+        <input
+            type="date"
+            name="to_date"
+            value="{{ filters.to_date }}"
+        >
+
+        <select name="coordinator">
+
+            <option value="">
+                All Coordinators
+            </option>
+
+            {% for user in coordinators %}
+
+            <option
+                value="{{ user.id }}"
+                {% if filters.coordinator==user.id %}
+                selected
+                {% endif %}
+            >
+
+                {{ user.full_name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <select name="category">
+
+            <option value="">
+                All Categories
+            </option>
+
+            {% for item in categories %}
+
+            <option
+                value="{{ item }}"
+                {% if filters.category==item %}
+                selected
+                {% endif %}
+            >
+
+                {{ item }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <select name="client_status">
+
+            <option value="">
+                Client Status
+            </option>
+
+            <option
+                value="active"
+                {% if filters.client_status=="active" %}
+                selected
+                {% endif %}
+            >
+                Active
+            </option>
+
+            <option
+                value="inactive"
+                {% if filters.client_status=="inactive" %}
+                selected
+                {% endif %}
+            >
+                Inactive
+            </option>
+
+        </select>
+
+        <select name="shipment_status">
+
+            <option value="">
+                Shipment Status
+            </option>
+
+            {% for status in shipment_statuses %}
+
+            <option
+                value="{{ status }}"
+                {% if filters.shipment_status==status %}
+                selected
+                {% endif %}
+            >
+
+                {{ status }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <button
+            class="btn btn-primary"
+            type="submit"
+        >
+
+            Apply Filters
+
+        </button>
+
+    </form>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- CHART -->
+<!-- ===================================================== -->
+
+<div class="report-section">
+
+    <div class="section-header">
+
+        <h3>CRM Analytics</h3>
+
+    </div>
+
+    <canvas
+        id="reportChart"
+        height="110"
+    ></canvas>
+
+</div>
+<div class="report-section">
+
+    <div class="section-header">
+
+        <h3>Monthly Analytics</h3>
+
+    </div>
+
+    <canvas
+        id="monthlyChart"
+        height="120">
+    </canvas>
+
+</div>
+<!-- ===================================================== -->
+<!-- SHIPMENT REPORT TABLE -->
+<!-- ===================================================== -->
+
+<div class="report-section">
+
+    <div class="section-header">
+
+        <h3>Latest Shipments</h3>
+
+    </div>
+
+    <div style="overflow-x:auto;">
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Shipment Ref</th>
+
+                    <th>Client</th>
+
+                    <th>Origin</th>
+
+                    <th>Destination</th>
+
+                    <th>Status</th>
+
+                    <th>Date</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for shipment in shipments %}
+
+                <tr>
+
+                    <td>
+
+                        {{ shipment.shipment_reference }}
+
+                    </td>
+
+                    <td>
+
+                        {% if shipment.client %}
+                            {{ shipment.client.company_name }}
+                        {% else %}
+                            -
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {{ shipment.origin }}
+
+                    </td>
+
+                    <td>
+
+                        {{ shipment.destination }}
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge">
+
+                            {{ shipment.shipment_status|replace("_"," ")|title }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        {{ shipment.created_at.strftime("%d-%m-%Y") }}
+
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="6"
+                        style="text-align:center;padding:30px;">
+
+                        No shipment records found.
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- EXPORT -->
+<!-- ===================================================== -->
+
+<div class="report-section">
+
+    <div class="section-header">
+
+        <h3>Export Reports</h3>
+
+    </div>
+
+    <div
+        style="
+            display:flex;
+            gap:15px;
+            flex-wrap:wrap;
+        ">
+
+        <a
+    href="{{ url_for('reports.export_excel') }}"
+    class="btn btn-success"
+>
+    Export Excel
+</a>
+
+        <a
+    href="{{ url_for('reports.export_pdf') }}"
+    class="btn btn-danger"
+>
+    Export PDF
+</a>
+
+    </div>
+
+</div>
+
+<script>
+
+const chartLabels = {{ chart_labels | tojson }};
+const chartValues = {{ chart_values | tojson }};
+
+const monthlyClients = {{ monthly_clients | tojson }};
+const monthlyEnquiries = {{ monthly_enquiries | tojson }};
+const monthlyShipments = {{ monthly_shipments | tojson }};
+const monthlyQuotations = {{ monthly_quotations | tojson }};
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script
+src="{{ url_for(
+'static',
+filename='js/reports.js'
+) }}">
+</script>
+
+{% endblock %}

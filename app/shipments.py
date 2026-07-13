@@ -111,11 +111,10 @@ def get_visible_shipment_or_404(shipment_id):
 
 
 def require_shipment_write_access():
-    """
-    Current requirement:
-    Admin manages shipment operations.
-    Sales has read-only visibility for own clients.
-    """
+
+    print("Role:", current_user.role)
+    print("Is Admin:", is_admin_user())
+
     if not is_admin_user():
         from flask import abort
         abort(403)
@@ -473,6 +472,7 @@ def convert_from_quotation(quotation_id):
             enquiry.cargo_weight_volume
         ),
         shipment_status="active",
+        current_stage="booked",
         handled_by_id=(
             enquiry.handled_by_id
         ),
@@ -1114,6 +1114,7 @@ def update_customs_clearance(shipment_id):
 )
 @login_required
 def close_shipment(shipment_id):
+    print(">>> CLOSE SHIPMENT ROUTE CALLED")
 
     require_shipment_write_access()
 
@@ -1342,8 +1343,16 @@ def close_shipment(shipment_id):
             )
 
         shipment.shipment_status = "closed"
-
+        shipment.current_stage = "closed_completed"
+        print("Before Commit")
+        print("Stage:", shipment.current_stage)
+        print("Status:", shipment.shipment_status)
         db.session.commit()
+        db.session.refresh(shipment)
+
+        print("After Commit")
+        print("Stage:", shipment.current_stage)
+        print("Status:", shipment.shipment_status)
 
     except Exception:
 
@@ -1601,7 +1610,7 @@ def complete_stage(
             prospective_completed_stages
         )
     )
-
+    shipment.current_stage = stage
     # -----------------------------------------
     # SAVE
     # -----------------------------------------
@@ -1613,6 +1622,13 @@ def complete_stage(
         )
 
         db.session.commit()
+        db.session.refresh(shipment)
+
+        print("========== COMPLETE STAGE ==========")
+        print("Shipment ID:", shipment.id)
+        print("Current Stage:", shipment.current_stage)
+        print("Shipment Status:", shipment.shipment_status)
+        print("====================================")
 
     except Exception:
 
@@ -1943,6 +1959,17 @@ def undo_last_stage(shipment_id):
                 remaining_stages
             )
         )
+        if remaining_milestones:
+            shipment.current_stage = remaining_milestones[-1].stage
+        else:
+            shipment.current_stage = "booked"
+
+            shipment.shipment_status = get_shipment_summary_status(
+    {
+        milestone.stage
+        for milestone in remaining_milestones
+    }
+)
 
         db.session.commit()
 
