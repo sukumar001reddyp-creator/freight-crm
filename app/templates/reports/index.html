@@ -3,24 +3,252 @@
 {% block title %}Reports Dashboard{% endblock %}
 
 {% block content %}
-<!-- FontAwesome Icons కోసం సిడిఎన్ లింక్ (ఆప్షనల్ - బేస్ లేఅవుట్‌లో లేకపోతే ఉపయోగపడుతుంది) -->
+<!-- FontAwesome Icons for Beautiful Visuals -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/reports.css') }}">
+
+<!-- ===================================================== -->
+<!-- INTERNAL MODERN CSS -->
+<!-- ===================================================== -->
+<style>
+    .reports-container {
+        padding: 24px;
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .page-header {
+        margin-bottom: 28px;
+    }
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    /* Summary Cards Grid */
+    .report-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .report-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border-left: 5px solid #cbd5e1;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-icon {
+        font-size: 1.75rem;
+        margin-right: 16px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+    .card-info h4 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin: 0 0 4px 0;
+        font-weight: 600;
+    }
+
+    .card-info h2 {
+        font-size: 1.5rem;
+        margin: 0;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* Border & Icon Colors */
+    .c-clients { border-left-color: #3b82f6; } .c-clients .card-icon { background: #eff6ff; color: #3b82f6; }
+    .c-enquiries { border-left-color: #06b6d4; } .c-enquiries .card-icon { background: #ecfeff; color: #06b6d4; }
+    .c-quotes { border-left-color: #eab308; } .c-quotes .card-icon { background: #fefce8; color: #eab308; }
+    .c-shipments { border-left-color: #10b981; } .c-shipments .card-icon { background: #ecfdf5; color: #10b981; }
+    .c-active { border-left-color: #8b5cf6; } .c-active .card-icon { background: #f5f3ff; color: #8b5cf6; }
+    .c-pending { border-left-color: #f97316; } .c-pending .card-icon { background: #fff7ed; color: #f97316; }
+    .c-approved { border-left-color: #22c55e; } .c-approved .card-icon { background: #f0fdf4; color: #22c55e; }
+    .c-tickets { border-left-color: #ef4444; } .c-tickets .card-icon { background: #fef2f2; color: #ef4444; }
+
+    /* Sections */
+    .report-section {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 28px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-header {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+
+    .section-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Modern Filter Grid */
+    .report-filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        align-items: flex-end;
+    }
+
+    .filter-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background-color: #fff;
+        color: #334155;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .form-control-custom:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-submit-filter {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+
+    .btn-submit-filter:hover {
+        background: #2563eb;
+    }
+
+    /* Charts Layout */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+
+    /* Tables */
+    .table-responsive-box {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 0.9rem;
+    }
+
+    .modern-table th {
+        background-color: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        padding: 14px 18px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modern-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .modern-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    /* Export Box */
+    .export-container {
+        display: flex;
+        gap: 16px;
+    }
+    .btn-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: opacity 0.2s;
+    }
+    .btn-export:hover { opacity: 0.9; text-decoration: none; color: #fff; }
+    .btn-excel { background-color: #10b981; color: #fff; }
+    .btn-pdf { background-color: #ef4444; color: #fff; }
+</style>
 
 <div class="reports-container">
+    
     <!-- PAGE HEADER -->
-    <div class="page-header d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 text-dark font-weight-bold">Reports Dashboard</h1>
-            <p class="text-muted mb-0">Business analytics, reporting, and automated export center.</p>
-        </div>
+    <div class="page-header">
+        <h1>Reports Dashboard</h1>
+        <p>Business analytics, reporting and export center.</p>
     </div>
 
-    <!-- ===================================================== -->
     <!-- SUMMARY CARDS -->
-    <!-- ===================================================== -->
     <div class="report-cards-grid">
-        <div class="report-card primary-border">
+        <div class="report-card c-clients">
             <div class="card-icon"><i class="fa-solid fa-users"></i></div>
             <div class="card-info">
                 <h4>Total Clients</h4>
@@ -28,15 +256,15 @@
             </div>
         </div>
 
-        <div class="report-card info-border">
-            <div class="card-icon"><i class="fa-solid fa-comments"></i></div>
+        <div class="report-card c-enquiries">
+            <div class="card-icon"><i class="fa-solid fa-circle-question"></i></div>
             <div class="card-info">
                 <h4>Total Enquiries</h4>
                 <h2>{{ stats.enquiries }}</h2>
             </div>
         </div>
 
-        <div class="report-card warning-border">
+        <div class="report-card c-quotes">
             <div class="card-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             <div class="card-info">
                 <h4>Total Quotations</h4>
@@ -44,7 +272,7 @@
             </div>
         </div>
 
-        <div class="report-card success-border">
+        <div class="report-card c-shipments">
             <div class="card-icon"><i class="fa-solid fa-ship"></i></div>
             <div class="card-info">
                 <h4>Total Shipments</h4>
@@ -52,7 +280,7 @@
             </div>
         </div>
 
-        <div class="report-card active-border">
+        <div class="report-card c-active">
             <div class="card-icon"><i class="fa-solid fa-user-check"></i></div>
             <div class="card-info">
                 <h4>Active Clients</h4>
@@ -60,24 +288,24 @@
             </div>
         </div>
 
-        <div class="report-card pending-border">
-            <div class="card-icon"><i class="fa-solid fa-clock"></i></div>
+        <div class="report-card c-pending">
+            <div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div>
             <div class="card-info">
                 <h4>Pending Enquiries</h4>
                 <h2>{{ stats.pending_enquiries }}</h2>
             </div>
         </div>
 
-        <div class="report-card approved-border">
-            <div class="card-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="report-card c-approved">
+            <div class="card-icon"><i class="fa-solid fa-square-check"></i></div>
             <div class="card-info">
                 <h4>Approved Quotes</h4>
                 <h2>{{ stats.approved_quotes }}</h2>
             </div>
         </div>
 
-        <div class="report-card danger-border">
-            <div class="card-icon"><i class="fa-solid fa-ticket"></i></div>
+        <div class="report-card c-tickets">
+            <div class="card-icon"><i class="fa-solid fa-headset"></i></div>
             <div class="card-info">
                 <h4>Open Tickets</h4>
                 <h2>{{ stats.open_support }}</h2>
@@ -85,30 +313,29 @@
         </div>
     </div>
 
-    <!-- ===================================================== -->
     <!-- FILTERS -->
-    <!-- ===================================================== -->
-    <div class="report-section mb-4">
+    <div class="report-section">
         <div class="section-header">
-            <h3><i class="fa-solid fa-filter mr-2"></i> Advanced Filters</h3>
+            <h3><i class="fa-solid fa-sliders"></i> Filters</h3>
         </div>
+        
         <form method="GET" class="report-filter-grid">
             <div class="filter-group">
                 <label>From Date</label>
-                <input type="date" name="from_date" value="{{ filters.from_date }}" class="form-control">
+                <input type="date" name="from_date" value="{{ filters.from_date }}" class="form-control-custom">
             </div>
 
             <div class="filter-group">
                 <label>To Date</label>
-                <input type="date" name="to_date" value="{{ filters.to_date }}" class="form-control">
+                <input type="date" name="to_date" value="{{ filters.to_date }}" class="form-control-custom">
             </div>
 
             <div class="filter-group">
                 <label>Coordinator</label>
-                <select name="coordinator" class="form-control">
+                <select name="coordinator" class="form-control-custom">
                     <option value="">All Coordinators</option>
                     {% for user in coordinators %}
-                    <option value="{{ user.id }}" {% if filters.coordinator == user.id %}selected{% endif %}>
+                    <option value="{{ user.id }}" {% if filters.coordinator==user.id %}selected{% endif %}>
                         {{ user.full_name }}
                     </option>
                     {% endfor %}
@@ -117,10 +344,10 @@
 
             <div class="filter-group">
                 <label>Category</label>
-                <select name="category" class="form-control">
+                <select name="category" class="form-control-custom">
                     <option value="">All Categories</option>
                     {% for item in categories %}
-                    <option value="{{ item }}" {% if filters.category == item %}selected{% endif %}>
+                    <option value="{{ item }}" {% if filters.category==item %}selected{% endif %}>
                         {{ item }}
                     </option>
                     {% endfor %}
@@ -129,67 +356,58 @@
 
             <div class="filter-group">
                 <label>Client Status</label>
-                <select name="client_status" class="form-control">
-                    <option value="">All Statuses</option>
-                    <option value="active" {% if filters.client_status == "active" %}selected{% endif %}>Active</option>
-                    <option value="inactive" {% if filters.client_status == "inactive" %}selected{% endif %}>Inactive</option>
+                <select name="client_status" class="form-control-custom">
+                    <option value="">Client Status</option>
+                    <option value="active" {% if filters.client_status=="active" %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if filters.client_status=="inactive" %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
 
             <div class="filter-group">
                 <label>Shipment Status</label>
-                <select name="shipment_status" class="form-control">
-                    <option value="">All Shipments</option>
+                <select name="shipment_status" class="form-control-custom">
+                    <option value="">Shipment Status</option>
                     {% for status in shipment_statuses %}
-                    <option value="{{ status }}" {% if filters.shipment_status == status %}selected{% endif %}>
+                    <option value="{{ status }}" {% if filters.shipment_status==status %}selected{% endif %}>
                         {{ status }}
                     </option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div class="filter-action">
-                <button class="btn btn-primary w-100" type="submit">
-                    <i class="fa-solid fa-magnifying-glass mr-2"></i> Apply
+            <div>
+                <button class="btn-submit-filter" type="submit" style="width: 100%;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Apply Filters
                 </button>
             </div>
         </form>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- CHARTS SECTION -->
-    <!-- ===================================================== -->
-    <div class="charts-grid mb-4">
-        <div class="report-section chart-container-box">
+    <!-- CHARTS -->
+    <div class="charts-grid">
+        <div class="report-section" style="margin-bottom: 0;">
             <div class="section-header">
-                <h3><i class="fa-solid fa-chart-line mr-2"></i> CRM Analytics</h3>
+                <h3><i class="fa-solid fa-chart-line"></i> CRM Analytics</h3>
             </div>
-            <div class="chart-wrapper">
-                <canvas id="reportChart" height="250"></canvas>
-            </div>
+            <canvas id="reportChart" height="180"></canvas>
         </div>
-
-        <div class="report-section chart-container-box">
+        
+        <div class="report-section" style="margin-bottom: 0;">
             <div class="section-header">
-                <h3><i class="fa-solid fa-chart-bar mr-2"></i> Monthly Analytics</h3>
+                <h3><i class="fa-solid fa-chart-bar"></i> Monthly Analytics</h3>
             </div>
-            <div class="chart-wrapper">
-                <canvas id="monthlyChart" height="250"></canvas>
-            </div>
+            <canvas id="monthlyChart" height="180"></canvas>
         </div>
     </div>
 
-    <!-- ===================================================== -->
     <!-- SHIPMENT REPORT TABLE -->
-    <!-- ===================================================== -->
-    <div class="report-section mb-4">
-        <div class="section-header d-flex justify-content-between align-items-center">
-            <h3><i class="fa-solid fa-boxes-stacked mr-2"></i> Latest Shipments</h3>
-            <span class="badge badge-pill badge-secondary">Real-time</span>
+    <div class="report-section">
+        <div class="section-header">
+            <h3><i class="fa-solid fa-list-check"></i> Latest Shipments</h3>
         </div>
 
-        <div class="table-responsive">
-            <table class="table custom-report-table">
+        <div class="table-responsive-box">
+            <table class="modern-table">
                 <thead>
                     <tr>
                         <th>Shipment Ref</th>
@@ -203,28 +421,28 @@
                 <tbody>
                     {% for shipment in shipments %}
                     <tr>
-                        <td class="font-weight-bold text-primary">{{ shipment.shipment_reference }}</td>
+                        <td style="font-weight: 600; color: #2563eb;">{{ shipment.shipment_reference }}</td>
                         <td>
                             {% if shipment.client %}
-                                <span class="client-name">{{ shipment.client.company_name }}</span>
+                                {{ shipment.client.company_name }}
                             {% else %}
-                                <span class="text-muted">-</span>
+                                <span style="color: #94a3b8;">-</span>
                             {% endif %}
                         </td>
-                        <td><i class="fa-solid fa-plane-departure text-muted mr-1"></i> {{ shipment.origin }}</td>
-                        <td><i class="fa-solid fa-plane-arrival text-muted mr-1"></i> {{ shipment.destination }}</td>
+                        <td>{{ shipment.origin }}</td>
+                        <td>{{ shipment.destination }}</td>
                         <td>
-                            <span class="badge badge-custom status-{{ shipment.shipment_status }}">
+                            <span class="status-badge">
                                 {{ shipment.shipment_status|replace("_"," ")|title }}
                             </span>
                         </td>
-                        <td class="text-muted">{{ shipment.created_at.strftime("%d-%m-%Y") }}</td>
+                        <td>{{ shipment.created_at.strftime("%d-%m-%Y") }}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center no-data-row">
-                            <i class="fa-solid fa-folder-open d-block mb-2 text-muted"></i>
-                            No shipment records found for the selected filters.
+                        <td colspan="6" style="text-align:center; padding: 40px; color: #64748b;">
+                            <i class="fa-solid fa-inbox" style="display:block; font-size: 2rem; margin-bottom: 8px; color: #cbd5e1;"></i>
+                            No shipment records found.
                         </td>
                     </tr>
                     {% endfor %}
@@ -233,28 +451,26 @@
         </div>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- EXPORT OPTIONS -->
-    <!-- ===================================================== -->
-    <div class="report-section export-box">
+    <!-- EXPORT -->
+    <div class="report-section">
         <div class="section-header">
-            <h3><i class="fa-solid fa-download mr-2"></i> Export Business Reports</h3>
+            <h3><i class="fa-solid fa-file-export"></i> Export Reports</h3>
         </div>
-        <div class="export-buttons">
-            <a href="{{ url_for('reports.export_excel') }}" class="btn btn-success btn-lg export-btn">
-                <i class="fa-solid fa-file-excel mr-2"></i> Export Excel
+        <div class="export-container">
+            <a href="{{ url_for('reports.export_excel') }}" class="btn-export btn-excel">
+                <i class="fa-solid fa-file-excel"></i> Export Excel
             </a>
-            <a href="{{ url_for('reports.export_pdf') }}" class="btn btn-danger btn-lg export-btn">
-                <i class="fa-solid fa-file-pdf mr-2"></i> Export PDF
+            <a href="{{ url_for('reports.export_pdf') }}" class="btn-export btn-pdf">
+                <i class="fa-solid fa-file-pdf"></i> Export PDF
             </a>
         </div>
     </div>
+
 </div>
 
-<!-- Scripts Section (Chart.js మొదట లోడ్ అయ్యాకే వేరియబుల్స్ పాస్ అవ్వాలి) -->
+<!-- DATA INJECTION & SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Flask Data injection to JavaScript
     const chartLabels = {{ chart_labels | tojson }};
     const chartValues = {{ chart_values | tojson }};
 
