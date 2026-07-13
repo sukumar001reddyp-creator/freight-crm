@@ -21,9 +21,11 @@ def get_drive_service():
     GOOGLE_SERVICE_ACCOUNT_JSON
     """
 
-    json_string = current_app.config.get(
+    import os
+
+    json_string = os.environ.get(
         "GOOGLE_SERVICE_ACCOUNT_JSON"
-    )
+)
 
     if not json_string:
         raise Exception(
