@@ -5,198 +5,281 @@
 {% block content %}
 
 <style>
-.ticket-wrapper {
-    max-width: 960px;
-    margin: 30px auto;
-    padding: 0 15px;
+body {
+    background: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+.ticket-wrapper {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 24px;
+}
+
+/* Premium Navigation Link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.back-link:hover {
+    color: #7f1d1d;
+    transform: translateX(-4px);
+}
+
+/* Container Card Layout */
 .ticket-card {
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02), 0 15px 45px rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.06);
     overflow: hidden;
 }
 
+/* Dynamic Top Header Block */
 .ticket-header {
-    padding: 22px 28px;
+    padding: 32px 40px;
+    background: #ffffff;
     border-bottom: 1px solid #f1f5f9;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 20px;
 }
 
 .ticket-title {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
     margin: 0;
 }
 
 .ticket-sub {
     color: #64748b;
-    font-size: 14px;
-    margin: 4px 0 0;
+    font-size: 15px;
+    margin: 6px 0 0;
+    font-weight: 400;
 }
 
+/* Clean Dynamic Badges */
 .status {
-    padding: 8px 16px;
-    border-radius: 999px;
+    padding: 8px 18px;
+    border-radius: 12px;
     font-weight: 700;
     font-size: 13px;
+    letter-spacing: -0.1px;
+    display: inline-block;
 }
 
-.status-admin { background: #fee2e2; color: #991b1b; }
-.status-client { background: #fef3c7; color: #92400e; }
-.status-closed { background: #dcfce7; color: #166534; }
+.status-admin { background: rgba(239, 68, 68, 0.09); color: #991b1b; }
+.status-client { background: rgba(245, 158, 11, 0.09); color: #92400e; }
+.status-closed { background: rgba(34, 197, 94, 0.09); color: #166534; }
 
 .ticket-body {
-    padding: 28px;
+    padding: 40px;
 }
 
 .section-title {
     font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 18px;
-    color: #1e2937;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: #0f172a;
+    letter-spacing: -0.3px;
 }
 
+/* Standardized Elegant Chat Window */
 .chat-box {
     background: #f8fafc;
-    border-radius: 14px;
-    padding: 20px;
-    max-height: 480px;
+    border: 1px solid #f1f5f9;
+    border-radius: 20px;
+    padding: 32px;
+    max-height: 520px;
     overflow-y: auto;
-    margin-bottom: 25px;
+    margin-bottom: 35px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .message {
-    margin-bottom: 20px;
     display: flex;
+    width: 100%;
 }
 
 .message.client { justify-content: flex-start; }
 .message.admin { justify-content: flex-end; }
 
 .bubble {
-    max-width: 75%;
-    padding: 14px 18px;
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    font-size: 14.5px;
-    line-height: 1.65;
+    max-width: 70%;
+    padding: 16px 20px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.6;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
 }
 
 .client .bubble {
     background: #ffffff;
-    border-left: 4px solid #22c55e;
+    color: #334155;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e2e8f0;
 }
 
 .admin .bubble {
     background: #eff6ff;
-    border-right: 4px solid #2563eb;
+    color: #1e3a8a;
+    border-bottom-right-radius: 4px;
+    border: 1px solid #dbeafe;
 }
 
 .sender {
     font-weight: 700;
     margin-bottom: 6px;
     font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.sender.client { color: #15803d; }
-.sender.admin { color: #1d4ed8; }
+.sender.client { color: #16a34a; }
+.sender.admin { color: #2563eb; }
+
+.message-text {
+    word-break: break-word;
+}
 
 .message-time {
-    margin-top: 8px;
-    font-size: 12px;
+    margin-top: 10px;
+    font-size: 11px;
     color: #94a3b8;
+    text-align: right;
+    font-weight: 500;
 }
 
+/* Premium Reply Editor Frame */
 .reply-card {
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 22px;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
 }
 
 .reply-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 14px;
+    color: #0f172a;
+    margin-bottom: 16px;
 }
 
 textarea {
     width: 100%;
-    min-height: 140px;
+    min-height: 130px;
     border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 14px;
+    border-radius: 14px;
+    padding: 16px;
     resize: vertical;
     outline: none;
-    font-size: 14.5px;
+    font-size: 15px;
+    color: #334155;
+    transition: all 0.2s ease;
+    background: #f8fafc;
 }
 
 textarea:focus {
+    background: #fff;
     border-color: #7f1d1d;
-    box-shadow: 0 0 0 3px rgba(127,29,29,0.1);
+    box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
 }
 
 .action-row {
     display: flex;
-    gap: 12px;
-    margin-top: 18px;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+/* Functional Buttons Upgrade */
+.btn-send, .btn-close {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 26px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
 }
 
 .btn-send {
     background: #7f1d1d;
     color: #fff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 14px;
 }
 
 .btn-send:hover {
     background: #651818;
+    transform: translateY(-1px);
 }
 
 .btn-close {
     background: #16a34a;
     color: #fff;
-    padding: 12px 24px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 14px;
 }
 
 .btn-close:hover {
     background: #15803d;
     color: #fff;
+    transform: translateY(-1px);
 }
 
-.back-link {
-    display: inline-flex;
+.closed-alert {
+    margin-top: 30px;
+    padding: 20px 24px;
+    background: rgba(22, 163, 74, 0.06);
+    border: 1px solid rgba(22, 163, 74, 0.15);
+    border-radius: 14px;
+    text-align: center;
+    font-weight: 600;
+    color: #15803d;
+    display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 18px;
-    font-weight: 700;
-    text-decoration: none;
-    color: #64748b;
-}
-
-.back-link:hover {
-    color: #7f1d1d;
+    justify-content: center;
+    gap: 10px;
+    font-size: 15px;
 }
 
 @media (max-width: 768px) {
     .ticket-header {
-        flex-direction: column;
-        align-items: flex-start;
+        padding: 24px;
     }
-    .bubble { max-width: 100%; }
+    .ticket-body {
+        padding: 24px;
+    }
+    .chat-box {
+        padding: 16px;
+    }
+    .bubble { 
+        max-width: 85%; 
+    }
+    .action-row {
+        flex-direction: column-reverse;
+    }
+    .btn-send, .btn-close {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 
@@ -245,7 +328,7 @@ textarea:focus {
                 {% endfor %}
 
                 {% if not messages %}
-                <div style="text-align:center; padding:60px 20px; color:#94a3b8;">
+                <div style="text-align:center; padding:80px 20px; color:#94a3b8; font-size:15px;">
                     No messages yet. Start the conversation.
                 </div>
                 {% endif %}
@@ -261,19 +344,19 @@ textarea:focus {
                         required></textarea>
                     
                     <div class="action-row">
-                        <button type="submit" class="btn-send">
-                            <i class="bi bi-send-fill"></i> Send Reply
-                        </button>
-                        
                         <a href="{{ url_for('support.close_ticket', ticket_id=ticket.id) }}" 
                            class="btn-close">
                             <i class="bi bi-check-circle-fill"></i> Close Ticket
                         </a>
+                        
+                        <button type="submit" class="btn-send">
+                            <i class="bi bi-send-fill"></i> Send Reply
+                        </button>
                     </div>
                 </form>
             </div>
             {% else %}
-            <div style="margin-top:30px; padding:20px; background:#ecfdf5; border:1px solid #bbf7d0; border-radius:12px; text-align:center; font-weight:700; color:#166534;">
+            <div class="closed-alert">
                 <i class="bi bi-check-circle-fill"></i> This ticket has been closed.
             </div>
             {% endif %}

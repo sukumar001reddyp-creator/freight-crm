@@ -6,94 +6,284 @@
 
 {% block content %}
 
-<div class="card shadow-sm p-4">
+<style>
+/* Main Container Frame */
+.ticket-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    font-family: "Plus Jakarta Sans", sans-serif;
+}
 
-    <h3>#{{ ticket.id }} - {{ ticket.subject }}</h3>
+/* Premium Header Card - Soft Light Cream Background */
+.ticket-header-card {
+    background: #fdfbf7; /* Swapped pure white with premium light cream */
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 4px 20px rgba(127, 29, 29, 0.02);
+    border: 1px solid #f3efe8;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
 
-    <p>
-        <strong>Status:</strong>
+.ticket-title-area h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+}
 
-        {% if ticket.status=="waiting_admin" %}
-            <span class="badge bg-danger">
-                Waiting for Admin Reply
-            </span>
+.ticket-id-badge {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 15px;
+    margin-right: 6px;
+}
 
-        {% elif ticket.status=="waiting_client" %}
-            <span class="badge bg-warning text-dark">
-                Waiting for Your Reply
-            </span>
+/* Status Badges Overhaul */
+.badge-premium {
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
-        {% else %}
-            <span class="badge bg-success">
-                Closed
-            </span>
-        {% endif %}
-    </p>
+.badge-waiting-admin {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fee2e2;
+}
 
-    <hr>
+.badge-waiting-client {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fef3c7;
+}
 
-    {% for msg in messages %}
+.badge-closed {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #dcfce7;
+}
 
-    <div class="mb-3 p-3 border rounded">
+/* Chat Stream/Thread Timeline */
+.chat-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+}
 
-        <strong>
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+}
 
-            {% if msg.sender=="admin" %}
+/* Admin Message - Aligned Left (Soft Cream Blend Style) */
+.msg-admin {
+    align-self: flex-start;
+}
 
-                Admin
+.msg-admin .bubble {
+    background: #fdfbf7; /* Swapped pure white with premium light cream */
+    border: 1px solid #eaddcb; /* Warm neutral border to match cream */
+    color: #1e293b;
+    border-radius: 4px 16px 16px 16px;
+}
 
+/* Client/User Message - Aligned Right (Brand Red Gradient Style retained) */
+.msg-client {
+    align-self: flex-end;
+}
+
+.msg-client .bubble {
+    background: linear-gradient(135deg, #7f1d1d 0%, #641616 100%);
+    color: #ffffff;
+    border-radius: 16px 4px 16px 16px;
+    box-shadow: 0 4px 12px rgba(127, 29, 29, 0.1);
+}
+
+/* Core Bubble Box Styling */
+.bubble {
+    padding: 18px 22px;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.msg-meta {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.msg-client .msg-meta {
+    justify-content: flex-end;
+}
+
+.sender-tag {
+    color: #475569;
+}
+
+.msg-client .sender-tag {
+    color: #7f1d1d;
+}
+
+/* Input Reply Card Block - Soft Cream Background */
+.reply-card {
+    background: #fdfbf7; /* Swapped pure white with premium light cream */
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(127, 29, 29, 0.02);
+    border: 1px solid #f3efe8;
+}
+
+.reply-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reply-textarea {
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    background: #fdfdfd; /* Keeping slightly off-white inside cream card for contrast */
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #0f172a;
+    transition: all 0.2s ease;
+    resize: none;
+}
+
+.reply-textarea:focus {
+    background: #ffffff;
+    border-color: #7f1d1d;
+    box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
+    outline: none;
+}
+
+/* Ticket Info Message Footer when Closed */
+.closed-info-banner {
+    background: #fdfbf7;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+@media(max-width: 768px) {
+    .message-wrapper {
+        max-width: 90%;
+    }
+    .ticket-header-card {
+        padding: 20px;
+    }
+}
+</style>
+
+<div class="ticket-container">
+
+    <!-- Header Block Component -->
+    <div class="ticket-header-card">
+        <div class="ticket-title-area">
+            <h3>
+                <span class="ticket-id-badge">#{{ ticket.id }}</span>
+                {{ ticket.subject }}
+            </h3>
+        </div>
+        <div>
+            {% if ticket.status=="waiting_admin" %}
+                <span class="badge-premium badge-waiting-admin">
+                    <i class="bi bi-hourglass-split"></i> Waiting for Admin Reply
+                </span>
+            {% elif ticket.status=="waiting_client" %}
+                <span class="badge-premium badge-waiting-client">
+                    <i class="bi bi-exclamation-circle-fill"></i> Waiting for Your Reply
+                </span>
             {% else %}
-
-                You
-
+                <span class="badge-premium badge-closed">
+                    <i class="bi bi-check-circle-fill"></i> Ticket Closed
+                </span>
             {% endif %}
-
-        </strong>
-
-        <br>
-
-        {{ msg.message }}
-
-        <br>
-
-        <small class="text-muted">
-
-            {{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}
-
-        </small>
-
+        </div>
     </div>
 
-    {% endfor %}
+    <!-- Communication Chat Stream Grid -->
+    <div class="chat-stream">
+        {% for msg in messages %}
+            {% if msg.sender=="admin" %}
+                <!-- Admin Message Left -->
+                <div class="message-wrapper msg-admin">
+                    <div class="bubble">
+                        {{ msg.message }}
+                    </div>
+                    <div class="msg-meta">
+                        <span class="sender-tag"><i class="bi bi-shield-person"></i> Support Admin</span>
+                        <span>•</span>
+                        <span>{{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Client/User Message Right -->
+                <div class="message-wrapper msg-client">
+                    <div class="bubble">
+                        {{ msg.message }}
+                    </div>
+                    <div class="msg-meta">
+                        <span class="sender-tag"><i class="bi bi-person-fill"></i> You</span>
+                        <span>•</span>
+                        <span>{{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}</span>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
 
+    <!-- Conditional Bottom Input Section -->
     {% if ticket.status != "closed" %}
-
-    <form method="POST">
-
-        <div class="mb-3">
-
-            <label class="form-label">
-
-                Your Reply
-
-            </label>
-
-            <textarea
-                class="form-control"
-                name="message"
-                rows="5"
-                required></textarea>
-
+        <div class="reply-card">
+            <h4><i class="bi bi-reply-fill" style="color: #7f1d1d;"></i> Write a Reply</h4>
+            <form method="POST">
+                <div class="mb-3">
+                    <textarea 
+                        class="form-control reply-textarea" 
+                        name="message" 
+                        rows="5" 
+                        placeholder="Type your detailed response here..." 
+                        required></textarea>
+                </div>
+                <button class="btn btn-main">
+                    <i class="bi bi-send-fill me-1"></i> Send Reply
+                </button>
+            </form>
         </div>
-
-        <button class="btn btn-primary">
-
-            Send Reply
-
-        </button>
-
-    </form>
-
+    {% else %}
+        <!-- Closed Badge Message Box -->
+        <div class="closed-info-banner">
+            <i class="bi bi-lock-fill me-1"></i> This conversation has been resolved and closed. If you require further assistance, please open a new support ticket.
+        </div>
     {% endif %}
 
 </div>

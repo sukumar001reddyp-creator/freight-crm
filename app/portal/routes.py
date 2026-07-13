@@ -7,6 +7,12 @@ from flask import (
     flash,
     session,
 )
+from flask_login import (
+    login_user,
+    logout_user,
+    login_required,
+    current_user,
+)
 from app.portal import portal_bp
 # from flask_login import login_required, current_user  # later add auth
 from app import db
@@ -270,3 +276,53 @@ def logout():
     return redirect(url_for("portal.login"))
 
     return redirect(url_for("portal.login"))
+@portal_bp.route(
+    "/change-password",
+    methods=["POST"]
+)
+def change_password():
+
+    portal_user_id = session.get("portal_user_id")
+
+    if not portal_user_id:
+        flash("Please login again.", "danger")
+        return redirect(url_for("portal.login"))
+
+    portal_user = ClientPortalUser.query.get_or_404(
+        portal_user_id
+    )
+
+    current_password = request.form.get(
+        "current_password",
+        ""
+    ).strip()
+
+    new_password = request.form.get(
+        "new_password",
+        ""
+    ).strip()
+
+    confirm_password = request.form.get(
+        "confirm_password",
+        ""
+    ).strip()
+
+    if not portal_user.check_password(current_password):
+        flash("Current password is incorrect.", "danger")
+        return redirect(url_for("portal.profile"))
+
+    if new_password != confirm_password:
+        flash("New passwords do not match.", "danger")
+        return redirect(url_for("portal.profile"))
+
+    if len(new_password) < 6:
+        flash("Password must be at least 6 characters.", "danger")
+        return redirect(url_for("portal.profile"))
+
+    portal_user.set_password(new_password)
+
+    db.session.commit()
+
+    flash("Password changed successfully.", "success")
+
+    return redirect(url_for("portal.profile"))

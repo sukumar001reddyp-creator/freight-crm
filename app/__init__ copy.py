@@ -16,6 +16,7 @@ from flask_login import (
 )
 
 from config import Config
+from app.reports import reports_bp
 
 
 # =========================================================
@@ -195,13 +196,23 @@ def create_app():
         try:
             sidebar_clients_count = client_count_query.count()
             sidebar_enquiries_count = enquiry_count_query.count()
+            support_query = SupportTicket.query.filter(
+                SupportTicket.status.in_([
+                    "waiting_admin",
+                    "open",
+                ])
+            )
+
+            sidebar_support_count = support_query.count()
         except Exception:
             sidebar_clients_count = 0
             sidebar_enquiries_count = 0
+            sidebar_support_count = 0
 
         return {
             "sidebar_clients_count": sidebar_clients_count,
             "sidebar_enquiries_count": sidebar_enquiries_count,
+            "sidebar_support_count": sidebar_support_count,
         }
 
 
@@ -410,21 +421,18 @@ def create_app():
                 shipment_stage_counts["closed_completed"] += 1
                 continue
 
-            # Find first incomplete stage = current/next stage
-            current_stage = None
+            # Count latest completed stage
+
+            current_stage = "booked"
 
             for stage in shipment_stage_order:
 
-                if stage not in completed_stages:
+                if stage in completed_stages:
                     current_stage = stage
+                else:
                     break
 
-            # All stages completed
-            if current_stage is None:
-                current_stage = "closed_completed"
-
-            if current_stage in shipment_stage_counts:
-                shipment_stage_counts[current_stage] += 1
+            shipment_stage_counts[current_stage] += 1
 
 
         # --------------------------------------
