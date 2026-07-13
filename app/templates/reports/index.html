@@ -1,430 +1,268 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Reports{% endblock %}
+{% block title %}Reports Dashboard{% endblock %}
 
 {% block content %}
+<!-- FontAwesome Icons కోసం సిడిఎన్ లింక్ (ఆప్షనల్ - బేస్ లేఅవుట్‌లో లేకపోతే ఉపయోగపడుతుంది) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reports.css') }}">
 
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='css/reports.css') }}">
+<div class="reports-container">
+    <!-- PAGE HEADER -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 text-dark font-weight-bold">Reports Dashboard</h1>
+            <p class="text-muted mb-0">Business analytics, reporting, and automated export center.</p>
+        </div>
+    </div>
 
-<div class="page-header">
+    <!-- ===================================================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ===================================================== -->
+    <div class="report-cards-grid">
+        <div class="report-card primary-border">
+            <div class="card-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="card-info">
+                <h4>Total Clients</h4>
+                <h2>{{ stats.clients }}</h2>
+            </div>
+        </div>
 
-    <h1>Reports Dashboard</h1>
+        <div class="report-card info-border">
+            <div class="card-icon"><i class="fa-solid fa-comments"></i></div>
+            <div class="card-info">
+                <h4>Total Enquiries</h4>
+                <h2>{{ stats.enquiries }}</h2>
+            </div>
+        </div>
 
-    <p>
-        Business analytics, reporting and export center.
-    </p>
+        <div class="report-card warning-border">
+            <div class="card-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <div class="card-info">
+                <h4>Total Quotations</h4>
+                <h2>{{ stats.quotations }}</h2>
+            </div>
+        </div>
 
+        <div class="report-card success-border">
+            <div class="card-icon"><i class="fa-solid fa-ship"></i></div>
+            <div class="card-info">
+                <h4>Total Shipments</h4>
+                <h2>{{ stats.shipments }}</h2>
+            </div>
+        </div>
+
+        <div class="report-card active-border">
+            <div class="card-icon"><i class="fa-solid fa-user-check"></i></div>
+            <div class="card-info">
+                <h4>Active Clients</h4>
+                <h2>{{ stats.active_clients }}</h2>
+            </div>
+        </div>
+
+        <div class="report-card pending-border">
+            <div class="card-icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="card-info">
+                <h4>Pending Enquiries</h4>
+                <h2>{{ stats.pending_enquiries }}</h2>
+            </div>
+        </div>
+
+        <div class="report-card approved-border">
+            <div class="card-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="card-info">
+                <h4>Approved Quotes</h4>
+                <h2>{{ stats.approved_quotes }}</h2>
+            </div>
+        </div>
+
+        <div class="report-card danger-border">
+            <div class="card-icon"><i class="fa-solid fa-ticket"></i></div>
+            <div class="card-info">
+                <h4>Open Tickets</h4>
+                <h2>{{ stats.open_support }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- FILTERS -->
+    <!-- ===================================================== -->
+    <div class="report-section mb-4">
+        <div class="section-header">
+            <h3><i class="fa-solid fa-filter mr-2"></i> Advanced Filters</h3>
+        </div>
+        <form method="GET" class="report-filter-grid">
+            <div class="filter-group">
+                <label>From Date</label>
+                <input type="date" name="from_date" value="{{ filters.from_date }}" class="form-control">
+            </div>
+
+            <div class="filter-group">
+                <label>To Date</label>
+                <input type="date" name="to_date" value="{{ filters.to_date }}" class="form-control">
+            </div>
+
+            <div class="filter-group">
+                <label>Coordinator</label>
+                <select name="coordinator" class="form-control">
+                    <option value="">All Coordinators</option>
+                    {% for user in coordinators %}
+                    <option value="{{ user.id }}" {% if filters.coordinator == user.id %}selected{% endif %}>
+                        {{ user.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Category</label>
+                <select name="category" class="form-control">
+                    <option value="">All Categories</option>
+                    {% for item in categories %}
+                    <option value="{{ item }}" {% if filters.category == item %}selected{% endif %}>
+                        {{ item }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Client Status</label>
+                <select name="client_status" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="active" {% if filters.client_status == "active" %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if filters.client_status == "inactive" %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Shipment Status</label>
+                <select name="shipment_status" class="form-control">
+                    <option value="">All Shipments</option>
+                    {% for status in shipment_statuses %}
+                    <option value="{{ status }}" {% if filters.shipment_status == status %}selected{% endif %}>
+                        {{ status }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-action">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="fa-solid fa-magnifying-glass mr-2"></i> Apply
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- CHARTS SECTION -->
+    <!-- ===================================================== -->
+    <div class="charts-grid mb-4">
+        <div class="report-section chart-container-box">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-chart-line mr-2"></i> CRM Analytics</h3>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="reportChart" height="250"></canvas>
+            </div>
+        </div>
+
+        <div class="report-section chart-container-box">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-chart-bar mr-2"></i> Monthly Analytics</h3>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="monthlyChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- SHIPMENT REPORT TABLE -->
+    <!-- ===================================================== -->
+    <div class="report-section mb-4">
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <h3><i class="fa-solid fa-boxes-stacked mr-2"></i> Latest Shipments</h3>
+            <span class="badge badge-pill badge-secondary">Real-time</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table custom-report-table">
+                <thead>
+                    <tr>
+                        <th>Shipment Ref</th>
+                        <th>Client</th>
+                        <th>Origin</th>
+                        <th>Destination</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shipment in shipments %}
+                    <tr>
+                        <td class="font-weight-bold text-primary">{{ shipment.shipment_reference }}</td>
+                        <td>
+                            {% if shipment.client %}
+                                <span class="client-name">{{ shipment.client.company_name }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td><i class="fa-solid fa-plane-departure text-muted mr-1"></i> {{ shipment.origin }}</td>
+                        <td><i class="fa-solid fa-plane-arrival text-muted mr-1"></i> {{ shipment.destination }}</td>
+                        <td>
+                            <span class="badge badge-custom status-{{ shipment.shipment_status }}">
+                                {{ shipment.shipment_status|replace("_"," ")|title }}
+                            </span>
+                        </td>
+                        <td class="text-muted">{{ shipment.created_at.strftime("%d-%m-%Y") }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center no-data-row">
+                            <i class="fa-solid fa-folder-open d-block mb-2 text-muted"></i>
+                            No shipment records found for the selected filters.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- EXPORT OPTIONS -->
+    <!-- ===================================================== -->
+    <div class="report-section export-box">
+        <div class="section-header">
+            <h3><i class="fa-solid fa-download mr-2"></i> Export Business Reports</h3>
+        </div>
+        <div class="export-buttons">
+            <a href="{{ url_for('reports.export_excel') }}" class="btn btn-success btn-lg export-btn">
+                <i class="fa-solid fa-file-excel mr-2"></i> Export Excel
+            </a>
+            <a href="{{ url_for('reports.export_pdf') }}" class="btn btn-danger btn-lg export-btn">
+                <i class="fa-solid fa-file-pdf mr-2"></i> Export PDF
+            </a>
+        </div>
+    </div>
 </div>
 
-<!-- ===================================================== -->
-<!-- SUMMARY CARDS -->
-<!-- ===================================================== -->
-
-<div class="report-cards">
-
-    <div class="report-card">
-
-        <h4>Total Clients</h4>
-
-        <h2>{{ stats.clients }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Total Enquiries</h4>
-
-        <h2>{{ stats.enquiries }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Total Quotations</h4>
-
-        <h2>{{ stats.quotations }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Total Shipments</h4>
-
-        <h2>{{ stats.shipments }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Active Clients</h4>
-
-        <h2>{{ stats.active_clients }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Pending Enquiries</h4>
-
-        <h2>{{ stats.pending_enquiries }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Approved Quotations</h4>
-
-        <h2>{{ stats.approved_quotes }}</h2>
-
-    </div>
-
-    <div class="report-card">
-
-        <h4>Open Support Tickets</h4>
-
-        <h2>{{ stats.open_support }}</h2>
-
-    </div>
-
-</div>
-
-<!-- ===================================================== -->
-<!-- FILTERS -->
-<!-- ===================================================== -->
-
-<div class="report-section">
-
-    <div class="section-header">
-
-        <h3>Filters</h3>
-
-    </div>
-
-    <form
-        method="GET"
-        class="report-filter-form"
-    >
-
-        <input
-            type="date"
-            name="from_date"
-            value="{{ filters.from_date }}"
-        >
-
-        <input
-            type="date"
-            name="to_date"
-            value="{{ filters.to_date }}"
-        >
-
-        <select name="coordinator">
-
-            <option value="">
-                All Coordinators
-            </option>
-
-            {% for user in coordinators %}
-
-            <option
-                value="{{ user.id }}"
-                {% if filters.coordinator==user.id %}
-                selected
-                {% endif %}
-            >
-
-                {{ user.full_name }}
-
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <select name="category">
-
-            <option value="">
-                All Categories
-            </option>
-
-            {% for item in categories %}
-
-            <option
-                value="{{ item }}"
-                {% if filters.category==item %}
-                selected
-                {% endif %}
-            >
-
-                {{ item }}
-
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <select name="client_status">
-
-            <option value="">
-                Client Status
-            </option>
-
-            <option
-                value="active"
-                {% if filters.client_status=="active" %}
-                selected
-                {% endif %}
-            >
-                Active
-            </option>
-
-            <option
-                value="inactive"
-                {% if filters.client_status=="inactive" %}
-                selected
-                {% endif %}
-            >
-                Inactive
-            </option>
-
-        </select>
-
-        <select name="shipment_status">
-
-            <option value="">
-                Shipment Status
-            </option>
-
-            {% for status in shipment_statuses %}
-
-            <option
-                value="{{ status }}"
-                {% if filters.shipment_status==status %}
-                selected
-                {% endif %}
-            >
-
-                {{ status }}
-
-            </option>
-
-            {% endfor %}
-
-        </select>
-
-        <button
-            class="btn btn-primary"
-            type="submit"
-        >
-
-            Apply Filters
-
-        </button>
-
-    </form>
-
-</div>
-
-<!-- ===================================================== -->
-<!-- CHART -->
-<!-- ===================================================== -->
-
-<div class="report-section">
-
-    <div class="section-header">
-
-        <h3>CRM Analytics</h3>
-
-    </div>
-
-    <canvas
-        id="reportChart"
-        height="110"
-    ></canvas>
-
-</div>
-<div class="report-section">
-
-    <div class="section-header">
-
-        <h3>Monthly Analytics</h3>
-
-    </div>
-
-    <canvas
-        id="monthlyChart"
-        height="120">
-    </canvas>
-
-</div>
-<!-- ===================================================== -->
-<!-- SHIPMENT REPORT TABLE -->
-<!-- ===================================================== -->
-
-<div class="report-section">
-
-    <div class="section-header">
-
-        <h3>Latest Shipments</h3>
-
-    </div>
-
-    <div style="overflow-x:auto;">
-
-        <table class="table">
-
-            <thead>
-
-                <tr>
-
-                    <th>Shipment Ref</th>
-
-                    <th>Client</th>
-
-                    <th>Origin</th>
-
-                    <th>Destination</th>
-
-                    <th>Status</th>
-
-                    <th>Date</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                {% for shipment in shipments %}
-
-                <tr>
-
-                    <td>
-
-                        {{ shipment.shipment_reference }}
-
-                    </td>
-
-                    <td>
-
-                        {% if shipment.client %}
-                            {{ shipment.client.company_name }}
-                        {% else %}
-                            -
-                        {% endif %}
-
-                    </td>
-
-                    <td>
-
-                        {{ shipment.origin }}
-
-                    </td>
-
-                    <td>
-
-                        {{ shipment.destination }}
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge">
-
-                            {{ shipment.shipment_status|replace("_"," ")|title }}
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        {{ shipment.created_at.strftime("%d-%m-%Y") }}
-
-                    </td>
-
-                </tr>
-
-                {% else %}
-
-                <tr>
-
-                    <td colspan="6"
-                        style="text-align:center;padding:30px;">
-
-                        No shipment records found.
-
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</div>
-
-<!-- ===================================================== -->
-<!-- EXPORT -->
-<!-- ===================================================== -->
-
-<div class="report-section">
-
-    <div class="section-header">
-
-        <h3>Export Reports</h3>
-
-    </div>
-
-    <div
-        style="
-            display:flex;
-            gap:15px;
-            flex-wrap:wrap;
-        ">
-
-        <a
-    href="{{ url_for('reports.export_excel') }}"
-    class="btn btn-success"
->
-    Export Excel
-</a>
-
-        <a
-    href="{{ url_for('reports.export_pdf') }}"
-    class="btn btn-danger"
->
-    Export PDF
-</a>
-
-    </div>
-
-</div>
-
-<script>
-
-const chartLabels = {{ chart_labels | tojson }};
-const chartValues = {{ chart_values | tojson }};
-
-const monthlyClients = {{ monthly_clients | tojson }};
-const monthlyEnquiries = {{ monthly_enquiries | tojson }};
-const monthlyShipments = {{ monthly_shipments | tojson }};
-const monthlyQuotations = {{ monthly_quotations | tojson }};
-
-</script>
-
+<!-- Scripts Section (Chart.js మొదట లోడ్ అయ్యాకే వేరియబుల్స్ పాస్ అవ్వాలి) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Flask Data injection to JavaScript
+    const chartLabels = {{ chart_labels | tojson }};
+    const chartValues = {{ chart_values | tojson }};
 
-<script
-src="{{ url_for(
-'static',
-filename='js/reports.js'
-) }}">
+    const monthlyClients = {{ monthly_clients | tojson }};
+    const monthlyEnquiries = {{ monthly_enquiries | tojson }};
+    const monthlyShipments = {{ monthly_shipments | tojson }};
+    const monthlyQuotations = {{ monthly_quotations | tojson }};
 </script>
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
 
 {% endblock %}
