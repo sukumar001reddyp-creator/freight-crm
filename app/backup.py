@@ -58,17 +58,27 @@ def create():
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
             
-        # 2. Define the source database path
-        db_path = os.path.join(current_app.instance_path, 'freight_crm.db') 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_filename = f"backup_{timestamp}.db"
+        dest_path = os.path.join(backup_dir, backup_filename)
+
+        # 2. Smart DB Path Discovery (Checks instance path first, then root path)
+        instance_db = os.path.join(current_app.instance_path, 'freight_crm.db')
+        root_db = os.path.join(current_app.root_path, 'freight_crm.db')
+        parent_root_db = os.path.abspath(os.path.join(current_app.root_path, '..', 'freight_crm.db'))
         
-        if os.path.exists(db_path):
-            # 3. Generate a timestamped filename and copy the database file
-            backup_filename = f"backup_{timestamp}.db"
-            dest_path = os.path.join(backup_dir, backup_filename)
-            shutil.copy2(db_path, dest_path)
-            
-            # 4. Stream the file directly to the user browser for instant download
+        selected_db_path = None
+        
+        if os.path.exists(instance_db):
+            selected_db_path = instance_db
+        elif os.path.exists(root_db):
+            selected_db_path = root_db
+        elif os.path.exists(parent_root_db):
+            selected_db_path = parent_root_db
+
+        # 3. If database file is found, copy and stream it
+        if selected_db_path:
+            shutil.copy2(selected_db_path, dest_path)
             return send_file(
                 dest_path,
                 as_attachment=True,
@@ -76,11 +86,12 @@ def create():
                 mimetype='application/x-sqlite3'
             )
         else:
-            # 5. Fallback: Create and send a text file if the main .db file is not found
-            fallback_filename = f"backup_{timestamp}.txt"
+            # 4. Fallback: If still not found, list directory to help find it
+            fallback_filename = f"error_{timestamp}.txt"
             dest_path = os.path.join(backup_dir, fallback_filename)
             with open(dest_path, "w") as f:
-                f.write("Freight CRM Backup Dump Temporary Data")
+                f.write(f"Database file 'freight_crm.db' not found.\n")
+                f.write(f"Looked in:\n1. {instance_db}\n2. {root_db}\n3. {parent_root_db}\n")
                 
             return send_file(
                 dest_path,
