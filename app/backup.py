@@ -53,31 +53,31 @@ from app.backup import backup_bp
 @backup_bp.route("/create", methods=["GET", "POST"])
 def create():
     try:
-        # 1. Ensure the backup directory exists
         backup_dir = os.path.join(current_app.root_path, 'backups')
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
             
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_filename = f"backup_{timestamp}.db"
-        dest_path = os.path.join(backup_dir, backup_filename)
-
-        # 2. Smart DB Path Discovery (Checks instance path first, then root path)
-        instance_db = os.path.join(current_app.instance_path, 'freight_crm.db')
-        root_db = os.path.join(current_app.root_path, 'freight_crm.db')
-        parent_root_db = os.path.abspath(os.path.join(current_app.root_path, '..', 'freight_crm.db'))
+        
+        # 1. Render లో ఉండే మెయిన్ రూట్ పాత్స్ ని డిక్లేర్ చేస్తున్నాం
+        possible_paths = [
+            os.path.join(current_app.instance_path, 'freight_crm.db'),
+            os.path.join(current_app.root_path, 'freight_crm.db'),
+            os.path.abspath(os.path.join(current_app.root_path, '..', 'freight_crm.db')),
+            '/opt/render/project/src/instance/freight_crm.db',
+            '/opt/render/project/src/freight_crm.db'
+        ]
         
         selected_db_path = None
-        
-        if os.path.exists(instance_db):
-            selected_db_path = instance_db
-        elif os.path.exists(root_db):
-            selected_db_path = root_db
-        elif os.path.exists(parent_root_db):
-            selected_db_path = parent_root_db
+        for path in possible_paths:
+            if os.path.exists(path):
+                selected_db_path = path
+                break
 
-        # 3. If database file is found, copy and stream it
+        # 2. ఒకవేళ దొరికితే .db డౌన్‌లోడ్ అవుతుంది
         if selected_db_path:
+            backup_filename = f"backup_{timestamp}.db"
+            dest_path = os.path.join(backup_dir, backup_filename)
             shutil.copy2(selected_db_path, dest_path)
             return send_file(
                 dest_path,
@@ -85,14 +85,32 @@ def create():
                 download_name=backup_filename,
                 mimetype='application/x-sqlite3'
             )
+        
+        # 3. దొరకకపోతే, సర్వర్ లో అసలు ఏమేం ఫైల్స్ ఉన్నాయో లిస్ట్ మొత్తం టెక్స్ట్ ఫైల్ లా ఇస్తుంది
         else:
-            # 4. Fallback: If still not found, list directory to help find it
-            fallback_filename = f"error_{timestamp}.txt"
+            fallback_filename = f"debug_{timestamp}.txt"
             dest_path = os.path.join(backup_dir, fallback_filename)
+            
             with open(dest_path, "w") as f:
-                f.write(f"Database file 'freight_crm.db' not found.\n")
-                f.write(f"Looked in:\n1. {instance_db}\n2. {root_db}\n3. {parent_root_db}\n")
+                f.write("DATABASE NOT FOUND ANYWHERE!\n\n")
+                f.write(f"Current Working Directory: {os.getcwd()}\n")
+                f.write(f"Root Path: {current_app.root_path}\n\n")
+                f.write("Files in Project Directory:\n")
                 
+                # సర్వర్ రూట్ లో ఉన్న ఫైల్స్ ని స్కాన్ చేస్తుంది
+                try:
+                    for root, dirs, files in os.walk(os.getcwd()):
+                        # లోతైన లూప్స్ లేకుండా పైపైన వెతుకుతుంది
+                        level = root.replace(os.getcwd(), '').count(os.sep)
+                        if level < 2: 
+                            f.write(f"{'  ' * level}[Dir] {os.path.basename(root)}/\n")
+                            for file in files:
+                                if file.endswith('.db'):
+                                    f.write(f"{'  ' * (level+1)} FOUND DB: {file} inside {root}\n")
+                                f.write(f"{'  ' * (level+1)}{file}\n")
+                except Exception as walk_err:
+                    f.write(f"Walk error: {str(walk_err)}")
+                    
             return send_file(
                 dest_path,
                 as_attachment=True,
