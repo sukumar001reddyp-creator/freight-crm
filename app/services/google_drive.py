@@ -1,135 +1,104 @@
-import io
-import json
+# app/google_drive.py
 import os
-
-from flask import current_app
-
-from google.oauth2 import service_account
+import json
+import pickle
+from datetime import datetime
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from google.auth.transport.requests import Request
+from flask import url_for, session, redirect, flash, current_app
+from app.models import BackupLog
+
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+def get_google_flow():
+    return Flow.from_client_config(
+        {
+            "web": {
+                "client_id": current_app.config['GOOGLE_CLIENT_ID'],
+                "client_secret": current_app.config['GOOGLE_CLIENT_SECRET'],
+                "redirect_uris": [current_app.config['GOOGLE_REDIRECT_URI']],
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+            }
+        },
+        scopes=SCOPES,
+        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
+    )
 
 
-SCOPES = [
-    "https://www.googleapis.com/auth/drive.file"
-]
+def login_google():
+    flow = get_google_flow()
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent'
+    )
+    session['google_oauth_state'] = state
+    return redirect(authorization_url)
 
 
-def get_drive_service():
-    """
-    Creates authenticated Google Drive service
-    using the JSON stored in the environment variable:
-    GOOGLE_SERVICE_ACCOUNT_JSON
-    """
+def oauth2callback():
+    state = session.get('google_oauth_state')
+    flow = get_google_flow()
+    flow.state = state
 
-    import os
+    try:
+        flow.fetch_token(authorization_response=request.url)
+        credentials = flow.credentials
 
-    json_string = os.environ.get(
-        "GOOGLE_SERVICE_ACCOUNT_JSON"
-)
+        # Save credentials
+        with open('google_token.pickle', 'wb') as token:
+            pickle.dump(credentials, token)
 
-    if not json_string:
-        raise Exception(
-            "GOOGLE_SERVICE_ACCOUNT_JSON not configured."
+        flash("Google account linked successfully!", "success")
+        return redirect(url_for('main.dashboard'))
+
+    except Exception as e:
+        flash(f"Google login failed: {str(e)}", "danger")
+        return redirect(url_for('main.dashboard'))
+
+
+def backup_to_google_drive(zip_path, filename):
+    """Upload backup to Google Drive"""
+    try:
+        if not os.path.exists('google_token.pickle'):
+            return False, "Google account not linked"
+
+        with open('google_token.pickle', 'rb') as token:
+            credentials = pickle.load(token)
+
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+
+        service = build('drive', 'v3', credentials=credentials)
+
+        file_metadata = {
+            'name': filename,
+            'mimeType': 'application/zip'
+        }
+
+        media = MediaFileUpload(zip_path, mimetype='application/zip', resumable=True)
+
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
+        # Log success
+        BackupLog.create(
+            filename=filename,
+            status='success',
+            file_id=file.get('id')
         )
 
-    credentials_info = json.loads(
-        json_string
-    )
+        return True, file.get('id')
 
-    credentials = (
-        service_account.Credentials
-        .from_service_account_info(
-            credentials_info,
-            scopes=SCOPES,
+    except Exception as e:
+        BackupLog.create(
+            filename=filename,
+            status='failed',
+            error=str(e)
         )
-    )
-
-    return build(
-        "drive",
-        "v3",
-        credentials=credentials,
-        cache_discovery=False,
-    )
-
-
-def get_backup_folder_id(service):
-    """
-    Finds the FreightCRM_Backups folder.
-    Creates it if it doesn't exist.
-    """
-
-    folder_name = current_app.config.get(
-        "GOOGLE_DRIVE_BACKUP_FOLDER",
-        "FreightCRM_Backups"
-    )
-
-    query = (
-        "mimeType='application/vnd.google-apps.folder' "
-        f"and name='{folder_name}' "
-        "and trashed=false"
-    )
-
-    result = service.files().list(
-        q=query,
-        spaces="drive",
-        fields="files(id,name)",
-    ).execute()
-
-    folders = result.get(
-        "files",
-        []
-    )
-
-    if folders:
-        return folders[0]["id"]
-
-    metadata = {
-        "name": folder_name,
-        "mimeType": "application/vnd.google-apps.folder",
-    }
-
-    folder = service.files().create(
-        body=metadata,
-        fields="id",
-    ).execute()
-
-    return folder["id"]
-
-
-def upload_to_google_drive(file_path):
-    """
-    Uploads backup file to Google Drive.
-    """
-
-    if not os.path.exists(file_path):
-        raise Exception(
-            f"Backup file not found: {file_path}"
-        )
-
-    service = get_drive_service()
-
-    folder_id = get_backup_folder_id(
-        service
-    )
-
-    filename = os.path.basename(
-        file_path
-    )
-
-    media = MediaFileUpload(
-        file_path,
-        resumable=True,
-    )
-
-    metadata = {
-        "name": filename,
-        "parents": [folder_id],
-    }
-
-    uploaded = service.files().create(
-        body=metadata,
-        media_body=media,
-        fields="id,name",
-    ).execute()
-
-    return uploaded
+        return False, str(e)

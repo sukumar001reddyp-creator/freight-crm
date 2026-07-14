@@ -304,25 +304,38 @@
 
                 {% if permissions.can_access_reports() %}
                 <a
-                    href="#"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-bar-chart-fill"></i>
-                    </span>
-                    <span>Reports</span>
-                </a>
-                {% endif %}
-                <a
-    href="{{ url_for('support.admin_list') }}"
-    class="nav-item"
+    href="{{ url_for('reports.dashboard') }}"
+    class="nav-item
+    {% if request.blueprint == 'reports' %}
+        active
+    {% endif %}"
 >
     <span class="nav-icon">
-        <i class="bi bi-headset"></i>
+        <i class="bi bi-bar-chart-fill"></i>
     </span>
-    <span>Support Tickets</span>
+    <span>Reports</span>
 </a>
-          
+                {% endif %}
+
+                <!-- Support Tickets with Count -->
+                <a
+                    href="{{ url_for('support.admin_list') }}"
+                    class="nav-item
+                    {% if request.endpoint == 'support.admin_list' %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-headset"></i>
+                    </span>
+                    <span>Support Tickets</span>
+                    
+                    {% if sidebar_support_count > 0 %}
+                    <span class="nav-count">
+                        {{ sidebar_support_count }}
+                    </span>
+                    {% endif %}
+                </a>
 
                 {% if permissions.can_manage_users() %}
                 <a
@@ -338,21 +351,22 @@
                     <span>Users & Roles</span>
                 </a>
                 {% endif %}
-                {% if current_user.role == "admin" %}
-<a
-    href="{{ url_for('backup.index') }}"
-    class="nav-item
-    {% if request.blueprint == 'backup' %}
-        active
-    {% endif %}"
->
-    <span class="nav-icon">
-        <i class="bi bi-database-fill"></i>
-    </span>
 
-    <span>Database Backup</span>
-</a>
-{% endif %}
+                {% if current_user.role == "admin" %}
+                <a
+                    href="{{ url_for('backup.index') }}"
+                    class="nav-item
+                    {% if request.blueprint == 'backup' %}
+                        active
+                    {% endif %}"
+                >
+                    <span class="nav-icon">
+                        <i class="bi bi-database-fill"></i>
+                    </span>
+                    <span>Database Backup</span>
+                </a>
+                {% endif %}
+
                 {% if permissions.can_access_settings() %}
                 <a
                     href="#"

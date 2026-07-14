@@ -2,93 +2,180 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7f1d1d">
+    <title>{% block title %}Freight CRM{% endblock %}</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="theme-color"
-        content="#7f1d1d"
-    >
-
-    <title>
-        {% block title %}
-            Freight CRM
-        {% endblock %}
-    </title>
-
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/crm.css', v='20260706-2') }}"
-    >
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Base CRM Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/crm.css', v='20260706-2') }}">
 
     {% block extra_css %}{% endblock %}
 
 <style>
-.top-user-menu {
-    position: relative;
+/* Modern Luxury & Clean Design System Codes */
+:root {
+    --primary: #7f1d1d;
+    --primary-light: #fef2f2;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --border-subtle: rgba(226, 232, 240, 0.8);
+    --bg-card: #ffffff;
+    
+    /* Premium Soft Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.08);
+    --shadow-dropdown: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.12);
+    
+    --radius-xl: 16px;
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --transition-bounce: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Header Topbar Refresh */
+.topbar {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 24px;
+}
+
+.topbar-title h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+.topbar-title p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Actions Restyling */
+.topbar-actions {
+    gap: 12px;
+}
+
+/* Action Icon Buttons */
+.top-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-bounce);
+    position: relative;
+    text-decoration: none; /* fallback if anchor */
+}
+
+.top-action-btn:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: rgba(127, 29, 29, 0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.top-action-btn i {
+    font-size: 16px;
+}
+
+.notification-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+}
+
+/* User Profile Trigger Button Refresh */
 .top-user-trigger {
-    border: 0;
-    background: transparent;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
     cursor: pointer;
     font: inherit;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    padding: 6px 14px 6px 8px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-bounce);
+}
+
+.top-user-trigger:hover {
+    border-color: rgba(127, 29, 29, 0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.top-user-menu.open .top-user-trigger {
+    background: #fafafa;
+    border-color: #cbd5e1;
+    transform: translateY(0);
+}
+
+.top-user-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 4px rgba(127, 29, 29, 0.2);
+}
+
+.top-user-copy strong {
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.top-user-copy span {
+    font-size: 11px;
+    color: var(--text-muted);
 }
 
 .top-user-chevron {
-    margin-left: 6px;
-    color: #64748b;
-    font-size: 11px;
-    transition: transform .18s ease;
+    margin-left: 10px;
+    color: #94a3b8;
+    font-size: 12px;
+    transition: transform 0.2s ease;
 }
 
-.top-user-menu.open .top-user-chevron {
-    transform: rotate(180deg);
-}
-
+/* Dropdown Menu Restyling */
 .top-user-dropdown {
     position: absolute;
     top: calc(100% + 10px);
     right: 0;
     z-index: 1200;
-    width: 245px;
+    width: 260px;
     padding: 8px;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
     background: #ffffff;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, .14);
+    box-shadow: var(--shadow-dropdown);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-6px);
-    transition:
-        opacity .18s ease,
-        transform .18s ease,
-        visibility .18s ease;
+    transform: translateY(-10px);
+    transition: var(--transition-bounce);
 }
 
 .top-user-menu.open .top-user-dropdown {
@@ -99,525 +186,335 @@
 
 .top-user-dropdown-head {
     display: grid;
-    gap: 3px;
-    padding: 10px 11px 12px;
+    gap: 2px;
+    padding: 12px;
+    background: var(--primary-light);
+    border-radius: var(--radius-lg);
+    margin-bottom: 6px;
 }
 
 .top-user-dropdown-head strong {
-    color: #172033;
-    font-size: 12px;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .top-user-dropdown-head span {
-    overflow: hidden;
-    color: #64748b;
-    font-size: 10px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #991b1b;
+    font-size: 11px;
+    opacity: 0.8;
 }
 
 .top-user-dropdown-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-height: 40px;
-    padding: 0 11px;
-    border-radius: 9px;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: var(--radius-lg);
     color: #334155;
-    font-size: 11px;
-    font-weight: 750;
+    font-size: 13px;
+    font-weight: 500;
     text-decoration: none;
+    transition: all 0.15s ease;
 }
 
 .top-user-dropdown-item:hover {
-    background: #f8fafc;
+    background: #f1f5f9;
+    color: var(--text-main);
+    padding-left: 18px; /* Smooth slide-in hover effect */
 }
 
 .top-user-dropdown-item i {
-    width: 18px;
-    color: #7f1d1d;
-    font-size: 14px;
+    font-size: 16px;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+}
+
+.top-user-dropdown-item:hover i {
+    color: var(--primary);
 }
 
 .top-user-dropdown-item.danger {
-    color: #b91c1c;
+    color: #dc2626;
+}
+
+.top-user-dropdown-item.danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.top-user-dropdown-item.danger i {
+    color: #dc2626;
 }
 
 .top-user-dropdown-divider {
     height: 1px;
-    margin: 6px 3px;
-    background: #e2e8f0;
+    margin: 6px 0;
+    background: #f1f5f9;
+}
+
+/* Dashboard Content Grid Area Enhancements */
+.app-alert {
+    border: 0;
+    border-left: 4px solid #ef4444;
+    background: #ffffff;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-md);
+    padding: 16px;
 }
 
 @media (max-width: 640px) {
     .top-user-dropdown {
-        width: min(245px, calc(100vw - 28px));
+        width: min(260px, calc(100vw - 32px));
     }
 }
 </style>
-
 </head>
 
 <body>
 
 <div class="app-shell">
 
-    <aside
-        class="sidebar"
-        id="sidebar"
-    >
-
+    <!-- Sidebar Component -->
+    <aside class="sidebar" id="sidebar" aria-label="Main Navigation">
         <div class="sidebar-brand">
-
             <div class="brand-mark">
                 <i class="bi bi-box-seam-fill"></i>
             </div>
-
             <div class="brand-copy">
                 <strong>FreightCRM</strong>
                 <span>Client & Shipment Hub</span>
             </div>
-
-            <button
-                type="button"
-                class="sidebar-close"
-                id="sidebarClose"
-                aria-label="Close navigation"
-            >
+            <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close navigation">
                 <i class="bi bi-x-lg"></i>
             </button>
-
         </div>
 
         <div class="sidebar-scroll">
-
-            <div class="nav-label">
-                Workspace
-            </div>
-
+            <div class="nav-label">Workspace</div>
             <nav class="sidebar-nav">
-
                 {% if permissions.can_access_dashboard() %}
-                <a
-                    href="{{ url_for('dashboard') }}"
-                    class="nav-item
-                    {% if request.endpoint == 'dashboard' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-grid-1x2-fill"></i>
-                    </span>
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
                     <span>Dashboard</span>
                 </a>
                 {% endif %}
 
                 {% if permissions.can_access_clients() %}
-                <a
-                    href="{{ url_for('clients.client_list') }}"
-                    class="nav-item
-                    {% if request.blueprint == 'clients' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-people-fill"></i>
-                    </span>
+                <a href="{{ url_for('clients.client_list') }}" class="nav-item {% if request.blueprint == 'clients' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
                     <span>Clients</span>
-                    <span class="nav-count">
-                        {{ sidebar_clients_count }}
-                    </span>
+                    <span class="nav-count">{{ sidebar_clients_count }}</span>
                 </a>
                 {% endif %}
 
                 {% if permissions.can_access_enquiries() %}
-                <a
-                    href="{{ url_for('enquiries.enquiry_list') }}"
-                    class="nav-item
-                    {% if request.blueprint == 'enquiries' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-inbox-fill"></i>
-                    </span>
+                <a href="{{ url_for('enquiries.enquiry_list') }}" class="nav-item {% if request.blueprint == 'enquiries' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-inbox-fill"></i></span>
                     <span>Enquiries</span>
-                    <span class="nav-count">
-                        {{ sidebar_enquiries_count }}
-                    </span>
+                    <span class="nav-count">{{ sidebar_enquiries_count }}</span>
                 </a>
                 {% endif %}
 
                 {% if permissions.can_access_quotations() %}
-                <a
-                    href="{{ url_for('quotations.quotation_list') }}"
-                    class="nav-item
-                    {% if request.blueprint == 'quotations' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-file-earmark-text-fill"></i>
-                    </span>
+                <a href="{{ url_for('quotations.quotation_list') }}" class="nav-item {% if request.blueprint == 'quotations' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
                     <span>Quotations</span>
                 </a>
                 {% endif %}
 
                 {% if permissions.can_access_shipments() %}
-                <a
-                    href="{{ url_for('shipments.shipment_list') }}"
-                    class="nav-item
-                    {% if request.blueprint == 'shipments' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-box-seam-fill"></i>
-                    </span>
+                <a href="{{ url_for('shipments.shipment_list') }}" class="nav-item {% if request.blueprint == 'shipments' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
                     <span>Shipments</span>
                 </a>
                 {% endif %}
 
                 {% if permissions.can_access_tasks() %}
-                <a
-                    href="{{ url_for('tasks.task_list') }}"
-                    class="nav-item
-                    {% if request.endpoint
-                        and request.endpoint.startswith('tasks.') %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-check2-square"></i>
-                    </span>
+                <a href="{{ url_for('tasks.task_list') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('tasks.') %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-check2-square"></i></span>
                     <span>Tasks & Follow-ups</span>
                 </a>
                 {% endif %}
-
             </nav>
 
-            <div class="nav-label">
-                Intelligence
-            </div>
-
+            <div class="nav-label">Intelligence</div>
             <nav class="sidebar-nav">
-
                 {% if permissions.can_access_reports() %}
-                <a
-    href="{{ url_for('reports.dashboard') }}"
-    class="nav-item
-    {% if request.blueprint == 'reports' %}
-        active
-    {% endif %}"
->
-    <span class="nav-icon">
-        <i class="bi bi-bar-chart-fill"></i>
-    </span>
-    <span>Reports</span>
-</a>
+                <a href="{{ url_for('reports.dashboard') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
+                    <span>Reports</span>
+                </a>
                 {% endif %}
 
                 <!-- Support Tickets with Count -->
-                <a
-                    href="{{ url_for('support.admin_list') }}"
-                    class="nav-item
-                    {% if request.endpoint == 'support.admin_list' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-headset"></i>
-                    </span>
+                <a href="{{ url_for('support.admin_list') }}" class="nav-item {% if request.endpoint == 'support.admin_list' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-headset"></i></span>
                     <span>Support Tickets</span>
-                    
                     {% if sidebar_support_count > 0 %}
-                    <span class="nav-count">
-                        {{ sidebar_support_count }}
-                    </span>
+                    <span class="nav-count">{{ sidebar_support_count }}</span>
                     {% endif %}
                 </a>
 
                 {% if permissions.can_manage_users() %}
-                <a
-                    href="{{ url_for('users.user_list') }}"
-                    class="nav-item
-                    {% if request.blueprint == 'users' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-person-gear"></i>
-                    </span>
+                <a href="{{ url_for('users.user_list') }}" class="nav-item {% if request.blueprint == 'users' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
                     <span>Users & Roles</span>
                 </a>
                 {% endif %}
 
                 {% if current_user.role == "admin" %}
-                <a
-                    href="{{ url_for('backup.index') }}"
-                    class="nav-item
-                    {% if request.blueprint == 'backup' %}
-                        active
-                    {% endif %}"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-database-fill"></i>
-                    </span>
+                <a href="{{ url_for('backup.index') }}" class="nav-item {% if request.blueprint == 'backup' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-database-fill"></i></span>
                     <span>Database Backup</span>
                 </a>
                 {% endif %}
 
-                {% if permissions.can_access_settings() %}
-                <a
-                    href="#"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">
-                        <i class="bi bi-gear-fill"></i>
-                    </span>
-                    <span>Settings</span>
-                </a>
-                {% endif %}
-
+{% if current_user.role == "admin" or permissions.can_access_settings() %}
+<a href="{{ url_for('settings.index') }}" class="nav-item {% if request.blueprint == 'settings' %}active{% endif %}">
+    <span class="nav-icon">
+        <i class="bi bi-gear-fill"></i>
+    </span>
+    <span>Settings</span>
+</a>
+{% endif %}
             </nav>
-
         </div>
 
         <div class="sidebar-user">
-
-            <div class="user-avatar">
-                {{ current_user.full_name[0]|upper }}
-            </div>
-
+            <div class="user-avatar">{{ current_user.full_name[0]|upper }}</div>
             <div class="user-copy">
-                <strong>
-                    {{ current_user.full_name }}
-                </strong>
-
-                <span>
-                    {{ current_user.role_label }}
-                </span>
+                <strong>{{ current_user.full_name }}</strong>
+                <span>{{ current_user.role_label }}</span>
             </div>
-
-            <a
-                href="{{ url_for('auth.logout') }}"
-                class="logout-icon"
-                title="Logout"
-            >
+            <a href="{{ url_for('auth.logout') }}" class="logout-icon" title="Logout">
                 <i class="bi bi-box-arrow-right"></i>
             </a>
-
         </div>
-
     </aside>
 
-    <div
-        class="sidebar-overlay"
-        id="sidebarOverlay"
-    ></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <!-- Main Content Area -->
     <main class="main-area">
-
         <header class="topbar">
-
             <div class="topbar-left">
-
-                <button
-                    type="button"
-                    class="menu-toggle"
-                    id="menuToggle"
-                    aria-label="Open navigation"
-                >
+                <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open navigation">
                     <i class="bi bi-list"></i>
                 </button>
-
                 <div class="topbar-title">
-                    <h1>
-                        {% block page_title %}
-                            Dashboard
-                        {% endblock %}
-                    </h1>
-
-                    <p>
-                        {% block page_subtitle %}
-                            Freight CRM workspace
-                        {% endblock %}
-                    </p>
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p>{% block page_subtitle %}Freight CRM workspace{% endblock %}</p>
                 </div>
-
             </div>
 
             <div class="topbar-actions">
-
-                <button
-                    type="button"
-                    class="top-action-btn"
-                    title="Search"
-                >
-                    <i class="bi bi-search"></i>
-                </button>
-
-                <button
-                    type="button"
-                    class="top-action-btn notification-btn"
-                    title="Notifications"
-                >
+                <!-- REDIRECTED ALERTS BUTTON TO SUPPORT TICKETS -->
+                <a href="{{ url_for('support.admin_list') }}" class="top-action-btn notification-btn" title="View Support Tickets">
                     <i class="bi bi-bell"></i>
-
+                    {% if sidebar_support_count > 0 %}
                     <span class="notification-dot"></span>
-                </button>
+                    {% endif %}
+                </a>
 
+                <!-- User Profile Dropdown Menu -->
                 <div class="top-user-menu" id="topUserMenu">
-
-                    <button
-                        type="button"
-                        class="top-user top-user-trigger"
-                        id="topUserTrigger"
-                        aria-expanded="false"
-                        aria-haspopup="true"
-                    >
-
-                        <div class="top-user-avatar">
-                            {{ current_user.full_name[0]|upper }}
-                        </div>
-
+                    <button type="button" class="top-user-trigger" id="topUserTrigger" aria-expanded="false" aria-haspopup="true">
+                        <div class="top-user-avatar">{{ current_user.full_name[0]|upper }}</div>
                         <div class="top-user-copy">
-                            <strong>
-                                {{ current_user.full_name }}
-                            </strong>
-
-                            <span>
-                                {{ current_user.role_label }}
-                            </span>
+                            <strong>{{ current_user.full_name }}</strong>
+                            <span>{{ current_user.role_label }}</span>
                         </div>
-
                         <i class="bi bi-chevron-down top-user-chevron"></i>
-
                     </button>
 
-                    <div
-                        class="top-user-dropdown"
-                        id="topUserDropdown"
-                    >
-
+                    <div class="top-user-dropdown" id="topUserDropdown">
                         <div class="top-user-dropdown-head">
                             <strong>{{ current_user.full_name }}</strong>
                             <span>{{ current_user.email }}</span>
                         </div>
-
-                        <a
-                            href="{{ url_for('auth.change_password') }}"
-                            class="top-user-dropdown-item"
-                        >
+                        <a href="{{ url_for('auth.change_password') }}" class="top-user-dropdown-item">
                             <i class="bi bi-shield-lock-fill"></i>
                             <span>Change Password</span>
                         </a>
-
                         <div class="top-user-dropdown-divider"></div>
-
-                        <a
-                            href="{{ url_for('auth.logout') }}"
-                            class="top-user-dropdown-item danger"
-                        >
+                        <a href="{{ url_for('auth.logout') }}" class="top-user-dropdown-item danger">
                             <i class="bi bi-box-arrow-right"></i>
                             <span>Logout</span>
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
         </header>
 
+        <!-- Flash Messages & Page Section Container -->
         <section class="page-content">
-
-            {% with messages =
-                get_flashed_messages(
-                    with_categories=true
-                )
-            %}
-
+            {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-
                     <div class="flash-stack">
-
                         {% for category, message in messages %}
-
-                            <div
-                                class="app-alert
-                                app-alert-{{ category }}"
-                            >
-                                <span>
-                                    {{ message }}
-                                </span>
-
-                                <button
-                                    type="button"
-                                    class="alert-close"
-                                >
+                            <div class="app-alert app-alert-{{ category }}" role="alert">
+                                <span>{{ message }}</span>
+                                <button type="button" class="alert-close" aria-label="Close alert">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
-
                         {% endfor %}
-
                     </div>
-
                 {% endif %}
-
             {% endwith %}
 
             {% block content %}{% endblock %}
-
         </section>
-
     </main>
-
 </div>
 
-<script
-    src="{{ url_for('static', filename='js/crm.js') }}"
-></script>
-
+<!-- Main Scripts -->
+<script src="{{ url_for('static', filename='js/crm.js') }}"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // --- Dropdown Management ---
     const menu = document.getElementById("topUserMenu");
     const trigger = document.getElementById("topUserTrigger");
 
-    if (!menu || !trigger) {
-        return;
+    if (menu && trigger) {
+        trigger.addEventListener("click", function (event) {
+            event.stopPropagation();
+            const isOpen = menu.classList.toggle("open");
+            trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!menu.contains(event.target)) {
+                menu.classList.remove("open");
+                trigger.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                menu.classList.remove("open");
+                trigger.setAttribute("aria-expanded", "false");
+            }
+        });
     }
 
-    trigger.addEventListener("click", function (event) {
-        event.stopPropagation();
-
-        const isOpen = menu.classList.toggle("open");
-
-        trigger.setAttribute(
-            "aria-expanded",
-            isOpen ? "true" : "false"
-        );
-    });
-
-    document.addEventListener("click", function (event) {
-        if (!menu.contains(event.target)) {
-            menu.classList.remove("open");
-            trigger.setAttribute("aria-expanded", "false");
-        }
-    });
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            menu.classList.remove("open");
-            trigger.setAttribute("aria-expanded", "false");
-        }
+    // --- Alert Notification Animation Close ---
+    const alertCloses = document.querySelectorAll(".alert-close");
+    alertCloses.forEach(button => {
+        button.addEventListener("click", function () {
+            const alertBox = this.closest(".app-alert");
+            if (alertBox) {
+                alertBox.style.opacity = "0";
+                alertBox.style.transform = "scale(0.95)";
+                setTimeout(() => alertBox.remove(), 200);
+            }
+        });
     });
 });
 </script>
-
 
 {% block extra_js %}{% endblock %}
 

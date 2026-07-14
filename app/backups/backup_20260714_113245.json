@@ -1,0 +1,144 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "full_name": "CRM Administrator",
+            "email": "admin@freightcrm.com",
+            "password_hash": "scrypt:32768:8:1$fgwarD2hLUrcIHAq$fab452342568eff3d362b50d8dc12d32e18a965cd2bf42df1790a1d69d6be78e0f6bd81f3a68a8c0e4bc7c1831754b5a9efde5a2b07d8b1a4d305215f4b3c1d8",
+            "role": "admin",
+            "is_active_user": true,
+            "created_at": "2026-07-11T19:20:22.892454",
+            "updated_at": "2026-07-11T19:20:22.892459"
+        },
+        {
+            "id": 2,
+            "full_name": "Rajasekhar Reddy",
+            "email": "raja001reddyp@gmail.com",
+            "password_hash": "scrypt:32768:8:1$KVtHl8ufrWipfMpv$59a8c291a93e4e06756a7bd569d8545929a327a2321296449a35e82da0fcb10d886c6ecf132c7f159b6d77c38a0a6a37f41d9e2433adab554ec6c5c72e3a5185",
+            "role": "sales_executive",
+            "is_active_user": true,
+            "created_at": "2026-07-12T07:55:32.408980",
+            "updated_at": "2026-07-12T07:55:32.408987"
+        },
+        {
+            "id": 3,
+            "full_name": "Raja Reddy",
+            "email": "raja@gmail.com",
+            "password_hash": "scrypt:32768:8:1$mhFvfSPj3LnUNFG0$805a00a1f2cd1980a18f85917c4cbeeb22cfe8c64b791629b6c6488085411d367db7429cdb79c9c51c8456e89850f9dddc39732e8418226f5683de35c22cdda6",
+            "role": "sales_executive",
+            "is_active_user": true,
+            "created_at": "2026-07-12T07:56:02.324801",
+            "updated_at": "2026-07-12T07:56:02.324805"
+        },
+        {
+            "id": 4,
+            "full_name": "sukku",
+            "email": "sukku@gmail.com",
+            "password_hash": "scrypt:32768:8:1$WFx97IGxz7tD4r8O$94cc2faa03678545e8f36152fe143459d95bca18c43ba23c9d56581ee11f070b1b7878b5279a58e71b78fbda7c7dbec8eb33ae5bb7ea3296fff642a71fa4cc91",
+            "role": "sales_executive",
+            "is_active_user": true,
+            "created_at": "2026-07-12T07:56:46.007001",
+            "updated_at": "2026-07-12T07:56:46.007006"
+        }
+    ],
+    "clients": [
+        {
+            "id": 1,
+            "client_reference": "CLI-2026-000001",
+            "company_name": "skinvie: embrace beauty journey",
+            "category": "existing_client",
+            "status": "new",
+            "pipeline_stage": null,
+            "contact_person_name": "ram",
+            "designation": null,
+            "primary_phone": "9999999999",
+            "secondary_phone": null,
+            "email": "ram@gmail.com",
+            "website_url": null,
+            "address_line_1": "Plotno.18, Kethana Avenue",
+            "address_line_2": "Anand Nagar, Nagole",
+            "industry_sector": null,
+            "services_needed": [
+                "warehousing",
+                "project_cargo"
+            ],
+            "assigned_to_id": 3,
+            "lead_source": null,
+            "date_added": "2026-07-12T07:58:37.333563",
+            "last_contact_date": null,
+            "next_follow_up_date": null,
+            "priority_level": null,
+            "notes": null,
+            "tags": [],
+            "is_archived": false,
+            "created_by_id": 1,
+            "created_at": "2026-07-12T07:58:37.333569",
+            "updated_at": "2026-07-12T07:58:37.339089"
+        },
+        {
+            "id": 2,
+            "client_reference": "CLI-2026-000002",
+            "company_name": "dertyujbd",
+            "category": "existing_client",
+            "status": "lead",
+            "pipeline_stage": null,
+            "contact_person_name": "balu",
+            "designation": null,
+            "primary_phone": "8888888888",
+            "secondary_phone": null,
+            "email": "balu@gmail.com",
+            "website_url": null,
+            "address_line_1": "Flat No.502, Brameswari Sai Nilayam Apartment",
+            "address_line_2": "Fathullaguda, Nagole",
+            "industry_sector": null,
+            "services_needed": [
+                "air_freight",
+                "sea_freight",
+                "land_freight"
+            ],
+            "assigned_to_id": 2,
+            "lead_source": null,
+            "date_added": "2026-07-12T07:59:32.975089",
+            "last_contact_date": null,
+            "next_follow_up_date": null,
+            "priority_level": null,
+            "notes": null,
+            "tags": [],
+            "is_archived": false,
+            "created_by_id": 1,
+            "created_at": "2026-07-12T07:59:32.975095",
+            "updated_at": "2026-07-12T07:59:32.978205"
+        }
+    ],
+    "client_pipeline_history": [],
+    "client_status_history": [
+        {
+            "id": 1,
+            "client_id": 1,
+            "old_status": null,
+            "new_status": "new",
+            "changed_by_id": 1,
+            "changed_at": "2026-07-12T07:58:37.351587",
+            "remarks": "Initial client status on record creation."
+        },
+        {
+            "id": 2,
+            "client_id": 2,
+            "old_status": null,
+            "new_status": "lead",
+            "changed_by_id": 1,
+            "changed_at": "2026-07-12T07:59:32.986675",
+            "remarks": "Initial client status on record creation."
+        }
+    ],
+    "client_attachments": [],
+    "client_activities": [],
+    "client_notes": [],
+    "client_tasks": [],
+    "client_audit_logs": [],
+    "enquiries": [
+        {
+            "id": 1,
+            "enquiry_reference": "ENQ-2026-000001",
+            "client_id": 1,
+            "enquiry_date": 

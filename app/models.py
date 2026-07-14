@@ -2444,3 +2444,30 @@ class SupportMessage(db.Model):
             cascade="all, delete-orphan",
         ),
     )
+# =========================================================
+# BACKUP LOG MODEL
+# =========================================================
+
+class BackupLog(db.Model):
+    __tablename__ = "backup_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.String(20), nullable=False)  # success / failed
+    file_id = db.Column(db.String(255), nullable=True)  # Google Drive file ID
+    error = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
+
+    def __repr__(self):
+        return f"<BackupLog {self.filename} - {self.status}>"
+
+    @staticmethod
+    def create(filename, status, file_id=None, error=None):
+        log = BackupLog(
+            filename=filename,
+            status=status,
+            file_id=file_id,
+            error=error
+        )
+        db.session.add(log)
+        db.session.commit()
