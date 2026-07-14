@@ -45,78 +45,54 @@ def index():
 
 
 import os
-import shutil
+import json
 from datetime import datetime
 from flask import current_app, flash, redirect, url_for, send_file
 from app.backup import backup_bp
+from app.models import db  # Ensure this points to your project's db instance
 
 @backup_bp.route("/create", methods=["GET", "POST"])
 def create():
     try:
+        # 1. Setup backup directory
         backup_dir = os.path.join(current_app.root_path, 'backups')
         if not os.path.exists(backup_dir):
             os.makedirs(backup_dir)
             
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # 1. Render లో ఉండే మెయిన్ రూట్ పాత్స్ ని డిక్లేర్ చేస్తున్నాం
-        possible_paths = [
-            os.path.join(current_app.instance_path, 'freight_crm.db'),
-            os.path.join(current_app.root_path, 'freight_crm.db'),
-            os.path.abspath(os.path.join(current_app.root_path, '..', 'freight_crm.db')),
-            '/opt/render/project/src/instance/freight_crm.db',
-            '/opt/render/project/src/freight_crm.db'
-        ]
-        
-        selected_db_path = None
-        for path in possible_paths:
-            if os.path.exists(path):
-                selected_db_path = path
-                break
+        backup_filename = f"backup_{timestamp}.json"
+        dest_path = os.path.join(backup_dir, backup_filename)
 
-        # 2. ఒకవేళ దొరికితే .db డౌన్‌లోడ్ అవుతుంది
-        if selected_db_path:
-            backup_filename = f"backup_{timestamp}.db"
-            dest_path = os.path.join(backup_dir, backup_filename)
-            shutil.copy2(selected_db_path, dest_path)
-            return send_file(
-                dest_path,
-                as_attachment=True,
-                download_name=backup_filename,
-                mimetype='application/x-sqlite3'
-            )
+        # 2. Extract database tables dynamically
+        backup_data = {}
         
-        # 3. దొరకకపోతే, సర్వర్ లో అసలు ఏమేం ఫైల్స్ ఉన్నాయో లిస్ట్ మొత్తం టెక్స్ట్ ఫైల్ లా ఇస్తుంది
-        else:
-            fallback_filename = f"debug_{timestamp}.txt"
-            dest_path = os.path.join(backup_dir, fallback_filename)
-            
-            with open(dest_path, "w") as f:
-                f.write("DATABASE NOT FOUND ANYWHERE!\n\n")
-                f.write(f"Current Working Directory: {os.getcwd()}\n")
-                f.write(f"Root Path: {current_app.root_path}\n\n")
-                f.write("Files in Project Directory:\n")
-                
-                # సర్వర్ రూట్ లో ఉన్న ఫైల్స్ ని స్కాన్ చేస్తుంది
-                try:
-                    for root, dirs, files in os.walk(os.getcwd()):
-                        # లోతైన లూప్స్ లేకుండా పైపైన వెతుకుతుంది
-                        level = root.replace(os.getcwd(), '').count(os.sep)
-                        if level < 2: 
-                            f.write(f"{'  ' * level}[Dir] {os.path.basename(root)}/\n")
-                            for file in files:
-                                if file.endswith('.db'):
-                                    f.write(f"{'  ' * (level+1)} FOUND DB: {file} inside {root}\n")
-                                f.write(f"{'  ' * (level+1)}{file}\n")
-                except Exception as walk_err:
-                    f.write(f"Walk error: {str(walk_err)}")
-                    
-            return send_file(
-                dest_path,
-                as_attachment=True,
-                download_name=fallback_filename,
-                mimetype='text/plain'
-            )
+        # Get all table names from SQLAlchemy metadata
+        for table_name in db.metadata.tables.keys():
+            try:
+                # Query all rows from the table
+                result = db.session.execute(db.select(db.metadata.tables[table_name])).fetchall()
+                # Convert rows to dictionaries
+                backup_data[table_name] = [dict(row._mapping) for row in result]
+            except Exception as table_err:
+                backup_data[table_name] = f"Error reading table: {str(table_err)}"
+
+        # 3. Write data to a clean JSON file
+        # Converting datetime objects to string to avoid JSON encoding errors
+        def datetime_serializer(obj):
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            raise TypeError("Type not serializable")
+
+        with open(dest_path, "w") as f:
+            json.dump(backup_data, f, indent=4, default=datetime_serializer)
+
+        # 4. Stream the JSON backup file straight to browser
+        return send_file(
+            dest_path,
+            as_attachment=True,
+            download_name=backup_filename,
+            mimetype='application/json'
+        )
             
     except Exception as e:
         flash(f"Backup transfer sequence broken: {str(e)}", "danger")
