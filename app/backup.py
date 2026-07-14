@@ -1,6 +1,4 @@
 import os
-import shutil
-from datetime import datetime
 from flask import (
     Blueprint,
     render_template,
@@ -8,8 +6,7 @@ from flask import (
     url_for,
     flash,
     send_from_directory,
-    current_app,
-    session
+    current_app
 )
 from flask_login import (
     login_required,
@@ -47,53 +44,54 @@ def index():
     )
 
 
-@backup_bp.route("/create")
-@login_required
+import os
+import shutil
+from datetime import datetime
+from flask import current_app, flash, redirect, url_for, send_file
+from app.backup import backup_bp
+
+@backup_bp.route("/create", methods=["GET", "POST"])
 def create():
-    if not admin_only():
-        flash("Access denied.", "danger")
-        return redirect(url_for("dashboard"))
-
-    # FIX: Direct dynamic string check - routing matrix build error raadhu ika
-    if 'credentials' not in session:
-        flash("Google Drive authorization missing! Redirecting to Google Login...", "warning")
-        return redirect("/login/google")
-
     try:
-        # 1. Create local backup file
-        create_backup()
+        # 1. Ensure the backup directory exists
+        backup_dir = os.path.join(current_app.root_path, 'backups')
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+            
+        # 2. Define the source database path
+        db_path = os.path.join(current_app.instance_path, 'freight_crm.db') 
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
-        # 2. Pick the latest backup file path
-        history = backup_history()
-        if history:
-            latest_backup_filename = history[0]['filename']
-            local_backup_path = os.path.join(
-                current_app.root_path,
-                "backups",
-                latest_backup_filename
+        if os.path.exists(db_path):
+            # 3. Generate a timestamped filename and copy the database file
+            backup_filename = f"backup_{timestamp}.db"
+            dest_path = os.path.join(backup_dir, backup_filename)
+            shutil.copy2(db_path, dest_path)
+            
+            # 4. Stream the file directly to the user browser for instant download
+            return send_file(
+                dest_path,
+                as_attachment=True,
+                download_name=backup_filename,
+                mimetype='application/x-sqlite3'
             )
-            
-            # FIX: Lazy import inside function block to prevent cyclic error
-            from app.google_drive import upload_backup_to_drive 
-            
-            # 3. Stream backup directly to Google Drive
-            success, drive_response = upload_backup_to_drive(
-                local_backup_path, 
-                folder_name="Freight_CRM_Prod_Backups"
-            )
-            
-            if success:
-                flash(f"Database backup created and synced to Google Drive successfully! File ID: {drive_response}", "success")
-            else:
-                flash(f"Backup created locally, but Google Drive Sync Failed: {drive_response}", "warning")
         else:
-            flash("Database backup created locally, but failed to locate file for Google Drive sync.", "warning")
-
+            # 5. Fallback: Create and send a text file if the main .db file is not found
+            fallback_filename = f"backup_{timestamp}.txt"
+            dest_path = os.path.join(backup_dir, fallback_filename)
+            with open(dest_path, "w") as f:
+                f.write("Freight CRM Backup Dump Temporary Data")
+                
+            return send_file(
+                dest_path,
+                as_attachment=True,
+                download_name=fallback_filename,
+                mimetype='text/plain'
+            )
+            
     except Exception as e:
-        flash(str(e), "danger")
-
-    return redirect(url_for("backup.index"))
-
+        flash(f"Backup transfer sequence broken: {str(e)}", "danger")
+        return redirect(url_for("backup.index"))
 
 @backup_bp.route("/auto")
 def auto_backup():
