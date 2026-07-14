@@ -1,435 +1,212 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Database Backup{% endblock %}
+{% block title %}Database Backup & Restore{% endblock %}
 
-{% block page_title %}Database Backup{% endblock %}
+{% block page_title %}Database Tools{% endblock %}
 
 {% block page_subtitle %}
-Protect your CRM data before every deployment.
+Download manual JSON snapshots or restore your application data instantly.
 {% endblock %}
 
 {% block extra_css %}
 <style>
-
-.backup-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:24px;
-gap:20px;
-flex-wrap:wrap;
+.tools-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 10px;
 }
 
-.backup-title h2{
-font-size:28px;
-font-weight:800;
-margin:0;
-color:#111827;
+.backup-header {
+    margin-bottom: 30px;
 }
 
-.backup-title p{
-margin-top:6px;
-color:#6b7280;
-font-size:14px;
+.backup-title h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #111827;
+    margin: 0;
 }
 
-.backup-btn{
-background:#7f1d1d;
-color:#fff;
-padding:14px 24px;
-border-radius:12px;
-text-decoration:none;
-font-weight:700;
-transition:.2s;
-box-shadow:0 12px 25px rgba(127,29,29,.20);
+.backup-title p {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 14px;
 }
 
-.backup-btn:hover{
-background:#991b1b;
-color:#fff;
-transform:translateY(-2px);
+/* Grid Layout for Action Cards */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 20px;
 }
 
-.stats-grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:20px;
-margin-bottom:25px;
+.action-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.stat-card{
-background:#fff;
-border-radius:16px;
-padding:24px;
-box-shadow:0 10px 30px rgba(15,23,42,.06);
-border:1px solid #eef2f7;
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
-.stat-icon{
-width:56px;
-height:56px;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:14px;
-background:#7f1d1d;
-color:#fff;
-font-size:22px;
-margin-bottom:16px;
+.card-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 24px;
+    margin-bottom: 20px;
 }
 
-.stat-title{
-font-size:13px;
-color:#64748b;
-margin-bottom:6px;
+.backup-zone .card-icon {
+    background: #eff6ff;
+    color: #2563eb;
 }
 
-.stat-value{
-font-size:30px;
-font-weight:800;
-color:#111827;
+.restore-zone .card-icon {
+    background: #fff7ed;
+    color: #ea580c;
 }
 
-.table-card{
-background:#fff;
-border-radius:18px;
-box-shadow:0 10px 30px rgba(15,23,42,.06);
-overflow:hidden;
-border:1px solid #eef2f7;
+.card-details h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 10px 0;
 }
 
-.table-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:20px 24px;
-border-bottom:1px solid #eef2f7;
+.card-details p {
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
 }
 
-.table-header h3{
-margin:0;
-font-size:20px;
-font-weight:800;
+/* Styled Action Buttons */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.backup-table{
-width:100%;
-border-collapse:collapse;
+.btn-primary-download {
+    background: #2563eb;
+    color: #fff;
 }
 
-.backup-table th{
-background:#fafafa;
-padding:18px;
-text-align:left;
-font-size:13px;
-font-weight:700;
-color:#475569;
+.btn-primary-download:hover {
+    background: #1d4ed8;
+    color: #fff;
 }
 
-.backup-table td{
-padding:18px;
-border-top:1px solid #f1f5f9;
-font-size:14px;
+.btn-warning-restore {
+    background: #ea580c;
+    color: #fff;
 }
 
-.file-pill{
-display:inline-flex;
-align-items:center;
-gap:8px;
-font-weight:700;
+.btn-warning-restore:hover {
+    background: #c2410c;
+    color: #fff;
 }
 
-.file-pill i{
-color:#7f1d1d;
+/* Dynamic File Input Styling */
+.file-wrapper {
+    margin-bottom: 16px;
+    position: relative;
 }
 
-.download-btn{
-background:#7f1d1d;
-color:white;
-padding:8px 14px;
-border-radius:10px;
-text-decoration:none;
-font-size:13px;
-font-weight:700;
+.custom-file-input {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 13px;
+    cursor: pointer;
 }
 
-.download-btn:hover{
-background:#991b1b;
-color:white;
+.custom-file-input:focus {
+    outline: none;
+    border-color: #ea580c;
 }
 
-.empty{
-padding:60px;
-text-align:center;
-color:#94a3b8;
+@media(max-width: 768px) {
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
 }
-
-.empty i{
-font-size:55px;
-margin-bottom:18px;
-display:block;
-color:#cbd5e1;
-}
-
-@media(max-width:992px){
-
-.stats-grid{
-grid-template-columns:repeat(2,1fr);
-}
-
-}
-
-@media(max-width:640px){
-
-.stats-grid{
-grid-template-columns:1fr;
-}
-
-.backup-header{
-flex-direction:column;
-align-items:flex-start;
-}
-
-}
-
 </style>
 {% endblock %}
 
 {% block content %}
-
-<div class="backup-header">
-
-<div class="backup-title">
-
-<h2>
-Database Backup
-</h2>
-
-<p>
-Create secure backups before deployments and updates.
-</p>
-
-</div>
-
-<a
-href="{{ url_for('backup.create') }}"
-class="backup-btn">
-
-<i class="bi bi-download"></i>
-
-Create Backup
-
-</a>
-
-</div>
-
-<div class="stats-grid">
-
-<div class="stat-card">
-
-<div class="stat-icon">
-<i class="bi bi-database-fill"></i>
-</div>
-
-<div class="stat-title">
-Total Backups
-</div>
-
-<div class="stat-value">
-{{ backups|length }}
-</div>
-
-</div>
-
-<div class="stat-card">
-
-<div class="stat-icon">
-<i class="bi bi-clock-history"></i>
-</div>
-
-<div class="stat-title">
-Latest Backup
-</div>
-
-<div class="stat-value" style="font-size:18px">
-
-{% if backups %}
-Latest
-{% else %}
---
-{% endif %}
-
-</div>
-
-</div>
-
-<div class="stat-card">
-
-<div class="stat-icon">
-<i class="bi bi-hdd-fill"></i>
-</div>
-
-<div class="stat-title">
-Database
-</div>
-
-<div class="stat-value" style="font-size:22px">
-SQLite
-</div>
-
-</div>
-
-<div class="stat-card">
-
-<div class="stat-icon">
-<i class="bi bi-check-circle-fill"></i>
-</div>
-
-<div class="stat-title">
-Health
-</div>
-
-<div class="stat-value" style="font-size:20px;color:#16a34a">
-Healthy
-</div>
-
-</div>
-
-</div>
-
-<div class="table-card">
-
-<div class="table-header">
-
-<h3>
-Backup History
-</h3>
-
-</div>
-
-<table class="backup-table">
-
-<thead>
-
-<tr>
-
-<th>Backup File</th>
-
-<th>Size</th>
-
-<th>Created</th>
-
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for backup in backups %}
-<tr>
-
-    <td>
-
-        <span class="file-pill">
-
-            <i class="bi bi-file-earmark-lock-fill"></i>
-
-            {{ backup.name }}
-
-        </span>
-
-    </td>
-
-    <td>
-
-        {{ backup.size }} KB
-
-    </td>
-
-    <td>
-
-        {{ backup.created.strftime("%d %b %Y %I:%M %p") }}
-
-    </td>
-
-    <td>
-
-        <a
-            href="{{ url_for('backup.download', filename=backup.name) }}"
-            class="download-btn"
-        >
-
-            <i class="bi bi-download"></i>
-
-            Download
-
-        </a>
-
-        <a
-href="{{ url_for('backup.restore', filename=backup.name) }}"
-class="download-btn"
-style="
-background:#f59e0b;
-margin-left:8px;
-"
-onclick="return confirm('Restore this backup? Current database will be replaced.')"
->
-
-<i class="bi bi-arrow-counterclockwise"></i>
-
-Restore
-
-</a>
-
-        <a
-href="{{ url_for('backup.delete', filename=backup.name) }}"
-class="btn btn-sm btn-danger"
-onclick="return confirm('Delete this backup?')"
->
-
-<i class="bi bi-trash"></i>
-
-Delete
-
-</a>
-
-    </td>
-
-</tr>
-
-{% else %}
-
-<tr>
-
-    <td colspan="4">
-
-        <div class="empty">
-
-            <i class="bi bi-database-x"></i>
-
-            <h4>No Backups Found</h4>
-
-            <p>
-
-                Create your first database backup to
-                protect your CRM data.
-
-            </p>
-
+<div class="tools-container">
+
+    <div class="backup-header">
+        <div class="backup-title">
+            <h2>Database Infrastructure Control</h2>
+            <p>Manage live production environments using secure object state streams.</p>
+        </div>
+    </div>
+
+    <div class="tools-grid">
+        
+        <!-- Card 1: Live Download Area -->
+        <div class="action-card backup-zone">
+            <div class="card-details">
+                <div class="card-icon">
+                    <i class="bi bi-cloud-arrow-down-fill"></i>
+                </div>
+                <h3>Instant JSON Export</h3>
+                <p>Generates a dynamic real-time structural archive of all active database nodes and streams a compiled JSON payload directly into your storage ecosystem.</p>
+            </div>
+            <a href="{{ url_for('backup.create') }}" class="action-btn btn-primary-download">
+                <i class="bi bi-download"></i> Trigger JSON Backup
+            </a>
         </div>
 
-    </td>
+        <!-- Card 2: Safe Recovery Upload Area -->
+        <div class="action-card restore-zone">
+            <div class="card-details">
+                <div class="card-icon">
+                    <i class="bi bi-shield-fill-exclamation"></i>
+                </div>
+                <h3>Disaster Data Restoration</h3>
+                <p>Injects an encrypted structural object map directly into your application model context. Current storage datasets will be purged and overwritten cleanly.</p>
+            </div>
+            
+            <form action="{{ url_for('backup.restore') }}" method="POST" enctype="multipart/form-data">
+                <div class="file-wrapper">
+                    <input class="custom-file-input" type="file" name="backup_file" accept=".json" required>
+                </div>
+                <button type="submit" class="action-btn btn-warning-restore" onclick="return confirm('CRITICAL CONFIRMATION REQUIRED: Proceeding will drop and overwrite active database models. Do you wish to proceed?');">
+                    <i class="bi bi-arrow-counterclockwise"></i> Upload & Rebuild Nodes
+                </button>
+            </form>
+        </div>
 
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
+    </div>
 
 </div>
-
 {% endblock %}
