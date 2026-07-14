@@ -19,6 +19,9 @@ from flask_login import (
 from config import Config
 
 
+    
+
+
 # =========================================================
 # EXTENSIONS
 # =========================================================
@@ -97,6 +100,12 @@ def create_app():
 
     from app.reports import reports_bp
     app.register_blueprint(reports_bp)
+
+    
+    from app.settings import settings_bp
+    app.register_blueprint(settings_bp)
+
+
     # ==========================================
     # IMPORT MODELS
     # ==========================================
