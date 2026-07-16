@@ -31,15 +31,62 @@ Search, filter and manage complete client lifecycle records.
             </p>
         </div>
 
-        <a
-            href="{{ url_for('clients.add_client') }}"
-            class="btn btn-primary-red"
-        >
-            <i class="bi bi-person-plus-fill"></i>
-            Add Client
-        </a>
+        <div class="client-header-actions">
+            <a
+                href="{{ url_for('clients.download_client_import_template') }}"
+                class="btn btn-secondary-soft"
+            >
+                <i class="bi bi-download"></i>
+                Download Template
+            </a>
+
+            <!-- Import Excel Button -->
+            <button
+                type="button"
+                class="btn btn-secondary-soft"
+                id="openImportModalBtnManual"
+            >
+                <i class="bi bi-upload"></i>
+                Import Excel
+            </button>
+
+            <a
+                href="{{ url_for('clients.add_client') }}"
+                class="btn btn-primary-red"
+            >
+                <i class="bi bi-person-plus-fill"></i>
+                Add Client
+            </a>
+        </div>  
     </section>
 
+    <!-- Modal Form Component Structure (Fixed Payload File Input Field Parsing Errors) -->
+    <div id="customClientImportModal" class="custom-modal" style="display: none;">
+        <div class="custom-modal-content">
+            <span class="custom-close" id="closeImportModalManual">&times;</span>
+            
+            <h3 class="mb-4">Import Clients</h3>
+
+            <form method="POST" action="{{ url_for('clients.import_clients_excel') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="excel_file" class="form-label">Choose Excel File (.xlsx, .xls)</label>
+                    <!-- Aligned name attribute to standard parameter keys to fix internal script parsing dropouts -->
+                    <input class="form-control" type="file" id="excel_file" name="excel_file" accept=".xlsx, .xls" required>
+                </div>
+                
+                <!-- Duplicate Handling Option -->
+                <div class="mb-3 form-check" style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+                    <input type="checkbox" class="form-check-input" id="ignore_duplicates" name="ignore_duplicates" value="1" style="cursor: pointer; width: 16px; height: 16px;">
+                    <label class="form-check-label" for="ignore_duplicates" style="cursor: pointer; font-size: 13px; font-weight: 600; color: #273043;">Ignore duplicate records</label>
+                </div>
+
+                <div class="mt-4 text-end" style="margin-top: 20px; text-align: right;">
+                    <button type="submit" class="btn btn-primary-red">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+            
 
     <section class="client-stat-grid">
 
@@ -832,6 +879,50 @@ Search, filter and manage complete client lifecycle records.
 
 
 <style>
+.custom-modal {
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-modal-content {
+    background-color: #ffffff;
+    margin: 30px auto;
+    padding: 28px;
+    border: 1px solid #e2e8f0;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    position: relative;
+}
+
+.custom-close {
+    color: #94a3b8;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.custom-close:hover {
+    color: #1e293b;
+}
+
 .bulk-action-toolbar {
     display: flex;
     align-items: center;
@@ -1154,7 +1245,6 @@ Search, filter and manage complete client lifecycle records.
     cursor: pointer;
 }
 
-/* Document requirement: clearly color-coded lifecycle statuses */
 .client-status-badge.status-lead { background:#eef2ff; color:#4338ca; }
 .client-status-badge.status-new { background:#e0f2fe; color:#0369a1; }
 .client-status-badge.status-active { background:#dcfce7; color:#15803d; }
@@ -1244,6 +1334,37 @@ Search, filter and manage complete client lifecycle records.
     cursor: help;
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("customClientImportModal");
+    const openBtn = document.getElementById("openImportModalBtnManual");
+    const closeSpan = document.getElementById("closeImportModalManual");
+
+    if (openBtn && modal) {
+        openBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            modal.style.display = "flex"; 
+            document.body.style.overflow = "hidden";
+        }
+    }
+
+    if (closeSpan) {
+        closeSpan.onclick = function(e) {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+    }
+});
+</script>
 
 {% if current_user.role == "admin" %}
 <script>
