@@ -27,8 +27,8 @@ from flask_login import (
 from werkzeug.utils import secure_filename
 
 from sqlalchemy import or_
+from openpyxl import Workbook, load_workbook
 
-from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
@@ -1595,7 +1595,306 @@ def bulk_tag_clients():
         url_for("clients.client_list")
     )
 
+# =========================================================
+# DOWNLOAD CLIENT IMPORT TEMPLATE
+# =========================================================
 
+@clients_bp.route(
+    "/import/template"
+)
+@login_required
+def download_client_import_template():
+    print("========== IMPORT ROUTE HIT ==========")
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Clients Import"
+
+    headers = [
+        "Company Name",
+        "Category",
+        "Status",
+        "Contact Person",
+        "Designation",
+        "Primary Phone",
+        "Secondary Phone",
+        "Email",
+        "Website",
+        "Address Line 1",
+        "Address Line 2",
+        "Industry",
+        "Services Needed",
+        "Lead Source",
+        "Priority",
+        "Assigned Owner Email",
+        "Last Contact Date",
+        "Next Follow Up Date",
+        "Tags",
+        "Notes",
+    ]
+
+    sheet.append(headers)
+
+    sample = [
+        "ABC Logistics Pvt Ltd",
+        "existing_client",
+        "active",
+        "John David",
+        "Logistics Manager",
+        "9876543210",
+        "",
+        "john@abclogistics.com",
+        "https://abclogistics.com",
+        "Hyderabad",
+        "",
+        "Logistics",
+        "air_freight,sea_freight",
+        "website",
+        "high",
+        "admin@company.com",
+        "2026-07-01",
+        "2026-07-20",
+        "VIP,Import",
+        "Sample Client",
+    ]
+
+    sheet.append(sample)
+
+    for cell in sheet[1]:
+        cell.font = Font(
+            bold=True,
+            color="FFFFFF"
+        )
+
+        cell.fill = PatternFill(
+            "solid",
+            fgColor="C62828"
+        )
+
+    for column in sheet.columns:
+
+        max_length = 0
+
+        for cell in column:
+            value = "" if cell.value is None else str(cell.value)
+
+            if len(value) > max_length:
+                max_length = len(value)
+
+        sheet.column_dimensions[
+            get_column_letter(column[0].column)
+        ].width = min(max(max_length + 2, 18), 40)
+
+    sheet.freeze_panes = "A2"
+    sheet.auto_filter.ref = sheet.dimensions
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="Client_Import_Template.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+@clients_bp.route(
+    "/import",
+    methods=["POST"]
+)
+@login_required
+def import_clients_excel():
+
+    file = request.files.get("excel_file")
+
+    if not file:
+        flash(
+            "Please select an Excel file.",
+            "danger"
+        )
+        return redirect(
+            url_for("clients.client_list")
+        )
+
+    try:
+        workbook = load_workbook(file)
+        sheet = workbook.active
+
+    except Exception:
+        flash(
+            "Invalid Excel file.",
+            "danger"
+        )
+        return redirect(
+            url_for("clients.client_list")
+        )
+
+    imported = 0
+    skipped = 0
+
+    skip_duplicates = (
+        request.form.get("skip_duplicates") == "1"
+    )
+
+    try:
+        for row in sheet.iter_rows(
+            min_row=2,
+            values_only=True
+        ):
+            # రో ఖాళీగా ఉన్నా లేదా ఫస్ట్ సెల్ (Company Name) లేకపోయినా స్కిప్ చేయడానికి
+            if not row or not row[0]:
+                continue
+
+            # row పొడవు తక్కువగా ఉంటే IndexError రాకుండా None లతో ప్యాడ్ చేస్తున్నాం (Safe Access)
+            row_length = len(row)
+            padded_row = list(row) + [None] * (20 - row_length)
+
+            company_name = str(padded_row[0]).strip()
+            category = padded_row[1] or "existing_client"
+            status = padded_row[2] or "active"
+            contact_person_name = padded_row[3] or "Not Provided"
+            designation = padded_row[4] or ""
+            
+            # ఫోన్ నంబర్స్ ఫార్మాటింగ్ క్లీనప్ (.0 డెసిమల్స్ రాకుండా)
+            def clean_phone(val):
+                if val is None:
+                    return ""
+                val_str = str(val).strip()
+                if val_str.endswith(".0"):
+                    val_str = val_str[:-2]
+                return val_str
+
+            primary_phone = clean_phone(padded_row[5]) or "N/A"
+            secondary_phone = clean_phone(padded_row[6])
+            
+            email = str(padded_row[7]).strip().lower() if padded_row[7] else ""
+            website_url = padded_row[8] or ""
+            address_line_1 = padded_row[9] or "Not Available"
+            address_line_2 = padded_row[10] or ""
+            industry_sector = padded_row[11] or ""
+
+            # Services Needed (row[12] -> comma-separated string ని లిస్ట్‌గా మార్చడం)
+            services_needed = []
+            if padded_row[12]:
+                services_needed = [s.strip() for s in str(padded_row[12]).split(",") if s.strip()]
+
+            # Lead Source & Priority
+            lead_source = padded_row[13] or ""
+            priority_level = padded_row[14] or "medium"
+
+            # Assigned Owner Email (row[15] -> ఈమెయిల్ ఉంటే డేటాబేస్ నుండి యూజర్ ID వెతుకుతాం)
+            assigned_to_id = current_user.id
+            owner_email = str(padded_row[15]).strip().lower() if padded_row[15] else ""
+            if owner_email:
+                owner = User.query.filter_by(email=owner_email, is_active_user=True).first()
+                if owner:
+                    assigned_to_id = owner.id
+
+            # Dates parsing (row[16] and row[17])
+            def parse_excel_date(date_val):
+                if not date_val:
+                    return None
+                if isinstance(date_val, datetime):
+                    return date_val.date()
+                try:
+                    return datetime.strptime(str(date_val).strip(), "%Y-%m-%d").date()
+                except ValueError:
+                    return None
+
+            last_contact_date = parse_excel_date(padded_row[16])
+            next_follow_up_date = parse_excel_date(padded_row[17])
+
+            # Tags (row[18] -> comma separated tags to list)
+            tags = []
+            if padded_row[18]:
+                tags = [t.strip() for t in str(padded_row[18]).split(",") if t.strip()]
+
+            notes = padded_row[19] or ""
+
+            # Duplicate Checking
+            if skip_duplicates and email:
+                existing = Client.query.filter_by(email=email).first()
+                if existing:
+                    skipped += 1
+                    continue
+
+            # Client Instance సృష్టి
+            client = Client(
+                company_name=company_name,
+                category=category,
+                status=status,
+                contact_person_name=contact_person_name,
+                designation=designation,
+                primary_phone=primary_phone,
+                secondary_phone=secondary_phone,
+                email=email,
+                website_url=website_url,
+                address_line_1=address_line_1,
+                address_line_2=address_line_2,
+                industry_sector=industry_sector,
+                services_needed=services_needed,
+                assigned_to_id=assigned_to_id,
+                lead_source=lead_source,
+                last_contact_date=last_contact_date,
+                next_follow_up_date=next_follow_up_date,
+                priority_level=priority_level,
+                notes=notes,
+                tags=tags,
+                created_by_id=current_user.id,
+            )
+
+            db.session.add(client)
+            db.session.flush()  # ID జనరేట్ అవ్వడానికి ఫ్లష్ చేస్తున్నాం
+
+            client.client_reference = (
+                f"CLI-{datetime.now(timezone.utc).year}-{client.id:06d}"
+            )
+
+            status_history = ClientStatusHistory(
+                client_id=client.id,
+                old_status=None,
+                new_status=client.status,
+                changed_by_id=current_user.id,
+                remarks="Client imported from Excel."
+            )
+
+            db.session.add(status_history)
+
+            try:
+                log_client_audit(
+                    client_id=client.id,
+                    action_type="client",
+                    action="created",
+                    title="Client Imported",
+                    description="Client imported from Excel."
+                )
+            except Exception:
+                pass
+
+            imported += 1
+
+        db.session.commit()
+
+    except Exception as error:
+        db.session.rollback()
+        print("CLIENT IMPORT ERROR:", repr(error))
+        flash(
+            "Import failed. Please check the Excel file.",
+            "danger"
+        )
+        return redirect(
+            url_for("clients.client_list")
+        )
+
+    flash(
+        f"{imported} clients imported successfully. {skipped} duplicate clients skipped.",
+        "success"
+    )
+
+    return redirect(
+        url_for("clients.client_list")
+    )
 # =========================================================
 # ADD CLIENT
 # =========================================================
@@ -1867,9 +2166,6 @@ def add_client():
             f"CLI-{datetime.now(timezone.utc).year}-{client.id:06d}"
         )
 
-        db.session.commit()
-
-
         status_history = ClientStatusHistory(
             client_id=client.id,
             old_status=None,
@@ -1882,7 +2178,6 @@ def add_client():
         )
 
         db.session.add(status_history)
-
 
         uploaded_files = request.files.getlist(
             "attachments"
