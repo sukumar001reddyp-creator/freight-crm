@@ -397,13 +397,13 @@
 
                 {% for task in tasks %}
 
-                    {% set is_overdue =
-                        task.status not in [
-                            "completed",
-                            "cancelled"
-                        ]
-                        and task.due_date < now
-                    %}
+                   {% set is_overdue =
+    task.status not in [
+        "completed",
+        "cancelled"
+    ]
+    and task.due_date and task.due_date.replace(tzinfo=None) < now.replace(tzinfo=None)
+%}
 
 
                     <div
