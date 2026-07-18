@@ -726,7 +726,7 @@ def export_excel():
         ws.cell(
             row=row,
             column=3,
-            value=quotation.total_amount,
+            value=quotation.quotation_amount,
         )
 
         ws.cell(
