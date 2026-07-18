@@ -212,9 +212,8 @@ def task_list():
     )
 
 
-    # SQLite commonly returns stored DateTime
-    # values as offset-naive datetimes.
-    now = datetime.now()
+   # SQLite returns naive datetimes, so 'now' also needs to be naive.
+    now = datetime.utcnow()
 
 
     return render_template(
@@ -482,15 +481,12 @@ def create_task():
 
         try:
 
-            due_date = datetime.fromisoformat(
-                due_date_raw
-            )
-
-            due_date = due_date.replace(
-                tzinfo=timezone.utc
-            )
+    # Datetime string ni pure naive parsing standard structure ga marchali
+            due_date = datetime.fromisoformat(due_date_raw)
 
         except (TypeError, ValueError):
+
+        
 
             flash(
                 "Please enter a valid due date and time.",
@@ -965,13 +961,7 @@ def edit_task(task_id):
 
         try:
 
-            due_date = datetime.fromisoformat(
-                due_date_raw
-            )
-
-            due_date = due_date.replace(
-                tzinfo=timezone.utc
-            )
+            due_date = datetime.fromisoformat(due_date_raw)
 
         except (TypeError, ValueError):
 
