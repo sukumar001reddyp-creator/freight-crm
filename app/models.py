@@ -271,8 +271,8 @@ class Enquiry(db.Model):
     
     cargo_description = db.Column(db.Text, nullable=False)
     total_pieces = db.Column(db.Integer, nullable=True)
-    weight_kg = db.Column(db.Numeric(12, 2), nullable=True)
-    volume_cbm = db.Column(db.Numeric(12, 2), nullable=True)
+    weight_kg = db.Column(db.Float, nullable=True)
+    volume_cbm = db.Column(db.Float, nullable=True)
     cargo_weight_volume = db.Column(db.String(150), nullable=True)
 
     handled_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
