@@ -244,7 +244,21 @@ def create_app():
         # Top Cards Counts
         total_clients = client_scope.count()
         total_enquiries = enquiry_scope.filter(Enquiry.status.notin_(["closed", "cancelled", "converted"])).count()
+        # Safer quotation count with fallback
+    try:
         total_quotations = quotation_scope.filter(Quotation.status == "pending").count()
+    except Exception:
+        total_quotations = 0
+
+# And same for the status breakdown:
+    try:
+        quotation_status_counts = {
+            "pending": quotation_scope.filter(Quotation.status == "pending").count(),
+            "approved": quotation_scope.filter(Quotation.status == "approved").count(),
+            "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
+    }
+    except Exception:
+        quotation_status_counts = {"pending": 0, "approved": 0, "rejected": 0}
         total_shipments = shipment_scope.filter(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"])).count()
 
         # Quotation & Enquiry Status Counts
