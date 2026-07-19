@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from datetime import datetime, date
 from decimal import Decimal
 from flask import (
@@ -25,6 +26,8 @@ backup_bp = Blueprint(
     __name__,
     url_prefix="/backup"
 )
+
+logger = logging.getLogger(__name__)
 
 
 def admin_only():
@@ -72,10 +75,7 @@ def create():
         backup_filename = f"backup_{timestamp}.json"
         dest_path = os.path.join(backup_dir, backup_filename)
 
-        # Get all tables from metadata in dependency order
-        table_order = []
-        for table_name in db.metadata.sorted_tables:
-            table_order.append(table_name.name)
+        table_order = [t.name for t in db.metadata.sorted_tables]
 
         backup_data = {}
         for table_name in table_order:
@@ -84,8 +84,10 @@ def create():
                     table = db.metadata.tables[table_name]
                     result = db.session.execute(table.select()).fetchall()
                     backup_data[table_name] = [dict(row._mapping) for row in result]
+                    logger.info(f"Backed up {table_name}: {len(result)} rows")
                 except Exception as table_err:
-                    backup_data[table_name] = f"Error reading table: {str(table_err)}"
+                    logger.error(f"Error reading {table_name}: {table_err}")
+                    backup_data[table_name] = f"Error: {str(table_err)}"
 
         def universal_serializer(obj):
             if isinstance(obj, (datetime, date)):
@@ -100,6 +102,7 @@ def create():
         with open(dest_path, "w") as f:
             json.dump(backup_data, f, indent=4, default=universal_serializer)
 
+        logger.info(f"Backup saved: {dest_path}")
         return send_file(
             dest_path,
             as_attachment=True,
@@ -108,6 +111,7 @@ def create():
         )
 
     except Exception as e:
+        logger.exception("Backup creation failed")
         flash(f"Backup creation failed: {str(e)}", "danger")
         return redirect(url_for("backup.index"))
 
@@ -160,52 +164,63 @@ def restore():
             return redirect(url_for("backup.index"))
 
         file = request.files['backup_file']
+        logger.info(f"Uploaded file: {file.filename}")
+
         if file.filename == '':
             flash("No selected file", "danger")
             return redirect(url_for("backup.index"))
 
         if not file.filename.endswith('.json'):
-            flash("Invalid file format. Please upload a valid .json backup file.", "danger")
+            flash("Invalid file format.", "danger")
             return redirect(url_for("backup.index"))
 
         file_data = json.load(file)
+        logger.info(f"Backup contains tables: {list(file_data.keys())}")
 
-        # Get tables in reverse dependency order for deletion
-        # and forward order for insertion
         sorted_tables = [t.name for t in db.metadata.sorted_tables]
+        logger.info(f"Database has tables: {sorted_tables}")
 
-        # Clear all tables in reverse order (children first)
+        matching_tables = [t for t in sorted_tables if t in file_data]
+        logger.info(f"Matching tables: {matching_tables}")
+
+        if not matching_tables:
+            flash("No matching tables found in backup!", "danger")
+            return redirect(url_for("backup.index"))
+
+        # Clear tables in reverse order
         for table_name in reversed(sorted_tables):
-            if table_name in db.metadata.tables:
+            if table_name in db.metadata.tables and table_name in file_data:
                 table = db.metadata.tables[table_name]
                 try:
-                    db.session.execute(table.delete())
+                    result = db.session.execute(table.delete())
+                    logger.info(f"Cleared table {table_name}: {result.rowcount} rows deleted")
                 except Exception as del_err:
-                    flash(f"Warning: Could not clear table {table_name}: {str(del_err)}", "warning")
+                    logger.error(f"Could not clear {table_name}: {del_err}")
 
-        # Restore data in correct order (parents first)
-        restored_count = {}
+        # Restore data in correct order with batch commits
+        total_rows = 0
         skipped_columns = {}
 
         for table_name in sorted_tables:
-            rows = file_data.get(table_name, [])
-            if table_name not in db.metadata.tables:
+            if table_name not in file_data:
                 continue
 
+            rows = file_data[table_name]
             if not isinstance(rows, list):
-                flash(f"Warning: Invalid data for table {table_name}, skipping", "warning")
+                logger.warning(f"Table {table_name}: invalid data type {type(rows)}")
                 continue
 
             table = db.metadata.tables[table_name]
             actual_columns = set(table.columns.keys())
 
-            # Track skipped columns for this table
-            table_skipped = set()
+            logger.info(f"Restoring {table_name}: {len(rows)} rows")
 
-            for row in rows:
+            table_skipped = set()
+            table_inserted = 0
+
+            for i, row in enumerate(rows):
                 cleaned_row = {}
                 for col_name, value in row.items():
-                    # Skip columns that don't exist in current database schema
                     if col_name not in actual_columns:
                         table_skipped.add(col_name)
                         continue
@@ -227,32 +242,40 @@ def restore():
                     else:
                         cleaned_row[col_name] = value
 
-                # Only insert if we have valid columns
                 if cleaned_row:
                     try:
                         db.session.execute(table.insert().values(**cleaned_row))
+                        table_inserted += 1
+                        total_rows += 1
+
+                        # Batch commit every 100 rows to avoid memory issues
+                        if total_rows % 100 == 0:
+                            db.session.commit()
+                            logger.info(f"Batch commit at {total_rows} rows")
+
                     except Exception as insert_err:
-                        flash(f"Warning: Could not insert row into {table_name}: {str(insert_err)}", "warning")
+                        logger.error(f"Insert failed {table_name} row {i}: {insert_err}")
                         continue
 
-            restored_count[table_name] = len(rows)
             if table_skipped:
                 skipped_columns[table_name] = list(table_skipped)
 
-        db.session.commit()
+            logger.info(f"Table {table_name}: {table_inserted}/{len(rows)} rows inserted")
 
-        # Build success message
-        msg = f"Database restored successfully! {sum(restored_count.values())} total rows restored."
+        # Final commit
+        db.session.commit()
+        logger.info(f"Restore complete: {total_rows} total rows")
+
+        msg = f"Database restored! {total_rows} rows restored."
         if skipped_columns:
-            skip_msg = "Skipped columns (old schema): " + ", ".join(
-                [f"{t}.{c}" for t, cols in skipped_columns.items() for c in cols]
-            )
-            flash(msg + " " + skip_msg, "success")
-        else:
-            flash(msg, "success")
+            skip_details = ", ".join([f"{t}: {', '.join(cols)}" for t, cols in skipped_columns.items()])
+            msg += f" Skipped columns: {skip_details}"
+
+        flash(msg, "success")
 
     except Exception as e:
         db.session.rollback()
+        logger.exception("Restore failed")
         flash(f"Recovery failed: {str(e)}", "danger")
 
     return redirect(url_for("backup.index"))
