@@ -18,7 +18,7 @@ from flask_login import (
     login_required,
     current_user,
 )
-from sqlalchemy import DateTime, Date
+from sqlalchemy import DateTime, Date, text
 from app.models import db
 
 backup_bp = Blueprint(
@@ -27,6 +27,7 @@ backup_bp = Blueprint(
     url_prefix="/backup"
 )
 
+# Setup logger
 logger = logging.getLogger(__name__)
 
 
@@ -158,6 +159,8 @@ def restore():
         flash("Access denied.", "danger")
         return redirect(url_for("dashboard"))
 
+    restore_log = []
+
     try:
         if 'backup_file' not in request.files:
             flash("No file part found", "danger")
@@ -187,17 +190,32 @@ def restore():
             flash("No matching tables found in backup!", "danger")
             return redirect(url_for("backup.index"))
 
-        # Clear tables in reverse order
+        # STEP 1: Clear all tables in reverse order (children first)
+        restore_log.append("=== CLEARING TABLES ===")
         for table_name in reversed(sorted_tables):
             if table_name in db.metadata.tables and table_name in file_data:
                 table = db.metadata.tables[table_name]
                 try:
-                    result = db.session.execute(table.delete())
-                    logger.info(f"Cleared table {table_name}: {result.rowcount} rows deleted")
+                    # Use TRUNCATE for faster clearing (resets IDs too)
+                    db.session.execute(text(f'TRUNCATE TABLE "{table_name}" CASCADE'))
+                    restore_log.append(f"TRUNCATED {table_name}")
+                    logger.info(f"Truncated table {table_name}")
                 except Exception as del_err:
-                    logger.error(f"Could not clear {table_name}: {del_err}")
+                    # Fallback to DELETE if TRUNCATE fails
+                    try:
+                        result = db.session.execute(table.delete())
+                        restore_log.append(f"DELETED from {table_name}: {result.rowcount} rows")
+                        logger.info(f"Deleted from {table_name}: {result.rowcount} rows")
+                    except Exception as del_err2:
+                        restore_log.append(f"ERROR clearing {table_name}: {del_err2}")
+                        logger.error(f"Could not clear {table_name}: {del_err2}")
 
-        # Restore data in correct order with batch commits
+        # Commit the clears
+        db.session.commit()
+        restore_log.append("=== CLEAR COMMITTED ===")
+
+        # STEP 2: Restore data in correct order (parents first)
+        restore_log.append("=== RESTORING TABLES ===")
         total_rows = 0
         skipped_columns = {}
 
@@ -207,12 +225,13 @@ def restore():
 
             rows = file_data[table_name]
             if not isinstance(rows, list):
-                logger.warning(f"Table {table_name}: invalid data type {type(rows)}")
+                restore_log.append(f"SKIP {table_name}: invalid data type {type(rows)}")
                 continue
 
             table = db.metadata.tables[table_name]
             actual_columns = set(table.columns.keys())
 
+            restore_log.append(f"RESTORING {table_name}: {len(rows)} rows")
             logger.info(f"Restoring {table_name}: {len(rows)} rows")
 
             table_skipped = set()
@@ -247,35 +266,58 @@ def restore():
                         db.session.execute(table.insert().values(**cleaned_row))
                         table_inserted += 1
                         total_rows += 1
-
-                        # Batch commit every 100 rows to avoid memory issues
-                        if total_rows % 100 == 0:
-                            db.session.commit()
-                            logger.info(f"Batch commit at {total_rows} rows")
-
                     except Exception as insert_err:
+                        restore_log.append(f"INSERT ERROR {table_name} row {i}: {insert_err}")
                         logger.error(f"Insert failed {table_name} row {i}: {insert_err}")
                         continue
+
+            # Commit per table to avoid huge transactions
+            try:
+                db.session.commit()
+                restore_log.append(f"COMMITTED {table_name}: {table_inserted} rows")
+                logger.info(f"Committed {table_name}: {table_inserted} rows")
+            except Exception as commit_err:
+                db.session.rollback()
+                restore_log.append(f"COMMIT FAILED {table_name}: {commit_err}")
+                logger.error(f"Commit failed for {table_name}: {commit_err}")
+                continue
 
             if table_skipped:
                 skipped_columns[table_name] = list(table_skipped)
 
-            logger.info(f"Table {table_name}: {table_inserted}/{len(rows)} rows inserted")
+        restore_log.append(f"=== TOTAL: {total_rows} rows ===")
 
-        # Final commit
-        db.session.commit()
-        logger.info(f"Restore complete: {total_rows} total rows")
-
-        msg = f"Database restored! {total_rows} rows restored."
+        # Build success message with full log
+        msg = f"Restore complete! {total_rows} rows."
         if skipped_columns:
-            skip_details = ", ".join([f"{t}: {', '.join(cols)}" for t, cols in skipped_columns.items()])
-            msg += f" Skipped columns: {skip_details}"
+            skip_details = ", ".join([f"{t}: {len(cols)} cols" for t, cols in skipped_columns.items()])
+            msg += f" Skipped: {skip_details}."
+
+        # Store log in session for display
+        from flask import session
+        session['restore_log'] = restore_log
 
         flash(msg, "success")
+        logger.info(f"Restore complete: {total_rows} rows")
 
     except Exception as e:
         db.session.rollback()
         logger.exception("Restore failed")
+        restore_log.append(f"FATAL ERROR: {e}")
+        from flask import session
+        session['restore_log'] = restore_log
         flash(f"Recovery failed: {str(e)}", "danger")
 
     return redirect(url_for("backup.index"))
+
+
+@backup_bp.route("/restore-log")
+@login_required
+def restore_log():
+    if not admin_only():
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard"))
+
+    from flask import session
+    log = session.get('restore_log', [])
+    return render_template("backup/restore_log.html", log=log)
