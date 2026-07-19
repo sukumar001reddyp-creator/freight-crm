@@ -63,6 +63,7 @@
                             <th>Status</th>
                             <th>Handled By</th>
                             <th>Created</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -209,6 +210,14 @@
                                         }}
                                     </span>
                                 </td>
+                                <!-- ACTION BUTTON -->
+<td>
+    <a href="{{ url_for('shipments.track_shipment', tracking_number=shipment.hbl_no) }}" 
+       class="btn btn-sm" 
+       style="font-size: 11px; padding: 4px 10px; border-radius: 6px; text-decoration: none; border: 1px solid #1d4ed8; color: #1d4ed8; font-weight: 600;">
+       <i class="bi bi-geo-alt"></i> Track
+    </a>
+</td>
 
                             </tr>
 

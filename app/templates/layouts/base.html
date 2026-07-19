@@ -322,13 +322,21 @@
                     <span class="nav-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
                     <span>Quotations</span>
                 </a>
+            
                 {% endif %}
 
                 {% if permissions.can_access_shipments() %}
-                <a href="{{ url_for('shipments.shipment_list') }}" class="nav-item {% if request.blueprint == 'shipments' %}active{% endif %}">
-                    <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
-                    <span>Shipments</span>
-                </a>
+                
+<a href="{{ url_for('shipments.shipment_list') }}" class="nav-item {% if request.endpoint == 'shipments.shipment_list' %}active{% endif %}">
+    <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
+    <span>Shipments</span>
+</a>
+
+
+<a href="{{ url_for('shipments.track_shipment') }}" class="nav-item {% if request.endpoint == 'shipments.track_shipment' %}active{% endif %}">
+    <span class="nav-icon"><i class="bi bi-geo-alt-fill"></i></span>
+    <span>Live Tracking</span>
+</a>
                 {% endif %}
 
                 {% if permissions.can_access_tasks() %}
@@ -515,6 +523,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+<script src="https://cdn.tailwindcss.com"></script>
 
 {% block extra_js %}{% endblock %}
 

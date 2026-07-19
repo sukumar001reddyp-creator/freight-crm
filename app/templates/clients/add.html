@@ -21,27 +21,20 @@ Create and assign a complete client lifecycle record.
 >
 
     <div class="form-page-header">
-
         <div>
-
             <span class="panel-eyebrow">
                 CRM • New Record
             </span>
-
             <h2>
                 Create Client Record
             </h2>
-
             <p>
                 Capture relationship, contact, service,
                 ownership and follow-up information.
             </p>
-
         </div>
 
-
         <div class="form-page-actions">
-
             <a
                 href="{{ url_for('clients.client_list') }}"
                 class="btn btn-secondary-soft"
@@ -49,7 +42,6 @@ Create and assign a complete client lifecycle record.
                 <i class="bi bi-arrow-left"></i>
                 Cancel
             </a>
-
             <button
                 type="submit"
                 class="btn btn-primary-red"
@@ -57,52 +49,37 @@ Create and assign a complete client lifecycle record.
                 <i class="bi bi-check2-circle"></i>
                 Save Client
             </button>
-
         </div>
-
     </div>
 
-
     <div class="client-form-layout">
-
         <div class="client-form-main">
 
-
             <!-- ===================================== -->
-            <!-- CLIENT CLASSIFICATION -->
+            <!-- CLIENT CLASSIFICATION (SECTION 2.1 UPDATED) -->
             <!-- ===================================== -->
-
             <section class="form-section-card">
-
                 <div class="form-section-header">
-
                     <div class="form-section-icon">
                         <i class="bi bi-building"></i>
                     </div>
-
                     <div>
                         <h3>
                             Client Classification
                         </h3>
-
                         <p>
                             Define the company, category and
                             lifecycle relationship status.
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="form-grid form-grid-2">
-
                     <div class="crm-field full-span">
-
                         <label for="company_name">
                             Client / Company Name
                             <span class="required">*</span>
                         </label>
-
                         <input
                             type="text"
                             id="company_name"
@@ -111,64 +88,47 @@ Create and assign a complete client lifecycle record.
                             placeholder="e.g. ABC Shipping LLC"
                             required
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="category">
                             Client Category
                             <span class="required">*</span>
                         </label>
-
                         <select
                             id="category"
                             name="category"
                             required
                         >
-
-                            <option value="">
-                                Select category
-                            </option>
-
-                            {% for value, label in categories %}
-
-                                <option
-                                    value="{{ value }}"
-                                    {% if request.form.get('category') == value %}
-                                        selected
-                                    {% endif %}
-                                >
-                                    {{ label }}
-                                </option>
-
-                            {% endfor %}
-
+                            <option value="">Select category</option>
+                            <!-- Updated Dropdown Values from Section 2.1 Change Request -->
+                            <option value="Consignee / Importer" {% if request.form.get('category') == 'Consignee / Importer' %}selected{% endif %}>Consignee / Importer</option>
+                            <option value="Shipper / Exporter" {% if request.form.get('category') == 'Shipper / Exporter' %}selected{% endif %}>Shipper / Exporter</option>
+                            <option value="Freight Forwarding Agent (overseas partner / co-loader)" {% if request.form.get('category') == 'Freight Forwarding Agent (overseas partner / co-loader)' %}selected{% endif %}>Freight Forwarding Agent (overseas partner / co-loader)</option>
+                            <option value="NVOCC" {% if request.form.get('category') == 'NVOCC' %}selected{% endif %}>NVOCC</option>
+                            <option value="Customs Broker" {% if request.form.get('category') == 'Customs Broker' %}selected{% endif %}>Customs Broker</option>
+                            <option value="Trucking / Haulage Company" {% if request.form.get('category') == 'Trucking / Haulage Company' %}selected{% endif %}>Trucking / Haulage Company</option>
+                            <option value="Shipping Line / Airline (Carrier)" {% if request.form.get('category') == 'Shipping Line / Airline (Carrier)' %}selected{% endif %}>Shipping Line / Airline (Carrier)</option>
+                            <option value="Warehouse / 3PL Provider" {% if request.form.get('category') == 'Warehouse / 3PL Provider' %}selected{% endif %}>Warehouse / 3PL Provider</option>
+                            <option value="Direct Corporate Client" {% if request.form.get('category') == 'Direct Corporate Client' %}selected{% endif %}>Direct Corporate Client</option>
+                            <option value="Government / Institutional Client" {% if request.form.get('category') == 'Government / Institutional Client' %}selected{% endif %}>Government / Institutional Client</option>
                         </select>
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="status">
                             Client Status
                             <span class="required">*</span>
                         </label>
-
                         <select
                             id="status"
                             name="status"
                             required
                         >
-
                             <option value="">
                                 Select lifecycle status
                             </option>
-
                             {% for value, label in statuses %}
-
                                 <option
                                     value="{{ value }}"
                                     {% if request.form.get('status') == value %}
@@ -177,53 +137,37 @@ Create and assign a complete client lifecycle record.
                                 >
                                     {{ label }}
                                 </option>
-
                             {% endfor %}
-
                         </select>
-
                     </div>
-
                 </div>
-
             </section>
-
 
             <!-- ===================================== -->
             <!-- CONTACT INFORMATION -->
             <!-- ===================================== -->
-
             <section class="form-section-card">
-
                 <div class="form-section-header">
-
                     <div class="form-section-icon">
                         <i class="bi bi-person-vcard"></i>
                     </div>
-
                     <div>
                         <h3>
                             Contact Information
                         </h3>
-
                         <p>
                             Store the primary contact person
                             and communication details.
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="form-grid form-grid-2">
-
                     <div class="crm-field">
-
                         <label for="contact_person_name">
                             Contact Person Name
                             <span class="required">*</span>
                         </label>
-
                         <input
                             type="text"
                             id="contact_person_name"
@@ -232,16 +176,12 @@ Create and assign a complete client lifecycle record.
                             placeholder="Main point of contact"
                             required
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="designation">
                             Designation / Job Title
                         </label>
-
                         <input
                             type="text"
                             id="designation"
@@ -249,17 +189,13 @@ Create and assign a complete client lifecycle record.
                             value="{{ request.form.get('designation', '') }}"
                             placeholder="e.g. Logistics Manager"
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="primary_phone">
                             Primary Phone Number
                             <span class="required">*</span>
                         </label>
-
                         <input
                             type="tel"
                             id="primary_phone"
@@ -268,16 +204,12 @@ Create and assign a complete client lifecycle record.
                             placeholder="+965 XXXXXXXX"
                             required
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="secondary_phone">
                             Secondary / Alternate Phone
                         </label>
-
                         <input
                             type="tel"
                             id="secondary_phone"
@@ -285,17 +217,13 @@ Create and assign a complete client lifecycle record.
                             value="{{ request.form.get('secondary_phone', '') }}"
                             placeholder="Backup contact number"
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="email">
                             Email Address
                             <span class="required">*</span>
                         </label>
-
                         <input
                             type="email"
                             id="email"
@@ -304,16 +232,12 @@ Create and assign a complete client lifecycle record.
                             placeholder="contact@company.com"
                             required
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="website_url">
                             Website URL
                         </label>
-
                         <input
                             type="url"
                             id="website_url"
@@ -321,49 +245,148 @@ Create and assign a complete client lifecycle record.
                             value="{{ request.form.get('website_url', '') }}"
                             placeholder="https://company.com"
                         >
-
                     </div>
-
                 </div>
-
             </section>
 
+            <!-- ===================================== -->
+            <!-- ADDITIONAL INFORMATION (SECTION 2.2 NEW FIELDS) -->
+            <!-- ===================================== -->
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div class="form-section-icon" style="background: #eff6ff; color: #1d4ed8;">
+                        <i class="bi bi-file-earmark-medical"></i>
+                    </div>
+                    <div>
+                        <h3>
+                            Additional Information / More Information
+                        </h3>
+                        <p>
+                            Corporate legal compliance tracking parameters and accounting layout rules.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="crm-field">
+                        <label for="secondary_contact_name">
+                            Secondary Contact Name
+                        </label>
+                        <input
+                            type="text"
+                            id="secondary_contact_name"
+                            name="secondary_contact_name"
+                            value="{{ request.form.get('secondary_contact_name', '') }}"
+                            placeholder="Backup contact person name"
+                        >
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="secondary_contact_phone">
+                            Secondary Contact Phone
+                        </label>
+                        <input
+                            type="tel"
+                            id="secondary_contact_phone"
+                            name="secondary_contact_phone"
+                            value="{{ request.form.get('secondary_contact_phone', '') }}"
+                            placeholder="Backup contact number"
+                        >
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="secondary_contact_email">
+                            Secondary Contact Email
+                        </label>
+                        <input
+                            type="email"
+                            id="secondary_contact_email"
+                            name="secondary_contact_email"
+                            value="{{ request.form.get('secondary_contact_email', '') }}"
+                            placeholder="backup@company.com"
+                        >
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="company_registration_number">
+                            Company Registration Number
+                        </label>
+                        <input
+                            type="text"
+                            id="company_registration_number"
+                            name="company_registration_number"
+                            value="{{ request.form.get('company_registration_number', '') }}"
+                            placeholder="Legal registration / trade license"
+                        >
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="tax_vat_number">
+                            Tax / VAT Number
+                        </label>
+                        <input
+                            type="text"
+                            id="tax_vat_number"
+                            name="tax_vat_number"
+                            value="{{ request.form.get('tax_vat_number', '') }}"
+                            placeholder="Invoicing tax configuration number"
+                        >
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="license_number">
+                            License Number
+                        </label>
+                        <input
+                            type="text"
+                            id="license_number"
+                            name="license_number"
+                            value="{{ request.form.get('license_number', '') }}"
+                            placeholder="Freight/customs cargo setup identifier"
+                        >
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="payment_terms">
+                            Payment Terms
+                        </label>
+                        <select id="payment_terms" name="payment_terms">
+                            <option value="">Select terms</option>
+                            <option value="Advance" {% if request.form.get('payment_terms') == 'Advance' %}selected{% endif %}>Advance</option>
+                            <option value="Credit (30 days)" {% if request.form.get('payment_terms') == 'Credit (30 days)' %}selected{% endif %}>Credit (30 days)</option>
+                            <option value="Credit (45 days)" {% if request.form.get('payment_terms') == 'Credit (45 days)' %}selected{% endif %}>Credit (45 days)</option>
+                            <option value="Credit (60 days)" {% if request.form.get('payment_terms') == 'Credit (60 days)' %}selected{% endif %}>Credit (60 days)</option>
+                            <option value="50/50" {% if request.form.get('payment_terms') == '50/50' %}selected{% endif %}>50/50</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
 
             <!-- ===================================== -->
             <!-- ADDRESS & INDUSTRY -->
             <!-- ===================================== -->
-
             <section class="form-section-card">
-
                 <div class="form-section-header">
-
                     <div class="form-section-icon">
                         <i class="bi bi-geo-alt"></i>
                     </div>
-
                     <div>
                         <h3>
                             Address & Industry
                         </h3>
-
                         <p>
                             Record the company location and
                             business sector.
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="form-grid form-grid-2">
-
                     <div class="crm-field full-span">
-
                         <label for="address_line_1">
                             Address Line 1
                             <span class="required">*</span>
                         </label>
-
                         <input
                             type="text"
                             id="address_line_1"
@@ -372,16 +395,12 @@ Create and assign a complete client lifecycle record.
                             placeholder="Building, street"
                             required
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="address_line_2">
                             Address Line 2
                         </label>
-
                         <input
                             type="text"
                             id="address_line_2"
@@ -389,16 +408,12 @@ Create and assign a complete client lifecycle record.
                             value="{{ request.form.get('address_line_2', '') }}"
                             placeholder="Area, landmark"
                         >
-
                     </div>
 
-
                     <div class="crm-field">
-
                         <label for="industry_sector">
                             Industry / Sector
                         </label>
-
                         <input
                             type="text"
                             id="industry_sector"
@@ -406,51 +421,34 @@ Create and assign a complete client lifecycle record.
                             value="{{ request.form.get('industry_sector', '') }}"
                             placeholder="e.g. Oil & Gas"
                         >
-
                     </div>
-
                 </div>
-
             </section>
-
 
             <!-- ===================================== -->
             <!-- SERVICES -->
             <!-- ===================================== -->
-
             <section class="form-section-card">
-
                 <div class="form-section-header">
-
                     <div class="form-section-icon">
                         <i class="bi bi-boxes"></i>
                     </div>
-
                     <div>
                         <h3>
                             Service(s) Needed
                             <span class="required">*</span>
                         </h3>
-
                         <p>
                             Select one or more freight and
                             logistics services.
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="service-option-grid">
-
-                    {% set selected_services =
-                        request.form.getlist('services_needed')
-                    %}
-
+                    {% set selected_services = request.form.getlist('services_needed') %}
                     {% for value, label in services %}
-
                         <label class="service-option">
-
                             <input
                                 type="checkbox"
                                 name="services_needed"
@@ -459,123 +457,87 @@ Create and assign a complete client lifecycle record.
                                     checked
                                 {% endif %}
                             >
-
                             <span class="service-option-box">
-
                                 <span class="service-check">
                                     <i class="bi bi-check-lg"></i>
                                 </span>
-
                                 <span class="service-name">
                                     {{ label }}
                                 </span>
-
                             </span>
-
                         </label>
-
                     {% endfor %}
-
                 </div>
-
             </section>
-
 
             <!-- ===================================== -->
             <!-- NOTES -->
             <!-- ===================================== -->
-
             <section class="form-section-card">
-
                 <div class="form-section-header">
-
                     <div class="form-section-icon">
                         <i class="bi bi-chat-left-text"></i>
                     </div>
-
                     <div>
                         <h3>
                             Notes & Remarks
                         </h3>
-
                         <p>
                             Add internal context, instructions
                             or relationship notes.
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="notes">
                         Notes / Remarks
                     </label>
-
                     <textarea
                         id="notes"
                         name="notes"
                         rows="6"
                         placeholder="Enter internal client notes..."
                     >{{ request.form.get('notes', '') }}</textarea>
-
                 </div>
-
             </section>
-
         </div>
-
 
         <!-- ========================================= -->
         <!-- RIGHT SIDEBAR -->
         <!-- ========================================= -->
-
         <aside class="client-form-side">
 
-
             <!-- OWNERSHIP -->
-
             <section class="form-section-card side-card">
-
                 <div class="side-card-title">
-
                     <span class="side-card-icon">
                         <i class="bi bi-person-check"></i>
                     </span>
-
                     <div>
                         <h3>
                             Ownership
                         </h3>
-
                         <p>
                             Assignment and source
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="assigned_to_id">
                         Assigned To
                         <span class="required">*</span>
                     </label>
-
                     <select
                         id="assigned_to_id"
                         name="assigned_to_id"
                         required
                     >
-
                         <option value="">
                             Select staff owner
                         </option>
-
                         {% for owner in owners %}
-
                             <option
                                 value="{{ owner.id }}"
                                 {% if request.form.get('assigned_to_id')|int == owner.id %}
@@ -585,31 +547,22 @@ Create and assign a complete client lifecycle record.
                                 {{ owner.full_name }}
                                 — {{ owner.role_label }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="lead_source">
                         Lead Source
                     </label>
-
                     <select
                         id="lead_source"
                         name="lead_source"
                     >
-
                         <option value="">
                             Select source
                         </option>
-
                         {% for value, label in lead_sources %}
-
                             <option
                                 value="{{ value }}"
                                 {% if request.form.get('lead_source') == value %}
@@ -618,88 +571,63 @@ Create and assign a complete client lifecycle record.
                             >
                                 {{ label }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
-
             </section>
 
-
             <!-- FOLLOW-UP -->
-
             <section class="form-section-card side-card">
-
                 <div class="side-card-title">
-
                     <span class="side-card-icon">
                         <i class="bi bi-calendar2-check"></i>
                     </span>
-
                     <div>
                         <h3>
                             Follow-Up
                         </h3>
-
                         <p>
                             Contact and reminder dates
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="last_contact_date">
                         Last Contact Date
                     </label>
-
                     <input
                         type="date"
                         id="last_contact_date"
                         name="last_contact_date"
                         value="{{ request.form.get('last_contact_date', '') }}"
                     >
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="next_follow_up_date">
                         Next Follow-Up Date
                     </label>
-
                     <input
                         type="date"
                         id="next_follow_up_date"
                         name="next_follow_up_date"
                         value="{{ request.form.get('next_follow_up_date', '') }}"
                     >
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="priority_level">
                         Priority Level
                     </label>
-
                     <select
                         id="priority_level"
                         name="priority_level"
                     >
-
                         <option value="">
                             Select priority
                         </option>
-
                         {% for value, label in priorities %}
-
                             <option
                                 value="{{ value }}"
                                 {% if request.form.get('priority_level') == value %}
@@ -708,45 +636,31 @@ Create and assign a complete client lifecycle record.
                             >
                                 {{ label }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
-
             </section>
 
-
             <!-- TAGS -->
-
             <section class="form-section-card side-card">
-
                 <div class="side-card-title">
-
                     <span class="side-card-icon">
                         <i class="bi bi-tags"></i>
                     </span>
-
                     <div>
                         <h3>
                             Tags / Labels
                         </h3>
-
                         <p>
                             Quick filtering labels
                         </p>
                     </div>
-
                 </div>
 
-
                 <div class="crm-field">
-
                     <label for="tags">
                         Custom Tags
                     </label>
-
                     <input
                         type="text"
                         id="tags"
@@ -754,100 +668,72 @@ Create and assign a complete client lifecycle record.
                         value="{{ request.form.get('tags', '') }}"
                         placeholder="VIP, Kuwait, Oil & Gas"
                     >
-
                     <small class="field-help">
                         Separate multiple tags with commas.
                     </small>
-
                 </div>
-
             </section>
 
-
             <!-- ATTACHMENTS -->
-
             <section class="form-section-card side-card">
-
                 <div class="side-card-title">
-
                     <span class="side-card-icon">
                         <i class="bi bi-paperclip"></i>
                     </span>
-
                     <div>
                         <h3>
                             Attachments
                         </h3>
-
                         <p>
                             Client documents
                         </p>
                     </div>
-
                 </div>
 
-
                 <label class="upload-zone">
-
                     <input
                         type="file"
                         name="attachments"
                         multiple
                         accept=".pdf,.jpg,.jpeg,.docx"
                     >
-
                     <span class="upload-icon">
                         <i class="bi bi-cloud-arrow-up"></i>
                     </span>
-
                     <strong>
                         Choose files
                     </strong>
-
                     <span>
                         PDF, JPG, JPEG, DOCX
                     </span>
-
                 </label>
-
             </section>
 
-
             <!-- SYSTEM INFO -->
-
             <section class="system-info-card">
-
                 <div class="system-info-icon">
                     <i class="bi bi-info-circle"></i>
                 </div>
-
                 <div>
                     <strong>
                         Date Added
                     </strong>
-
                     <p>
                         Generated automatically when
                         this record is saved.
                     </p>
                 </div>
-
             </section>
-
         </aside>
-
     </div>
 
-
     <div class="mobile-form-actions">
-
         <a
             href="{{ url_for('clients.client_list') }}"
             class="btn btn-secondary-soft"
         >
             Cancel
         </a>
-
         <button
             type="submit"
             class="btn btn-primary-red"
@@ -855,9 +741,7 @@ Create and assign a complete client lifecycle record.
             <i class="bi bi-check2-circle"></i>
             Save Client
         </button>
-
     </div>
-
 </form>
 
 {% endblock %}

@@ -179,7 +179,7 @@ def create_app():
 
 
     # ==========================================
-    # DASHBOARD
+    # DASHBOARD WITH GLOBAL SEARCH (TASK 1)
     # ==========================================
 
     @app.route("/dashboard")
@@ -191,13 +191,17 @@ def create_app():
             Enquiry,
             Quotation,
             Shipment,
-            ShipmentMilestone,
             ClientTask,
             ClientActivity,
         )
+        from flask import request
+
+        # Global Search Query Parameter
+        search_q = request.args.get("global_q", "").strip()
 
         is_sales_dashboard = getattr(current_user, "role", None) in {"sales", "sales_executive"}
 
+        # Scopes Initialization
         client_scope = Client.query.filter(Client.is_archived.is_(False))
         enquiry_scope = Enquiry.query.join(Client, Enquiry.client_id == Client.id)
         quotation_scope = Quotation.query.join(Enquiry, Quotation.enquiry_id == Enquiry.id).join(Client, Enquiry.client_id == Client.id)
@@ -205,6 +209,7 @@ def create_app():
         activity_scope = ClientActivity.query.join(Client, ClientActivity.client_id == Client.id)
         shipment_scope = Shipment.query.join(Client, Shipment.client_id == Client.id)
 
+        # Apply Sales Executive Restrictions if true
         if is_sales_dashboard:
             client_scope = client_scope.filter(Client.assigned_to_id == current_user.id)
             enquiry_scope = enquiry_scope.filter(Client.assigned_to_id == current_user.id)
@@ -213,20 +218,42 @@ def create_app():
             activity_scope = activity_scope.filter(Client.assigned_to_id == current_user.id)
             shipment_scope = shipment_scope.filter(Client.assigned_to_id == current_user.id)
 
-        # Top Cards
+        # EXECUTE SEARCH IF QUERY EXISTS
+        search_results = None
+        if search_q:
+            search_results = {
+                "clients": client_scope.filter(
+                    (Client.company_name.ilike(f"%{search_q}%")) |
+                    (Client.contact_person_name.ilike(f"%{search_q}%")) |
+                    (Client.email.ilike(f"%{search_q}%")) |
+                    (Client.client_reference.ilike(f"%{search_q}%"))
+                ).limit(5).all(),
+                
+                "enquiries": enquiry_scope.filter(
+                    (Enquiry.enquiry_reference.ilike(f"%{search_q}%")) |
+                    (Enquiry.cargo_description.ilike(f"%{search_q}%")) |
+                    (Client.company_name.ilike(f"%{search_q}%"))
+                ).limit(5).all(),
+                
+                "quotations": quotation_scope.filter(
+                    (Quotation.quotation_number.ilike(f"%{search_q}%")) |
+                    (Client.company_name.ilike(f"%{search_q}%"))
+                ).limit(5).all()
+            }
+
+        # Top Cards Counts
         total_clients = client_scope.count()
         total_enquiries = enquiry_scope.filter(Enquiry.status.notin_(["closed", "cancelled", "converted"])).count()
         total_quotations = quotation_scope.filter(Quotation.status == "pending").count()
         total_shipments = shipment_scope.filter(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"])).count()
 
-        # Quotation Status
+        # Quotation & Enquiry Status Counts
         quotation_status_counts = {
             "pending": quotation_scope.filter(Quotation.status == "pending").count(),
             "approved": quotation_scope.filter(Quotation.status == "approved").count(),
             "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
         }
 
-        # Enquiry Status
         enquiry_status_counts = {
             "open": total_enquiries,
             "converted": enquiry_scope.filter(Enquiry.status == "converted").count(),
@@ -246,7 +273,7 @@ def create_app():
             label = str(category_name).strip() if category_name else "Uncategorized"
             client_category_counts[label] = count
 
-        # Shipment Stages (simplified)
+        # Shipment Stages
         shipment_stage_counts = {
             "booked": shipment_scope.filter(Shipment.current_stage == "booked").count(),
             "cargo_picked_up": shipment_scope.filter(Shipment.current_stage == "cargo_picked_up").count(),
@@ -257,13 +284,11 @@ def create_app():
             "delivered": shipment_scope.filter(Shipment.current_stage == "delivered").count(),
             "closed_completed": shipment_scope.filter(Shipment.current_stage == "closed_completed").count(),
         }
-
         
-        # Follow-ups
+        # Follow-ups & Activities
         follow_up_tasks = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).order_by(ClientTask.due_date.asc()).limit(5).all()
         pending_followups_count = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).count()
 
-        # Lifecycle Counts
         def client_status_count(*statuses):
             return client_scope.filter(Client.status.in_(statuses)).count()
 
@@ -279,63 +304,26 @@ def create_app():
             "referral": client_status_count("referral"),
         }
 
-        # Recent Activities
         recent_activities = activity_scope.order_by(ClientActivity.activity_date.desc(), ClientActivity.id.desc()).limit(6).all()
-                # Recent Activities
-        recent_activities = activity_scope.order_by(
-            ClientActivity.activity_date.desc(),
-            ClientActivity.id.desc()
-        ).limit(6).all()
-
-        # Shipment Stage Counts
-        print(shipment_stage_counts)
 
         return render_template(
             "dashboard/index.html",
-
             total_clients=total_clients,
             total_enquiries=total_enquiries,
             total_quotations=total_quotations,
             total_shipments=total_shipments,
-
             shipment_stage_counts=shipment_stage_counts,
-
             follow_up_tasks=follow_up_tasks,
             pending_followups_count=pending_followups_count,
-
             lifecycle_counts=lifecycle_counts,
-
             recent_activities=recent_activities,
-
             quotation_status_counts=quotation_status_counts,
             enquiry_status_counts=enquiry_status_counts,
             closed_shipments_count=closed_shipments_count,
             client_category_counts=client_category_counts,
+            search_results=search_results,
+            search_q=search_q
         )
-        return render_template(
-            "dashboard/index.html",
-
-            total_clients=total_clients,
-            total_enquiries=total_enquiries,
-            total_quotations=total_quotations,
-            total_shipments=total_shipments,
-
-            shipment_stage_counts=shipment_stage_counts,
-
-            follow_up_tasks=follow_up_tasks,
-            pending_followups_count=pending_followups_count,
-
-            lifecycle_counts=lifecycle_counts,
-
-            recent_activities=recent_activities,
-
-            quotation_status_counts=quotation_status_counts,
-            enquiry_status_counts=enquiry_status_counts,
-            closed_shipments_count=closed_shipments_count,
-            client_category_counts=client_category_counts,
-        )
-
-
     # ==========================================
     # PERMISSIONS
     # ==========================================

@@ -14,8 +14,8 @@ from reportlab.platypus import (
     TableStyle,
     Paragraph,
     Spacer,
+    PageBreak,
 )
-
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -964,128 +964,226 @@ def export_excel():
 
     )
 
+
+from flask import render_template
+from io import BytesIO
+
 @reports_bp.route("/export/pdf")
 @login_required
 def export_pdf():
+    from io import BytesIO
+    from datetime import datetime
+
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    )
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import inch
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
     buffer = BytesIO()
-
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=(8.5 * inch, 11 * inch),
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
     )
-
-    styles = getSampleStyleSheet()
 
     elements = []
+    styles = getSampleStyleSheet()
 
-    # ==========================================
-    # TITLE
-    # ==========================================
-
-    elements.append(
-
-        Paragraph(
-
-            "<b><font size='18'>Freight CRM Report</font></b>",
-
-            styles["Title"],
-
-        )
-
+    # Custom styles
+    title_style = ParagraphStyle(
+        'TitleStyle',
+        parent=styles['Title'],
+        fontSize=18,
+        textColor=colors.HexColor('#7f1d1d'),
+        alignment=TA_CENTER,
+        spaceAfter=4
+    )
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.HexColor('#64748b'),
+        alignment=TA_CENTER,
+        spaceAfter=18
+    )
+    section_style = ParagraphStyle(
+        'SectionStyle',
+        parent=styles['Heading2'],
+        fontSize=13,
+        textColor=colors.HexColor('#7f1d1d'),
+        spaceBefore=6,
+        spaceAfter=10
     )
 
-    elements.append(
-        Spacer(1, 0.25 * inch)
-    )
+    # ====================== HEADER ======================
+    elements.append(Paragraph("<b>FREIGHT CRM</b>", title_style))
+    elements.append(Paragraph(
+        "Professional Logistics & Freight Management System<br/>"
+        f"Generated on: {datetime.now().strftime('%d %B %Y, %H:%M')}",
+        subtitle_style
+    ))
 
-    # ==========================================
-    # SUMMARY
-    # ==========================================
+    # ====================== SUMMARY ======================
+    elements.append(Paragraph("SUMMARY", section_style))
 
-    summary = [
-
+    summary_data = [
         ["Item", "Count"],
-
-        [
-            "Clients",
-            Client.query.count(),
-        ],
-
-        [
-            "Enquiries",
-            Enquiry.query.count(),
-        ],
-
-        [
-            "Quotations",
-            Quotation.query.count(),
-        ],
-
-        [
-            "Shipments",
-            Shipment.query.count(),
-        ],
-
-        [
-            "Support Tickets",
-            SupportTicket.query.count(),
-        ],
-
+        ["Clients", Client.query.count()],
+        ["Enquiries", Enquiry.query.count()],
+        ["Quotations", Quotation.query.count()],
+        ["Shipments", Shipment.query.count()],
+        ["Support Tickets", SupportTicket.query.count()],
     ]
 
-    summary_table = Table(summary)
-
-    summary_table.setStyle(
-
-        TableStyle([
-
-            (
-                "BACKGROUND",
-                (0,0),
-                (-1,0),
-                colors.HexColor("#7f1d1d"),
-            ),
-
-            (
-                "TEXTCOLOR",
-                (0,0),
-                (-1,0),
-                colors.white,
-            ),
-
-            (
-                "GRID",
-                (0,0),
-                (-1,-1),
-                0.5,
-                colors.grey,
-            ),
-
-            (
-                "FONTNAME",
-                (0,0),
-                (-1,0),
-                "Helvetica-Bold",
-            ),
-
-            (
-                "BOTTOMPADDING",
-                (0,0),
-                (-1,0),
-                8,
-            ),
-
-        ])
-
-    )
-
+    summary_table = Table(summary_data, colWidths=[350, 120])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7f1d1d')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('TOPPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#fef2f2')),
+        ('GRID', (0, 0), (-1, -1), 0.8, colors.HexColor('#b91c1c')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+    ]))
     elements.append(summary_table)
+    elements.append(Spacer(1, 20))
+    elements.append(PageBreak())
 
-    elements.append(
-        Spacer(1, 0.40 * inch)
+    # Helper function
+    def create_table(title, headers, rows, col_widths):
+        elements.append(Paragraph(title, section_style))
+        data = [headers] + rows
+        table = Table(data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7f1d1d')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 0), (-1, 0), 8),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#fef2f2')]),
+            ('GRID', (0, 0), (-1, -1), 0.6, colors.HexColor('#b91c1c')),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 1), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 16))
+
+    # ====================== CLIENTS ======================
+    client_rows = []
+    for c in Client.query.order_by(Client.created_at.desc()).all():
+        client_rows.append([
+            c.client_reference or "-",
+            (c.company_name or "-")[:40],
+            (c.contact_person_name or "-")[:20],
+            c.status or "-"
+        ])
+    create_table(
+        "CLIENTS",
+        ["Code", "Company", "Contact", "Status"],
+        client_rows,
+        [95, 220, 120, 70]
+    )
+    elements.append(PageBreak())
+
+    # ====================== ENQUIRIES ======================
+    enquiry_rows = []
+    for e in Enquiry.query.order_by(Enquiry.created_at.desc()).all():
+        enquiry_rows.append([
+            e.enquiry_reference or "-",
+            (e.client.company_name if e.client else "-")[:30],
+            e.origin or "-",
+            e.destination or "-",
+            e.status or "-"
+        ])
+    create_table(
+        "ENQUIRIES",
+        ["Reference", "Client", "Origin", "Destination", "Status"],
+        enquiry_rows,
+        [95, 160, 80, 80, 70]
+    )
+    elements.append(PageBreak())
+
+    # ====================== QUOTATIONS ======================
+    quotation_rows = []
+    for q in Quotation.query.order_by(Quotation.created_at.desc()).all():
+        client_name = "-"
+        if q.enquiry and q.enquiry.client:
+            client_name = q.enquiry.client.company_name
+        quotation_rows.append([
+            q.quotation_number or "-",
+            (client_name or "-")[:35],
+            q.status or "-",
+            q.created_at.strftime("%d-%m-%Y") if q.created_at else "-"
+        ])
+    create_table(
+        "QUOTATIONS",
+        ["Quotation No", "Client", "Status", "Created"],
+        quotation_rows,
+        [110, 220, 80, 80]
+    )
+    elements.append(PageBreak())
+
+    # ====================== SHIPMENTS ======================
+    shipment_rows = []
+    for s in Shipment.query.order_by(Shipment.created_at.desc()).all():
+        shipment_rows.append([
+            s.shipment_reference or "-",
+            (s.client.company_name if s.client else "-")[:30],
+            s.shipment_status or "-",
+            s.created_at.strftime("%d-%m-%Y") if s.created_at else "-"
+        ])
+    create_table(
+        "SHIPMENTS",
+        ["Shipment Ref", "Client", "Status", "Created"],
+        shipment_rows,
+        [110, 220, 90, 80]
+    )
+    elements.append(PageBreak())
+
+    # ====================== SUPPORT TICKETS ======================
+    ticket_rows = []
+    for t in SupportTicket.query.order_by(SupportTicket.created_at.desc()).all():
+        ticket_rows.append([
+            str(t.id),
+            (t.client.company_name if t.client else "-")[:25],
+            (t.subject or "-")[:30],
+            t.status or "-"
+        ])
+    create_table(
+        "SUPPORT TICKETS",
+        ["Ticket ID", "Client", "Subject", "Status"],
+        ticket_rows,
+        [70, 150, 180, 90]
     )
 
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"FreightCRM_Report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
+        mimetype="application/pdf"
+    )
         # ==========================================
     # CLIENTS
     # ==========================================
@@ -1144,10 +1242,7 @@ def export_pdf():
     )
 
     elements.append(client_table)
-
-    elements.append(
-        Spacer(1,0.30*inch)
-    )
+    elements.append(PageBreak())
 
     # ==========================================
     # ENQUIRIES
@@ -1211,10 +1306,7 @@ def export_pdf():
     )
 
     elements.append(enquiry_table)
-
-    elements.append(
-        Spacer(1,0.30*inch)
-    )
+    elements.append(PageBreak())
 
         # ==========================================
     # QUOTATIONS
@@ -1279,10 +1371,7 @@ def export_pdf():
     )
 
     elements.append(quotation_table)
-
-    elements.append(
-        Spacer(1,0.30*inch)
-    )
+    elements.append(PageBreak())
 
 
     # ==========================================
@@ -1346,10 +1435,7 @@ def export_pdf():
     )
 
     elements.append(shipment_table)
-
-    elements.append(
-        Spacer(1,0.30*inch)
-    )
+    elements.append(PageBreak())
 
 
     # ==========================================
