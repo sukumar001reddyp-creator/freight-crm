@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime, date
 from decimal import Decimal
+
 from flask import (
     Blueprint,
     render_template,
@@ -9,272 +10,407 @@ from flask import (
     url_for,
     flash,
     send_from_directory,
-    current_app,
     send_file,
-    request
+    current_app,
+    request,
 )
+
 from flask_login import (
     login_required,
     current_user,
 )
-from sqlalchemy import DateTime, Date, text
+
+from sqlalchemy import DateTime, Date
+
 from app.models import db
+from app.services.backup_service import (
+    create_backup,
+    backup_history,
+    database_info,
+)
+
+# ==========================================================
+# Blueprint
+# ==========================================================
 
 backup_bp = Blueprint(
     "backup",
     __name__,
-    url_prefix="/backup"
+    url_prefix="/backup",
 )
 
+# ==========================================================
+# Helpers
+# ==========================================================
 
 def admin_only():
     return getattr(current_user, "role", "") == "admin"
 
 
+def universal_serializer(obj):
+    """
+    Converts unsupported objects to JSON safely.
+    """
+
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+
+    if isinstance(obj, Decimal):
+        return float(obj)
+
+    return str(obj)
+
+
+# ==========================================================
+# Backup Dashboard
+# ==========================================================
+
 @backup_bp.route("/")
 @login_required
 def index():
+
     if not admin_only():
         flash("Access denied.", "danger")
         return redirect(url_for("dashboard"))
 
-    backup_dir = os.path.join(current_app.root_path, 'backups')
-    backups = []
-    if os.path.exists(backup_dir):
-        for f in sorted(os.listdir(backup_dir), reverse=True):
-            if f.startswith('backup_') and f.endswith('.json'):
-                fpath = os.path.join(backup_dir, f)
-                backups.append({
-                    'filename': f,
-                    'created': datetime.fromtimestamp(os.path.getctime(fpath)).strftime("%Y-%m-%d %H:%M:%S"),
-                    'size': f"{os.path.getsize(fpath) / 1024:.1f} KB"
-                })
-
     return render_template(
         "backup/index.html",
-        backups=backups,
+        backups=backup_history(),
+        db_info=database_info(),
     )
 
+
+# ==========================================================
+# Create Backup
+# ==========================================================
 
 @backup_bp.route("/create", methods=["GET", "POST"])
 @login_required
 def create():
+
     if not admin_only():
         flash("Access denied.", "danger")
         return redirect(url_for("dashboard"))
 
     try:
-        # 1. Setup backup directory
-        backup_dir = os.path.join(current_app.root_path, 'backups')
-        if not os.path.exists(backup_dir):
-            os.makedirs(backup_dir)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_filename = f"backup_{timestamp}.json"
-        dest_path = os.path.join(backup_dir, backup_filename)
+        backup_dir = os.path.join(
+            current_app.root_path,
+            "backups"
+        )
 
-        # 2. Correct table order (parents first)
-        table_order = [
-            "users",
-            "clients",
-            "enquiries",
-            "quotations",
-            "shipments",
-            "shipment_milestones",
-            "shipment_documents",
-            "shipment_customs_clearances",
-            "shipment_closures",
-            "shipment_party_details",
-            "shipment_tasks",
-            "client_tasks",
-            "client_activities",
-            "client_notes",
-            "client_attachments",
-            "client_pipeline_history",
-            "client_status_history",
-            "client_audit_logs",
-            "support_tickets",
-            "support_messages",
-            "backup_logs",
-            "settings",
-            "client_portal_users",
-        ]
+        os.makedirs(
+            backup_dir,
+            exist_ok=True
+        )
 
-        # 3. Extract database tables dynamically
+        timestamp = datetime.now().strftime(
+            "%Y%m%d_%H%M%S"
+        )
+
+        filename = f"backup_{timestamp}.json"
+
+        file_path = os.path.join(
+            backup_dir,
+            filename,
+        )
+
         backup_data = {}
-        for table_name in table_order:
-            if table_name in db.metadata.tables:
-                try:
-                    table = db.metadata.tables[table_name]
-                    result = db.session.execute(table.select()).fetchall()
-                    backup_data[table_name] = [dict(row._mapping) for row in result]
-                except Exception as table_err:
-                    backup_data[table_name] = f"Error reading table: {str(table_err)}"
 
-        # 4. Smart Serializer
-        def universal_serializer(obj):
-            if isinstance(obj, (datetime, date)):
-                return obj.isoformat()
-            if isinstance(obj, Decimal):
-                return float(obj)
+        # Backup every table dynamically
+        for table_name in db.metadata.tables.keys():
+
+            table = db.metadata.tables[table_name]
+
             try:
-                return str(obj)
-            except Exception:
-                raise TypeError(f"Type {type(obj)} not serializable")
 
-        with open(dest_path, "w") as f:
-            json.dump(backup_data, f, indent=4, default=universal_serializer)
+                rows = db.session.execute(
+                    db.select(table)
+                ).fetchall()
 
-        # 5. Stream the file directly to the browser
+                backup_data[table_name] = [
+                    dict(row._mapping)
+                    for row in rows
+                ]
+
+            except Exception as e:
+
+                backup_data[table_name] = {
+                    "error": str(e)
+                }
+
+        with open(file_path, "w", encoding="utf-8") as f:
+
+            json.dump(
+                backup_data,
+                f,
+                indent=4,
+                default=universal_serializer,
+            )
+
         return send_file(
-            dest_path,
+            file_path,
             as_attachment=True,
-            download_name=backup_filename,
-            mimetype='application/json'
+            download_name=filename,
+            mimetype="application/json",
         )
 
     except Exception as e:
-        flash(f"Backup creation failed: {str(e)}", "danger")
-        return redirect(url_for("backup.index"))
 
+        flash(
+            f"Backup failed: {str(e)}",
+            "danger",
+        )
+
+        return redirect(
+            url_for("backup.index")
+        )
+
+
+# ==========================================================
+# Automatic Backup
+# ==========================================================
+
+@backup_bp.route("/auto")
+@login_required
+def auto_backup():
+
+    if not admin_only():
+        return "Unauthorized", 403
+
+    try:
+
+        create_backup()
+
+        return "Backup Created", 200
+
+    except Exception as e:
+
+        return str(e), 500
+
+
+# ==========================================================
+# Download Backup
+# ==========================================================
 
 @backup_bp.route("/download/<filename>")
 @login_required
 def download(filename):
+
     if not admin_only():
-        flash("Access denied.", "danger")
-        return redirect(url_for("dashboard"))
+        return redirect(
+            url_for("dashboard")
+        )
 
-    folder = os.path.join(current_app.root_path, "backups")
-    file_path = os.path.join(folder, filename)
+    folder = os.path.join(
+        current_app.root_path,
+        "backups",
+    )
 
-    if not os.path.exists(file_path):
-        flash("Backup file not found.", "danger")
-        return redirect(url_for("backup.index"))
+    return send_from_directory(
+        folder,
+        filename,
+        as_attachment=True,
+    )
 
-    return send_from_directory(folder, filename, as_attachment=True)
 
+# ==========================================================
+# Delete Backup
+# ==========================================================
 
 @backup_bp.route("/delete/<filename>")
 @login_required
 def delete(filename):
-    if not admin_only():
-        flash("Access denied.", "danger")
-        return redirect(url_for("dashboard"))
 
-    file_path = os.path.join(current_app.root_path, "backups", filename)
+    if not admin_only():
+        return redirect(
+            url_for("dashboard")
+        )
+
+    file_path = os.path.join(
+        current_app.root_path,
+        "backups",
+        filename,
+    )
 
     if os.path.exists(file_path):
+
         os.remove(file_path)
-        flash("Backup deleted successfully.", "success")
+
+        flash(
+            "Backup deleted successfully.",
+            "success",
+        )
+
     else:
-        flash("Backup file not found.", "danger")
 
-    return redirect(url_for("backup.index"))
+        flash(
+            "Backup file not found.",
+            "danger",
+        )
 
+    return redirect(
+        url_for("backup.index")
+    )
+
+
+# ==========================================================
+# Restore Backup
+# ==========================================================
+# PART 2 STARTS FROM HERE
 
 @backup_bp.route("/restore", methods=["POST"])
 @login_required
 def restore():
+
     if not admin_only():
         flash("Access denied.", "danger")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("backup.index"))
 
     try:
-        if 'backup_file' not in request.files:
-            flash("No file part found", "danger")
+
+        # --------------------------------------------------
+        # Validate upload
+        # --------------------------------------------------
+
+        if "backup_file" not in request.files:
+            flash("No backup file selected.", "danger")
             return redirect(url_for("backup.index"))
 
-        file = request.files['backup_file']
-        if file.filename == '':
-            flash("No selected file", "danger")
+        file = request.files["backup_file"]
+
+        if file.filename == "":
+            flash("Please choose a backup file.", "danger")
             return redirect(url_for("backup.index"))
 
-        if not file.filename.endswith('.json'):
-            flash("Invalid file format. Please upload a valid .json backup file.", "danger")
+        if not file.filename.lower().endswith(".json"):
+            flash("Only JSON backup files are supported.", "danger")
             return redirect(url_for("backup.index"))
 
         file_data = json.load(file)
 
-        # CORRECT restore order (parent tables first, children last)
+        # --------------------------------------------------
+        # DELETE ORDER
+        # Child tables first
+        # --------------------------------------------------
+
+        delete_order = [
+
+            "shipment_stages",
+            "shipment_documents",
+            "shipments",
+            "quotations",
+            "enquiries",
+            "clients",
+            "tasks",
+            "notifications",
+            "backup_logs",
+            "users",
+
+        ]
+
+        for table_name in delete_order:
+
+            if table_name not in db.metadata.tables:
+                continue
+
+            table = db.metadata.tables[table_name]
+
+            db.session.execute(table.delete())
+
+        db.session.flush()
+
+        # --------------------------------------------------
+        # RESTORE ORDER
+        # Parent tables first
+        # --------------------------------------------------
+
         restore_order = [
+
             "users",
             "clients",
             "enquiries",
             "quotations",
             "shipments",
-            "shipment_milestones",
             "shipment_documents",
-            "shipment_customs_clearances",
-            "shipment_closures",
-            "shipment_party_details",
-            "shipment_tasks",
-            "client_tasks",
-            "client_activities",
-            "client_notes",
-            "client_attachments",
-            "client_pipeline_history",
-            "client_status_history",
-            "client_audit_logs",
-            "support_tickets",
-            "support_messages",
+            "shipment_stages",
+            "tasks",
+            "notifications",
             "backup_logs",
-            "settings",
-            "client_portal_users",
+
         ]
 
-        # Disable foreign key checks for PostgreSQL
-        db.session.execute(text("SET session_replication_role = 'replica';"))
-
-        # Clear all tables in reverse order (children first)
-        for table_name in reversed(restore_order):
-            if table_name in db.metadata.tables:
-                table = db.metadata.tables[table_name]
-                db.session.execute(table.delete())
-
-        # Restore data in correct order
         for table_name in restore_order:
-            rows = file_data.get(table_name, [])
-            if table_name in db.metadata.tables and isinstance(rows, list):
-                table = db.metadata.tables[table_name]
-                for row in rows:
-                    cleaned_row = {}
-                    for col_name, value in row.items():
-                        if col_name in table.columns:
-                            col_type = table.columns[col_name].type
 
-                            if value is None:
-                                cleaned_row[col_name] = None
-                            elif isinstance(col_type, DateTime) and isinstance(value, str):
-                                try:
-                                    cleaned_row[col_name] = datetime.fromisoformat(value)
-                                except ValueError:
-                                    cleaned_row[col_name] = value
-                            elif isinstance(col_type, Date) and isinstance(value, str):
-                                try:
-                                    cleaned_row[col_name] = datetime.fromisoformat(value).date()
-                                except ValueError:
-                                    cleaned_row[col_name] = value
-                            else:
-                                cleaned_row[col_name] = value
-                        else:
-                            cleaned_row[col_name] = value
+            if table_name not in db.metadata.tables:
+                continue
 
-                    db.session.execute(table.insert().values(**cleaned_row))
+            rows = file_data.get(table_name)
 
-        # Re-enable foreign key checks
-        db.session.execute(text("SET session_replication_role = 'origin';"))
+            if not isinstance(rows, list):
+                continue
+
+            table = db.metadata.tables[table_name]
+
+            for row in rows:
+
+                cleaned_row = {}
+
+                for column in table.columns:
+
+                    column_name = column.name
+
+                    if column_name not in row:
+                        continue
+
+                    value = row[column_name]
+
+                    if value is None:
+                        cleaned_row[column_name] = None
+                        continue
+
+                    # DateTime
+                    if isinstance(column.type, DateTime):
+
+                        if isinstance(value, str):
+
+                            try:
+                                value = datetime.fromisoformat(value)
+                            except Exception:
+                                pass
+
+                    # Date
+                    elif isinstance(column.type, Date):
+
+                        if isinstance(value, str):
+
+                            try:
+                                value = datetime.fromisoformat(value).date()
+                            except Exception:
+                                pass
+
+                    cleaned_row[column_name] = value
+
+                db.session.execute(
+                    table.insert().values(**cleaned_row)
+                )
 
         db.session.commit()
-        flash("Database restored successfully! Please restart the application.", "success")
+
+        flash(
+            "Database restored successfully.",
+            "success",
+        )
 
     except Exception as e:
+
         db.session.rollback()
-        try:
-            db.session.execute(text("SET session_replication_role = 'origin';"))
-            db.session.commit()
-        except:
-            pass
-        flash(f"Recovery failed: {str(e)}", "danger")
+
+        current_app.logger.exception(e)
+
+        flash(
+            f"Restore failed : {str(e)}",
+            "danger",
+        )
 
     return redirect(url_for("backup.index"))
