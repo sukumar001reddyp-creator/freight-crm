@@ -179,8 +179,18 @@ def restore():
         if file and file.filename.endswith('.json'):
             file_data = json.load(file)
             
+            restore_order = [
+    "users",
+    "clients",
+    "enquiries",
+    "quotations",
+    "shipments",
+    "shipment_stages",
+    "shipment_documents",
+]
             # Clear old data and insert recovery payload safely
-            for table_name, rows in file_data.items():
+            for table_name in restore_order:
+                rows = file_data.get(table_name, [])
                 if table_name in db.metadata.tables:
                     table = db.metadata.tables[table_name]
                     db.session.execute(table.delete())
