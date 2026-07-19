@@ -72,32 +72,10 @@ def create():
         backup_filename = f"backup_{timestamp}.json"
         dest_path = os.path.join(backup_dir, backup_filename)
 
-        # CORRECT table order - parents first, children last
-        table_order = [
-            "users",
-            "settings",
-            "backup_logs",
-            "clients",
-            "enquiries",
-            "quotations",
-            "shipments",
-            "shipment_milestones",
-            "shipment_documents",
-            "shipment_customs_clearances",
-            "shipment_closures",
-            "shipment_party_details",
-            "shipment_tasks",
-            "client_tasks",
-            "client_activities",
-            "client_notes",
-            "client_attachments",
-            "client_pipeline_history",
-            "client_status_history",
-            "client_audit_logs",
-            "support_tickets",
-            "support_messages",
-            "client_portal_users",
-        ]
+        # Get all tables from metadata in dependency order
+        table_order = []
+        for table_name in db.metadata.sorted_tables:
+            table_order.append(table_name.name)
 
         backup_data = {}
         for table_name in table_order:
@@ -192,72 +170,86 @@ def restore():
 
         file_data = json.load(file)
 
-        # CORRECT restore order - parent tables first, children last
-        # This ensures foreign keys exist before referencing them
-        restore_order = [
-            "users",                        # No FK dependencies
-            "settings",                     # No FK
-            "backup_logs",                  # No FK
-            "clients",                      # FK: users (assigned_to_id, created_by_id)
-            "enquiries",                    # FK: clients, users
-            "quotations",                   # FK: enquiries, users
-            "shipments",                    # FK: enquiries, quotations, clients, users
-            "shipment_milestones",          # FK: shipments
-            "shipment_documents",           # FK: shipments
-            "shipment_customs_clearances",  # FK: shipments
-            "shipment_closures",            # FK: shipments
-            "shipment_party_details",       # FK: quotations, enquiries, users
-            "shipment_tasks",               # FK: shipments
-            "client_tasks",                 # FK: clients, users
-            "client_activities",            # FK: clients, users
-            "client_notes",                 # FK: clients, users
-            "client_attachments",           # FK: clients
-            "client_pipeline_history",      # FK: clients, users
-            "client_status_history",        # FK: clients, users
-            "client_audit_logs",            # FK: clients, users
-            "support_tickets",              # FK: clients
-            "support_messages",             # FK: support_tickets
-            "client_portal_users",          # FK: clients
-        ]
+        # Get tables in reverse dependency order for deletion
+        # and forward order for insertion
+        sorted_tables = [t.name for t in db.metadata.sorted_tables]
 
-        # Clear all tables in reverse order (children first to avoid FK violations)
-        for table_name in reversed(restore_order):
+        # Clear all tables in reverse order (children first)
+        for table_name in reversed(sorted_tables):
             if table_name in db.metadata.tables:
                 table = db.metadata.tables[table_name]
-                db.session.execute(table.delete())
+                try:
+                    db.session.execute(table.delete())
+                except Exception as del_err:
+                    flash(f"Warning: Could not clear table {table_name}: {str(del_err)}", "warning")
 
         # Restore data in correct order (parents first)
-        for table_name in restore_order:
+        restored_count = {}
+        skipped_columns = {}
+
+        for table_name in sorted_tables:
             rows = file_data.get(table_name, [])
-            if table_name in db.metadata.tables and isinstance(rows, list):
-                table = db.metadata.tables[table_name]
-                for row in rows:
-                    cleaned_row = {}
-                    for col_name, value in row.items():
-                        if col_name in table.columns:
-                            col_type = table.columns[col_name].type
+            if table_name not in db.metadata.tables:
+                continue
 
-                            if value is None:
-                                cleaned_row[col_name] = None
-                            elif isinstance(col_type, DateTime) and isinstance(value, str):
-                                try:
-                                    cleaned_row[col_name] = datetime.fromisoformat(value)
-                                except ValueError:
-                                    cleaned_row[col_name] = value
-                            elif isinstance(col_type, Date) and isinstance(value, str):
-                                try:
-                                    cleaned_row[col_name] = datetime.fromisoformat(value).date()
-                                except ValueError:
-                                    cleaned_row[col_name] = value
-                            else:
-                                cleaned_row[col_name] = value
-                        else:
+            if not isinstance(rows, list):
+                flash(f"Warning: Invalid data for table {table_name}, skipping", "warning")
+                continue
+
+            table = db.metadata.tables[table_name]
+            actual_columns = set(table.columns.keys())
+
+            # Track skipped columns for this table
+            table_skipped = set()
+
+            for row in rows:
+                cleaned_row = {}
+                for col_name, value in row.items():
+                    # Skip columns that don't exist in current database schema
+                    if col_name not in actual_columns:
+                        table_skipped.add(col_name)
+                        continue
+
+                    col_type = table.columns[col_name].type
+
+                    if value is None:
+                        cleaned_row[col_name] = None
+                    elif isinstance(col_type, DateTime) and isinstance(value, str):
+                        try:
+                            cleaned_row[col_name] = datetime.fromisoformat(value)
+                        except ValueError:
                             cleaned_row[col_name] = value
+                    elif isinstance(col_type, Date) and isinstance(value, str):
+                        try:
+                            cleaned_row[col_name] = datetime.fromisoformat(value).date()
+                        except ValueError:
+                            cleaned_row[col_name] = value
+                    else:
+                        cleaned_row[col_name] = value
 
-                    db.session.execute(table.insert().values(**cleaned_row))
+                # Only insert if we have valid columns
+                if cleaned_row:
+                    try:
+                        db.session.execute(table.insert().values(**cleaned_row))
+                    except Exception as insert_err:
+                        flash(f"Warning: Could not insert row into {table_name}: {str(insert_err)}", "warning")
+                        continue
+
+            restored_count[table_name] = len(rows)
+            if table_skipped:
+                skipped_columns[table_name] = list(table_skipped)
 
         db.session.commit()
-        flash("Database restored successfully! Please restart the application.", "success")
+
+        # Build success message
+        msg = f"Database restored successfully! {sum(restored_count.values())} total rows restored."
+        if skipped_columns:
+            skip_msg = "Skipped columns (old schema): " + ", ".join(
+                [f"{t}.{c}" for t, cols in skipped_columns.items() for c in cols]
+            )
+            flash(msg + " " + skip_msg, "success")
+        else:
+            flash(msg, "success")
 
     except Exception as e:
         db.session.rollback()
