@@ -337,6 +337,17 @@ class Quotation(db.Model):
     incoterms = db.Column(db.String(50), nullable=True)
     hs_code = db.Column(db.String(50), nullable=True)
 
+    # === NEW COST BREAKDOWN FIELDS (4.2) ===
+    ocean_air_freight = db.Column(db.Float, default=0.0)
+    origin_charges = db.Column(db.Float, default=0.0)
+    destination_charges = db.Column(db.Float, default=0.0)
+    insurance_charges = db.Column(db.Float, default=0.0)
+    other_surcharges = db.Column(db.Float, default=0.0)
+    payment_terms = db.Column(db.String(100), nullable=True)
+
+    # Remarks / Terms & Conditions
+    remarks_terms = db.Column(db.Text, nullable=True)
+
     # Relationships
     enquiry = db.relationship("Enquiry", foreign_keys=[enquiry_id])
     approved_by = db.relationship("User", foreign_keys=[approved_by_id])
