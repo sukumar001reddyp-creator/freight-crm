@@ -223,6 +223,11 @@ def add_enquiry():
             ""
         ).strip()
 
+        expected_timeline = request.form.get("expected_timeline", "").strip()
+        incoterms = request.form.get("incoterms", "").strip()
+        additional_instructions = request.form.get("additional_instructions", "").strip()
+        sales_coordinator_id = request.form.get("sales_coordinator_id", type=int)
+
         handled_by_id = (
             current_user.id
             if is_sales_user()

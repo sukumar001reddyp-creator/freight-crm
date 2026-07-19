@@ -271,6 +271,34 @@
 
             </div>
 
+           
+<div class="form-section">
+    <div class="form-section-heading">
+        <span class="section-icon"><i class="bi bi-person-badge-fill"></i></span>
+        <div>
+            <h3>Additional Info & Ownership</h3>
+        </div>
+    </div>
+    <div class="form-grid">
+        <div class="form-field">
+            <label for="incoterms">Incoterms</label>
+            <input type="text" name="incoterms" placeholder="e.g. FOB">
+        </div>
+        <div class="form-field">
+            <label for="sales_coordinator_id">Sales Co-ordinator</label>
+            <select name="sales_coordinator_id">
+                <option value="">Select</option>
+                {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field form-field-full">
+            <label for="additional_instructions">Additional Instructions</label>
+            <textarea name="additional_instructions"></textarea>
+        </div>
+    </div>
+</div>
 
             <div class="form-grid">
 

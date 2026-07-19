@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { 
+            font-family: 'Helvetica', Arial, sans-serif; 
+            color: #333; 
+            margin: 40px; 
+            line-height: 1.5;
+        }
+        
+        /* Company Name at the top */
+        .company-header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            border-bottom: 2px solid #7f1d1d;
+            padding-bottom: 15px;
+        }
+        .company-header h2 { 
+            color: #7f1d1d; 
+            margin: 0; 
+            text-transform: uppercase; 
+            font-size: 22px;
+        }
+
+        /* Quotation Header */
+        .header { 
+            border-bottom: 3px solid #7f1d1d; 
+            padding-bottom: 20px; 
+            margin-bottom: 30px; 
+        }
+        .header h1 { 
+            color: #7f1d1d; 
+            margin: 0 0 8px 0; 
+            font-size: 26px;
+        }
+        .header p { 
+            color: #6b7280; 
+            font-size: 14px; 
+            margin: 4px 0;
+        }
+
+        /* Table Styling */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px; 
+        }
+        th { 
+            background-color: #7f1d1d; 
+            color: white; 
+            padding: 12px; 
+            text-align: left; 
+            font-weight: 700;
+        }
+        td { 
+            border: 1px solid #e5e7eb; 
+            padding: 10px; 
+            font-size: 13px; 
+        }
+        tr:nth-child(even) { 
+            background-color: #f9fafb; 
+        }
+
+        /* Bold Amount Styling */
+        .amount-bold { 
+            font-size: 18px; 
+            font-weight: 800; 
+            color: #1e3a8a; 
+        }
+
+        h3 { 
+            color: #111827; 
+            border-left: 5px solid #7f1d1d; 
+            padding-left: 10px; 
+            margin: 25px 0 12px 0; 
+        }
+        
+        .details-box { 
+            background: #f9fafb; 
+            padding: 18px; 
+            border-radius: 8px; 
+            border: 1px solid #e5e7eb; 
+            margin-bottom: 20px;
+        }
+        
+        .total-row {
+            background-color: #fef2f2 !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Company Name Section -->
+    <div class="company-header">
+        <h2>YOUR COMPANY NAME HERE</h2>
+        <p>Freight Forwarding & Logistics</p>
+    </div>
+
+    <div class="header">
+        <h1>Quotation: {{ quotation.quotation_number }}</h1>
+        <p><strong>Client:</strong> {{ quotation.enquiry.client.company_name }}</p>
+        <p><strong>Date:</strong> {{ quotation.created_at.strftime('%d %b %Y') }}</p>
+        <p><strong>Validity:</strong> {{ quotation.validity_date.strftime('%d %b %Y') if quotation.validity_date else 'N/A' }}</p>
+    </div>
+
+    <h3>Shipment Details</h3>
+    <table>
+        <tr><th width="40%">Field</th><th>Information</th></tr>
+        <tr><td>Shipping Line / Airline</td><td>{{ quotation.shipping_line_airline or 'N/A' }}</td></tr>
+        <tr><td>Containers</td><td>{{ quotation.no_of_containers or 'N/A' }} × {{ quotation.container_type_quota or 'N/A' }}</td></tr>
+        <tr><td>ETD</td><td>{{ quotation.etd.strftime('%d %b %Y %H:%M') if quotation.etd else 'N/A' }}</td></tr>
+        <tr><td>Incoterms</td><td>{{ quotation.incoterms or 'N/A' }}</td></tr>
+        <tr><td>HS Code</td><td>{{ quotation.hs_code or 'N/A' }}</td></tr>
+    </table>
+
+    <!-- NEW COST BREAKDOWN -->
+    <h3>Cost Breakdown</h3>
+    <table>
+        <tr>
+            <th width="60%">Description</th>
+            <th width="40%">Amount ({{ quotation.currency }})</th>
+        </tr>
+        <tr><td>Ocean / Air Freight</td><td>{{ "{:,.2f}".format(quotation.ocean_air_freight or 0) }}</td></tr>
+        <tr><td>Origin Charges</td><td>{{ "{:,.2f}".format(quotation.origin_charges or 0) }}</td></tr>
+        <tr><td>Destination Charges</td><td>{{ "{:,.2f}".format(quotation.destination_charges or 0) }}</td></tr>
+        <tr><td>Insurance Charges</td><td>{{ "{:,.2f}".format(quotation.insurance_charges or 0) }}</td></tr>
+        <tr><td>Other Surcharges</td><td>{{ "{:,.2f}".format(quotation.other_surcharges or 0) }}</td></tr>
+        <tr class="total-row">
+            <td><strong>Total Quotation Amount</strong></td>
+            <td class="amount-bold">{{ "{:,.2f}".format(quotation.quotation_amount or 0) }}</td>
+        </tr>
+    </table>
+
+    <h3>Remarks & Terms</h3>
+    <div class="details-box">
+        <p>{{ quotation.remarks_terms or 'No additional remarks provided.' }}</p>
+    </div>
+
+    <p style="text-align: center; color: #6b7280; margin-top: 40px; font-size: 12px;">
+        This is a computer generated quotation. For any queries contact us.
+    </p>
+
+</body>
+</html>

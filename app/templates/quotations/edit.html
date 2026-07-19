@@ -1,0 +1,112 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Edit Quotation | Freight CRM{% endblock %}
+
+{% block content %}
+<div class="quotation-create-page">
+    <div class="create-header">
+        <h1>Edit Quotation - {{ quotation.quotation_number }}</h1>
+    </div>
+
+    <form method="POST" action="{{ url_for('quotations.edit_quotation', quotation_id=quotation.id) }}" class="quotation-form-card">
+        
+        <!-- SECTION 1: Cost Breakdown (ఇప్పుడు పైన ఉంటుంది) -->
+        <div class="form-section">
+            <h3>Cost Breakdown</h3>
+            <div class="quotation-form-grid">
+                <div class="form-field">
+                    <label>Ocean / Air Freight</label>
+                    <input type="number" name="ocean_air_freight" step="0.01" value="{{ quotation.ocean_air_freight or '0.00' }}">
+                </div>
+                <div class="form-field">
+                    <label>Origin Charges</label>
+                    <input type="number" name="origin_charges" step="0.01" value="{{ quotation.origin_charges or '0.00' }}">
+                </div>
+                <div class="form-field">
+                    <label>Destination Charges</label>
+                    <input type="number" name="destination_charges" step="0.01" value="{{ quotation.destination_charges or '0.00' }}">
+                </div>
+                <div class="form-field">
+                    <label>Insurance Charges</label>
+                    <input type="number" name="insurance_charges" step="0.01" value="{{ quotation.insurance_charges or '0.00' }}">
+                </div>
+                <div class="form-field">
+                    <label>Other Surcharges</label>
+                    <input type="number" name="other_surcharges" step="0.01" value="{{ quotation.other_surcharges or '0.00' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: Update Quotation Details -->
+        <div class="form-section">
+            <h3>Update Quotation Details</h3>
+            <div class="quotation-form-grid">
+                <div class="form-field">
+                    <label>Quotation Amount <span>*</span> <small style="color: #6b7280; font-weight: normal;">(Auto-calculated)</small></label>
+                    <input type="number" name="quotation_amount" step="0.01" value="{{ quotation.quotation_amount }}" readonly required style="background-color: #f3f4f6; cursor: not-allowed;">
+                </div>
+                <div class="form-field">
+                    <label>Currency</label>
+                    <input type="text" value="{{ quotation.currency }}" disabled>
+                </div>
+                <div class="form-field form-field-full">
+                    <label>Payment Terms</label>
+                    <input type="text" name="payment_terms" value="{{ quotation.payment_terms or '' }}">
+                </div>
+                <div class="form-field form-field-full">
+                    <label>Remarks / Terms & Conditions</label>
+                    <textarea name="remarks_terms" rows="4">{{ quotation.remarks_terms or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('quotations.view_quotation', quotation_id=quotation.id) }}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="create-quotation-btn">Update Quotation</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const costFields = ['ocean_air_freight', 'origin_charges', 'destination_charges', 'insurance_charges', 'other_surcharges'];
+    const totalField = document.querySelector('input[name="quotation_amount"]');
+
+    function calculateTotal() {
+        let total = 0;
+        costFields.forEach(field => {
+            const input = document.querySelector(`input[name="${field}"]`);
+            if (input) {
+                total += parseFloat(input.value) || 0;
+            }
+        });
+        totalField.value = total.toFixed(2);
+    }
+
+    costFields.forEach(field => {
+        const input = document.querySelector(`input[name="${field}"]`);
+        if (input) {
+            input.addEventListener('input', calculateTotal);
+        }
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styling */
+    .quotation-create-page { max-width: 1050px; margin: 0 auto; }
+    .create-header { display: flex; justify-content: space-between; margin-bottom: 22px; }
+    .create-header h1 { margin: 0; color: #111827; font-size: 28px; font-weight: 800; }
+    .quotation-form-card { padding: 26px; border: 1px solid #e5e7eb; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
+    .form-section { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9; }
+    .form-section h3 { margin-bottom: 18px; color: #111827; font-size: 18px; font-weight: 800; }
+    .quotation-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .form-field { display: flex; flex-direction: column; gap: 7px; }
+    .form-field-full { grid-column: 1 / -1; }
+    .form-field label { color: #374151; font-size: 13px; font-weight: 700; }
+    .form-field input, .form-field textarea { width: 100%; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 22px; }
+    .create-quotation-btn { padding: 12px 24px; border: 0; border-radius: 10px; background: #7f1d1d; color: #ffffff; font-weight: 800; cursor: pointer; }
+    .btn-cancel { padding: 12px 24px; border: 1px solid #d1d5db; border-radius: 10px; background: #f9fafb; color: #374151; text-decoration: none; font-weight: 600; }
+</style>
+{% endblock %}

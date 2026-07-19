@@ -52,6 +52,23 @@
                 </strong>
             </p>
 
+            <div class="tracking-overview" aria-label="Shipment tracking overview">
+                <span class="tracking-mode-badge">
+                    {% if shipment.mode_of_shipment == "air_freight" %}
+                        <i class="bi bi-airplane-engines-fill"></i> Air Freight
+                    {% elif shipment.mode_of_shipment == "sea_freight" %}
+                        <i class="bi bi-water"></i> Sea Freight
+                    {% else %}
+                        <i class="bi bi-truck"></i> Land Freight
+                    {% endif %}
+                </span>
+                <span><strong>HBL / Tracking No.</strong> {{ shipment.hbl_no | default(shipment.shipment_reference, true) }}</span>
+                <span><strong>Origin</strong> {{ shipment.origin }}</span>
+                <span><strong>Destination</strong> {{ shipment.destination }}</span>
+                <span><strong>ETD</strong> {% if shipment.etd %}{{ shipment.etd.strftime("%d %b %Y") }}{% else %}Not scheduled{% endif %}</span>
+                <span><strong>ETA</strong> {% if shipment.eta %}{{ shipment.eta.strftime("%d %b %Y") }}{% else %}Not scheduled{% endif %}</span>
+            </div>
+
         </div>
         {% if shipment.shipment_status == "active" %}
 
@@ -88,6 +105,27 @@
              ====================================== -->
 
         <div class="shipment-main-column">
+
+    <div class="tracking-tabs">
+
+    <button class="tab-btn active"
+            data-tab="status">
+        STATUS
+    </button>
+
+    <button class="tab-btn"
+            data-tab="details">
+        DETAILS
+    </button>
+
+    <button class="tab-btn"
+            data-tab="documents">
+        DOCUMENTS
+    </button>
+
+</div>
+
+<div id="status" class="tracking-tab active">
             <!-- ======================================
      SHIPMENT OPERATIONAL WORKFLOW
      ====================================== -->
@@ -309,555 +347,8 @@
 
 </div>
 
-
-            <!-- SHIPMENT INFORMATION -->
-
-            <div class="detail-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon">
-                        <i class="bi bi-box-seam-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Shipment Information</h3>
-
-                        <p>
-                            Main shipment reference,
-                            route and transport details.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="info-grid">
-
-                    <div class="info-item">
-                        <span>Shipment Reference</span>
-
-                        <strong>
-                            {{ shipment.shipment_reference }}
-                        </strong>
-                    </div>
-
-
-                    <div class="info-item">
-                        <span>Status</span>
-
-                        <strong>
-                            {{
-                                shipment.shipment_status
-                                |replace("_", " ")
-                                |title
-                            }}
-                        </strong>
-                    </div>
-
-
-                    <div class="info-item">
-                        <span>Origin</span>
-
-                        <strong>
-                            {{ shipment.origin }}
-                        </strong>
-                    </div>
-
-
-                    <div class="info-item">
-                        <span>Destination</span>
-
-                        <strong>
-                            {{ shipment.destination }}
-                        </strong>
-                    </div>
-
-
-                    <div class="info-item">
-                        <span>Mode of Shipment</span>
-
-                        <strong>
-                            {{
-                                shipment.mode_of_shipment
-                                |replace("_", " ")
-                                |title
-                            }}
-                        </strong>
-                    </div>
-
-
-                    <div class="info-item">
-                        <span>Handled By</span>
-
-                        <strong>
-                            {{ shipment.handled_by.full_name }}
-                        </strong>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ROUTE VISUAL -->
-
-            <div class="detail-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon route-heading-icon">
-                        <i class="bi bi-signpost-split-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Shipment Route</h3>
-
-                        <p>
-                            Origin to destination movement.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="route-visual">
-
-                    <div class="route-point">
-
-                        <span class="route-dot origin-dot">
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </span>
-
-                        <div>
-                            <small>Origin</small>
-
-                            <strong>
-                                {{ shipment.origin }}
-                            </strong>
-                        </div>
-
-                    </div>
-
-
-                    <div class="route-line">
-
-                        {% if shipment.mode_of_shipment == "air_freight" %}
-
-                            <i class="bi bi-airplane-fill"></i>
-
-                        {% elif shipment.mode_of_shipment == "sea_freight" %}
-
-                            <i class="bi bi-water"></i>
-
-                        {% else %}
-
-                            <i class="bi bi-truck"></i>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <div class="route-point">
-
-                        <span class="route-dot destination-dot">
-                            <i class="bi bi-flag-fill"></i>
-                        </span>
-
-                        <div>
-                            <small>Destination</small>
-
-                            <strong>
-                                {{ shipment.destination }}
-                            </strong>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- CARGO DETAILS -->
-
-            <div class="detail-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon cargo-heading-icon">
-                        <i class="bi bi-box2-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Cargo Details</h3>
-
-                        <p>
-                            Goods description and
-                            shipment weight or volume.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="cargo-description-box">
-
-                    <span>
-                        Cargo Description
-                    </span>
-
-                    <p>
-                        {{ shipment.cargo_description }}
-                    </p>
-
-                </div>
-
-
-                <div class="cargo-weight-box">
-
-                    <span>
-                        Weight / Volume
-                    </span>
-
-                    <strong>
-                        {{
-                            shipment.cargo_weight_volume
-                            or "Not specified"
-                        }}
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- SHIPMENT DOCUMENT STATUS TRACKING -->
-
-            <div class="detail-card document-tracking-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon document-heading-icon">
-                        <i class="bi bi-folder-check"></i>
-                    </span>
-
-                    <div>
-                        <h3>Shipment Document Status Tracking</h3>
-
-                        <p>
-                            Track required shipment documents,
-                            review status and retain operational remarks.
-                        </p>
-                    </div>
-
-                </div>
-
-                {% if documents %}
-
-                    {% set pending_count = documents | selectattr("status", "equalto", "pending") | list | length %}
-                    {% set received_count = documents | selectattr("status", "equalto", "received") | list | length %}
-                    {% set not_applicable_count = documents | selectattr("status", "equalto", "not_applicable") | list | length %}
-
-                    <div class="document-summary-grid">
-
-                        <div class="document-summary-item summary-total">
-                            <span>Total</span>
-                            <strong>{{ documents | length }}</strong>
-                        </div>
-
-                        <div class="document-summary-item summary-pending">
-                            <span>Pending</span>
-                            <strong>{{ pending_count }}</strong>
-                        </div>
-
-                        <div class="document-summary-item summary-received">
-                            <span>Received</span>
-                            <strong>{{ received_count }}</strong>
-                        </div>
-
-                        <div class="document-summary-item summary-not-applicable">
-                            <span>N/A</span>
-                            <strong>{{ not_applicable_count }}</strong>
-                        </div>
-
-                    </div>
-
-                    <div class="document-checklist">
-
-                        {% for document in documents %}
-
-                            <div class="document-track-item">
-
-                                <div class="document-track-top">
-
-                                    <div class="document-track-identity">
-
-                                        <span class="document-file-icon">
-                                            <i class="bi bi-file-earmark-text-fill"></i>
-                                        </span>
-
-                                        <div>
-                                            <strong>{{ document.document_name }}</strong>
-
-                                            <small>
-                                                {{ document.document_type | replace("_", " ") | title }}
-                                            </small>
-                                        </div>
-
-                                    </div>
-
-                                    <span class="document-status-badge document-status-{{ document.status }}">
-                                        {{ document.status | replace("_", " ") | title }}
-                                    </span>
-
-                                </div>
-
-                                {% if document.received_at or document.remarks %}
-
-                                    <div class="document-meta-box">
-
-                                        {% if document.received_at %}
-
-                                            <span>
-                                                <i class="bi bi-clock-history"></i>
-                                                Received
-                                                {{ document.received_at.strftime("%d %b %Y %H:%M") }}
-                                            </span>
-
-                                        {% endif %}
-
-                                        {% if document.received_by %}
-
-                                            <span>
-                                                <i class="bi bi-person-check-fill"></i>
-                                                {{ document.received_by.full_name }}
-                                            </span>
-
-                                        {% endif %}
-
-                                        {% if document.remarks %}
-
-                                            <p>
-                                                <i class="bi bi-chat-left-text-fill"></i>
-                                                {{ document.remarks }}
-                                            </p>
-
-                                        {% endif %}
-
-                                    </div>
-
-                                {% endif %}
-
-                                <form
-                                    method="POST"
-                                    action="{{
-                                        url_for(
-                                            'shipments.update_document_status',
-                                            shipment_id=shipment.id,
-                                            document_id=document.id
-                                        )
-                                    }}"
-                                    class="document-status-form"
-                                >
-
-                                    <div class="document-form-grid">
-
-                                        <div class="document-form-field">
-
-                                            <label for="status_{{ document.id }}">
-                                                Status
-                                            </label>
-
-                                            <select
-                                                id="status_{{ document.id }}"
-                                                name="status"
-                                                required
-                                            >
-                                                <option value="pending" {% if document.status == "pending" %}selected{% endif %}>
-                                                    Pending
-                                                </option>
-
-                                                <option value="received" {% if document.status == "received" %}selected{% endif %}>
-                                                    Received
-                                                </option>
-
-                                                <option value="not_applicable" {% if document.status == "not_applicable" %}selected{% endif %}>
-                                                    N/A
-                                                </option>
-                                            </select>
-
-                                        </div>
-
-                                        <div class="document-form-field document-remarks-field">
-
-                                            <label for="remarks_{{ document.id }}">
-                                                Remarks
-                                            </label>
-
-                                            <input
-                                                id="remarks_{{ document.id }}"
-                                                type="text"
-                                                name="remarks"
-                                                value="{{ document.remarks or '' }}"
-                                                maxlength="500"
-                                                placeholder="Optional operational remarks"
-                                            >
-
-                                        </div>
-
-                                        <button
-                                            type="submit"
-                                            class="update-document-btn"
-                                        >
-                                            <i class="bi bi-check2-circle"></i>
-                                            Update
-                                        </button>
-
-                                    </div>
-
-                                </form>
-
-                            </div>
-
-                        {% endfor %}
-
-                    </div>
-
-                {% else %}
-
-                    <div class="document-tracking-empty">
-                        <i class="bi bi-folder-x"></i>
-
-                        <div>
-                            <strong>No document checklist found</strong>
-
-                            <span>
-                                This shipment does not currently have
-                                document tracking records.
-                            </span>
-                        </div>
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-
-            <!-- CUSTOMS CLEARANCE -->
-            <div class="detail-card customs-clearance-card">
-                <div class="card-heading">
-                    <span class="heading-icon customs-heading-icon"><i class="bi bi-shield-check"></i></span>
-                    <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
-                </div>
-                {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
-                {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
-                {% if customs_clearance %}
-                <div id="customsSummaryView" class="customs-summary-view">
-                    <div class="customs-summary-grid">
-                        <div class="customs-summary-item">
-                            <span>Clearance Required</span>
-                            <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
-                        </div>
-                        <div class="customs-summary-item">
-                            <span>Status</span>
-                            <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
-                        </div>
-                        <div class="customs-summary-item">
-                            <span>Clearing Agent</span>
-                            <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
-                        </div>
-                        <div class="customs-summary-item">
-                            <span>Clearance Date</span>
-                            <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
-                        </div>
-                    </div>
-
-                    {% if customs_clearance.remarks %}
-                    <div class="customs-summary-remarks">
-                        <span>Remarks</span>
-                        <p>{{ customs_clearance.remarks }}</p>
-                    </div>
-                    {% endif %}
-
-                    <div class="customs-summary-footer">
-                        <div class="customs-saved-meta">
-                            <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
-                            {% if customs_clearance.updated_by %}
-                            <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
-                            {% endif %}
-                        </div>
-                        <button type="button" id="editCustomsBtn" class="edit-customs-btn">
-                            <i class="bi bi-pencil-square"></i> Edit Customs Clearance
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-
-                <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
-                    <div class="customs-required-panel">
-                        <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
-                        <div class="customs-choice-group">
-                            <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
-                            <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
-                        </div>
-                    </div>
-                    <div id="customsConditionalFields" class="customs-conditional-fields">
-                        <div class="customs-form-grid">
-                            <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
-                                <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
-                                <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
-                                <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
-                                <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
-                            </select></div>
-                            <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
-                            <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
-                        </div>
-                    </div>
-                    <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
-                    <div class="customs-form-actions">
-                        {% if customs_clearance %}
-                        <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        {% endif %}
-                        <button type="submit" class="save-customs-btn">
-                            {% if customs_clearance %}
-                            <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
-                            {% else %}
-                            <i class="bi bi-check2-circle"></i> Save Customs Clearance
-                            {% endif %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-
-            <!-- ======================================
-                 SHIPMENT CLOSING - SECTION 4.8
-                 ====================================== -->
-
-            <div class="detail-card shipment-closing-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon closing-heading-icon">
-                        <i class="bi bi-archive-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Shipment Closing</h3>
-                        <p>
-                            Finalize the shipment after delivery,
-                            archive confirmation and optional client feedback.
-                        </p>
-                    </div>
-
-                </div>
-
-                {% set delivered_complete = "delivered" in completed_stages %}
+<div class="detail-card">
+{% set delivered_complete = "delivered" in completed_stages %}
 
                 {% if shipment_closure %}
 
@@ -1220,6 +711,541 @@
 
             </div>
 
+        </div>
+
+<div id="details" class="tracking-tab">
+
+            <!-- SHIPMENT INFORMATION -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Information</h3>
+
+                        <p>
+                            Main shipment reference,
+                            route and transport details.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="info-grid">
+
+                    <div class="info-item">
+                        <span>Shipment Reference</span>
+
+                        <strong>
+                            {{ shipment.shipment_reference }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Status</span>
+
+                        <strong>
+                            {{
+                                shipment.shipment_status
+                                |replace("_", " ")
+                                |title
+                            }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Origin</span>
+
+                        <strong>
+                            {{ shipment.origin }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Destination</span>
+
+                        <strong>
+                            {{ shipment.destination }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Mode of Shipment</span>
+
+                        <strong>
+                            {{
+                                shipment.mode_of_shipment
+                                |replace("_", " ")
+                                |title
+                            }}
+                        </strong>
+                    </div>
+
+
+                    <div class="info-item">
+                        <span>Handled By</span>
+
+                        <strong>
+                            {{ shipment.handled_by.full_name }}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ROUTE VISUAL -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon route-heading-icon">
+                        <i class="bi bi-signpost-split-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Route</h3>
+
+                        <p>
+                            Origin to destination movement.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="route-visual">
+
+                    <div class="route-point">
+
+                        <span class="route-dot origin-dot">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </span>
+
+                        <div>
+                            <small>Origin</small>
+
+                            <strong>
+                                {{ shipment.origin }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="route-line">
+
+                        {% if shipment.mode_of_shipment == "air_freight" %}
+
+                            <i class="bi bi-airplane-fill"></i>
+
+                        {% elif shipment.mode_of_shipment == "sea_freight" %}
+
+                            <i class="bi bi-water"></i>
+
+                        {% else %}
+
+                            <i class="bi bi-truck"></i>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="route-point">
+
+                        <span class="route-dot destination-dot">
+                            <i class="bi bi-flag-fill"></i>
+                        </span>
+
+                        <div>
+                            <small>Destination</small>
+
+                            <strong>
+                                {{ shipment.destination }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CARGO DETAILS -->
+
+            <div class="detail-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon cargo-heading-icon">
+                        <i class="bi bi-box2-fill"></i>
+                    </span>
+
+                    <div>
+                        <h3>Cargo Details</h3>
+
+                        <p>
+                            Goods description and
+                            shipment weight or volume.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="cargo-description-box">
+
+                    <span>
+                        Cargo Description
+                    </span>
+
+                    <p>
+                        {{ shipment.cargo_description }}
+                    </p>
+
+                </div>
+
+
+                <div class="cargo-weight-box">
+
+                    <span>
+                        Weight / Volume
+                    </span>
+
+                    <strong>
+                        {{
+                            shipment.cargo_weight_volume
+                            or "Not specified"
+                        }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+</div>
+
+<div id="documents" class="tracking-tab">
+
+            <!-- SHIPMENT DOCUMENT STATUS TRACKING -->
+
+            <div class="detail-card document-tracking-card">
+
+                <div class="card-heading">
+
+                    <span class="heading-icon document-heading-icon">
+                        <i class="bi bi-folder-check"></i>
+                    </span>
+
+                    <div>
+                        <h3>Shipment Document Status Tracking</h3>
+
+                        <p>
+                            Track required shipment documents,
+                            review status and retain operational remarks.
+                        </p>
+                    </div>
+
+                </div>
+
+                {% if documents %}
+
+                    {% set pending_count = documents | selectattr("status", "equalto", "pending") | list | length %}
+                    {% set received_count = documents | selectattr("status", "equalto", "received") | list | length %}
+                    {% set not_applicable_count = documents | selectattr("status", "equalto", "not_applicable") | list | length %}
+
+                    <div class="document-summary-grid">
+
+                        <div class="document-summary-item summary-total">
+                            <span>Total</span>
+                            <strong>{{ documents | length }}</strong>
+                        </div>
+
+                        <div class="document-summary-item summary-pending">
+                            <span>Pending</span>
+                            <strong>{{ pending_count }}</strong>
+                        </div>
+
+                        <div class="document-summary-item summary-received">
+                            <span>Received</span>
+                            <strong>{{ received_count }}</strong>
+                        </div>
+
+                        <div class="document-summary-item summary-not-applicable">
+                            <span>N/A</span>
+                            <strong>{{ not_applicable_count }}</strong>
+                        </div>
+
+                    </div>
+
+                    <div class="document-checklist">
+
+                        {% for document in documents %}
+
+                            <div class="document-track-item">
+
+                                <div class="document-track-top">
+
+                                    <div class="document-track-identity">
+
+                                        <span class="document-file-icon">
+                                            <i class="bi bi-file-earmark-text-fill"></i>
+                                        </span>
+
+                                        <div>
+                                            <strong>{{ document.document_name }}</strong>
+
+                                            <small>
+                                                {{ document.document_type | replace("_", " ") | title }}
+                                            </small>
+                                        </div>
+
+                                    </div>
+
+                                    <span class="document-status-badge document-status-{{ document.status }}">
+                                        {{ document.status | replace("_", " ") | title }}
+                                    </span>
+
+                                </div>
+
+                                {% if document.received_at or document.remarks %}
+
+                                    <div class="document-meta-box">
+
+                                        {% if document.received_at %}
+
+                                            <span>
+                                                <i class="bi bi-clock-history"></i>
+                                                Received
+                                                {{ document.received_at.strftime("%d %b %Y %H:%M") }}
+                                            </span>
+
+                                        {% endif %}
+
+                                        {% if document.received_by %}
+
+                                            <span>
+                                                <i class="bi bi-person-check-fill"></i>
+                                                {{ document.received_by.full_name }}
+                                            </span>
+
+                                        {% endif %}
+
+                                        {% if document.remarks %}
+
+                                            <p>
+                                                <i class="bi bi-chat-left-text-fill"></i>
+                                                {{ document.remarks }}
+                                            </p>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endif %}
+
+                                <form
+                                    method="POST"
+                                    action="{{
+                                        url_for(
+                                            'shipments.update_document_status',
+                                            shipment_id=shipment.id,
+                                            document_id=document.id
+                                        )
+                                    }}"
+                                    class="document-status-form"
+                                >
+
+                                    <div class="document-form-grid">
+
+                                        <div class="document-form-field">
+
+                                            <label for="status_{{ document.id }}">
+                                                Status
+                                            </label>
+
+                                            <select
+                                                id="status_{{ document.id }}"
+                                                name="status"
+                                                required
+                                            >
+                                                <option value="pending" {% if document.status == "pending" %}selected{% endif %}>
+                                                    Pending
+                                                </option>
+
+                                                <option value="received" {% if document.status == "received" %}selected{% endif %}>
+                                                    Received
+                                                </option>
+
+                                                <option value="not_applicable" {% if document.status == "not_applicable" %}selected{% endif %}>
+                                                    N/A
+                                                </option>
+                                            </select>
+
+                                        </div>
+
+                                        <div class="document-form-field document-remarks-field">
+
+                                            <label for="remarks_{{ document.id }}">
+                                                Remarks
+                                            </label>
+
+                                            <input
+                                                id="remarks_{{ document.id }}"
+                                                type="text"
+                                                name="remarks"
+                                                value="{{ document.remarks or '' }}"
+                                                maxlength="500"
+                                                placeholder="Optional operational remarks"
+                                            >
+
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            class="update-document-btn"
+                                        >
+                                            <i class="bi bi-check2-circle"></i>
+                                            Update
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="document-tracking-empty">
+                        <i class="bi bi-folder-x"></i>
+
+                        <div>
+                            <strong>No document checklist found</strong>
+
+                            <span>
+                                This shipment does not currently have
+                                document tracking records.
+                            </span>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- CUSTOMS CLEARANCE -->
+            <div class="detail-card customs-clearance-card">
+                <div class="card-heading">
+                    <span class="heading-icon customs-heading-icon"><i class="bi bi-shield-check"></i></span>
+                    <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
+                </div>
+                {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
+                {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
+                {% if customs_clearance %}
+                <div id="customsSummaryView" class="customs-summary-view">
+                    <div class="customs-summary-grid">
+                        <div class="customs-summary-item">
+                            <span>Clearance Required</span>
+                            <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
+                        </div>
+                        <div class="customs-summary-item">
+                            <span>Status</span>
+                            <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
+                        </div>
+                        <div class="customs-summary-item">
+                            <span>Clearing Agent</span>
+                            <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
+                        </div>
+                        <div class="customs-summary-item">
+                            <span>Clearance Date</span>
+                            <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
+                        </div>
+                    </div>
+
+                    {% if customs_clearance.remarks %}
+                    <div class="customs-summary-remarks">
+                        <span>Remarks</span>
+                        <p>{{ customs_clearance.remarks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="customs-summary-footer">
+                        <div class="customs-saved-meta">
+                            <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
+                            {% if customs_clearance.updated_by %}
+                            <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
+                            {% endif %}
+                        </div>
+                        <button type="button" id="editCustomsBtn" class="edit-customs-btn">
+                            <i class="bi bi-pencil-square"></i> Edit Customs Clearance
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
+                    <div class="customs-required-panel">
+                        <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
+                        <div class="customs-choice-group">
+                            <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
+                            <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
+                        </div>
+                    </div>
+                    <div id="customsConditionalFields" class="customs-conditional-fields">
+                        <div class="customs-form-grid">
+                            <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
+                                <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
+                                <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
+                                <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
+                                <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
+                            </select></div>
+                            <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
+                            <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
+                        </div>
+                    </div>
+                    <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
+                    <div class="customs-form-actions">
+                        {% if customs_clearance %}
+                        <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                        {% endif %}
+                        <button type="submit" class="save-customs-btn">
+                            {% if customs_clearance %}
+                            <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
+                            {% else %}
+                            <i class="bi bi-check2-circle"></i> Save Customs Clearance
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+
+            
+
+                
+
 
             <!-- SOURCE RECORDS -->
 
@@ -1319,14 +1345,14 @@
             </div>
 
         </div>
-
+        </div>
 
         <!-- ======================================
              RIGHT COLUMN
              ====================================== -->
 
         <div class="shipment-side-column">
-
+            
 
             <!-- CLIENT CARD -->
 
@@ -1539,7 +1565,46 @@
 {% block extra_css %}
 
 <style>
+    /* ===========================
+   TRACKING TABS
+=========================== */
 
+.tracking-tabs{
+    display:flex;
+    gap:12px;
+    margin-bottom:25px;
+    border-bottom:1px solid #e5e7eb;
+    padding-bottom:15px;
+}
+
+.tab-btn{
+    border:none;
+    background:#f3f4f6;
+    color:#374151;
+    padding:10px 22px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.tab-btn:hover{
+    background:#e5e7eb;
+}
+
+.tab-btn.active{
+    background:#7f1d1d;
+    color:#fff;
+}
+
+.tracking-tab{
+    display:none;
+}
+
+.tracking-tab.active{
+    display:block;
+}
     /* ==========================================
        PAGE
        ========================================== */
@@ -3069,6 +3134,40 @@
     gap: 20px;
 }
 
+.tracking-overview {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 14px;
+    color: #475569;
+    font-size: 10px;
+}
+
+.tracking-overview > span:not(.tracking-mode-badge) {
+    display: inline-flex;
+    gap: 5px;
+    padding-left: 14px;
+    border-left: 1px solid #dbe3ee;
+}
+
+.tracking-overview strong {
+    color: #64748b;
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.tracking-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 800;
+}
+
 .shipment-header-actions {
     display: flex;
     align-items: center;
@@ -3243,48 +3342,63 @@
     }
 
 }
-
 </style>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener("DOMContentLoaded",function(){
- const radios=document.querySelectorAll('input[name="clearance_required"]');
- const box=document.getElementById("customsConditionalFields");
- const status=document.getElementById("clearance_status");
- const agent=document.getElementById("clearing_agent_name");
- const date=document.getElementById("clearance_date");
- function sync(){
-  const chosen=document.querySelector('input[name="clearance_required"]:checked');
-  const yes=chosen&&chosen.value==="yes";
-  box.classList.toggle("is-hidden",!yes);
-  status.disabled=!yes; agent.disabled=!yes; date.disabled=!yes;
-  status.required=yes; date.required=yes&&status.value==="cleared";
- }
- radios.forEach(r=>r.addEventListener("change",sync));
- status.addEventListener("change",sync); sync();
+document.addEventListener("DOMContentLoaded", () => {
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabs = document.querySelectorAll(".tracking-tab");
 
- const summary=document.getElementById("customsSummaryView");
- const form=document.getElementById("customsClearanceForm");
- const editBtn=document.getElementById("editCustomsBtn");
- const cancelBtn=document.getElementById("cancelCustomsBtn");
+    tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const targetTab = document.getElementById(button.dataset.tab);
+            if (!targetTab) return;
+            tabButtons.forEach((item) => item.classList.remove("active"));
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            button.classList.add("active");
+            targetTab.classList.add("active");
+        });
+    });
 
- if(editBtn){
-  editBtn.addEventListener("click",function(){
-   summary.style.display="none";
-   form.classList.remove("is-edit-hidden");
-   sync();
-  });
- }
+    const customsForm = document.getElementById("customsClearanceForm");
+    const customsSummary = document.getElementById("customsSummaryView");
+    const editButton = document.getElementById("editCustomsBtn");
+    const cancelButton = document.getElementById("cancelCustomsBtn");
+    const conditionalFields = document.getElementById("customsConditionalFields");
+    const requiredInputs = document.querySelectorAll('input[name="clearance_required"]');
+    const status = document.getElementById("clearance_status");
+    const clearanceDate = document.getElementById("clearance_date");
 
- if(cancelBtn){
-  cancelBtn.addEventListener("click",function(){
-   form.classList.add("is-edit-hidden");
-   summary.style.display="";
-  });
- }
+    function updateCustomsFields() {
+        const selected = document.querySelector('input[name="clearance_required"]:checked');
+        const isRequired = selected && selected.value === "yes";
+        if (conditionalFields) conditionalFields.style.display = isRequired ? "block" : "none";
+        if (status) status.required = Boolean(isRequired);
+        if (clearanceDate) clearanceDate.required = Boolean(isRequired && status && status.value === "cleared");
+    }
+
+    requiredInputs.forEach((input) => input.addEventListener("change", updateCustomsFields));
+    if (status) status.addEventListener("change", updateCustomsFields);
+
+    if (editButton && customsForm) {
+        editButton.addEventListener("click", () => {
+            customsForm.classList.remove("is-edit-hidden");
+            if (customsSummary) customsSummary.style.display = "none";
+            updateCustomsFields();
+        });
+    }
+
+    if (cancelButton && customsForm) {
+        cancelButton.addEventListener("click", () => {
+            customsForm.classList.add("is-edit-hidden");
+            if (customsSummary) customsSummary.style.display = "";
+        });
+    }
+
+    updateCustomsFields();
 });
 </script>
 {% endblock %}

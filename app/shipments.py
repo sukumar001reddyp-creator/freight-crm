@@ -1964,12 +1964,12 @@ def undo_last_stage(shipment_id):
         else:
             shipment.current_stage = "booked"
 
-            shipment.shipment_status = get_shipment_summary_status(
-    {
-        milestone.stage
-        for milestone in remaining_milestones
-    }
-)
+        shipment.shipment_status = get_shipment_summary_status(
+            {
+                milestone.stage
+                for milestone in remaining_milestones
+            }
+        )
 
         db.session.commit()
 
@@ -2002,4 +2002,59 @@ def undo_last_stage(shipment_id):
             "shipments.view_shipment",
             shipment_id=shipment.id
         )
+    )
+
+
+# =========================================================
+# GLOBAL PUBLIC TRACKING INTERFACE
+# URL: /shipments/track
+# =========================================================
+
+@shipments_bp.route("/track", methods=["GET", "POST"])
+@login_required
+def track_shipment():
+    search_query = request.args.get("tracking_number", "").strip()
+    mode_filter = request.args.get("mode", "").strip()
+    shipment = None
+    documents = []
+    milestones = []
+    
+    if search_query:
+        # Ikkada 'shipment_reference' thoti patu 'hbl_no' ni kuda check chesthunnam
+        res = db.session.execute(
+            db.select(Shipment)
+            .where(
+                (Shipment.shipment_reference == search_query) | 
+                (Shipment.hbl_no == search_query)
+            )
+        ).scalars().first()
+        
+        if res:
+            if mode_filter and res.mode_of_shipment != mode_filter:
+                flash("The shipment does not match the selected transport mode.", "warning")
+            elif can_view_shipment(res):
+                shipment = res
+                documents = db.session.execute(
+                    db.select(ShipmentDocument)
+                    .where(ShipmentDocument.shipment_id == shipment.id)
+                    .order_by(ShipmentDocument.document_name)
+                ).scalars().all()
+                milestones = db.session.execute(
+                    db.select(ShipmentMilestone)
+                    .where(ShipmentMilestone.shipment_id == shipment.id)
+                    .order_by(ShipmentMilestone.completed_at)
+                ).scalars().all()
+            else:
+                flash("You do not have permission to track this shipment.", "danger")
+        else:
+            flash("No records match the provided HBL/Reference number.", "danger")
+            
+    return render_template(
+        "shipments/track.html", 
+        shipment=shipment, 
+        search_query=search_query
+        ,mode_filter=mode_filter
+        ,documents=documents
+        ,milestones=milestones
+        ,shipment_stages=SHIPMENT_STAGES
     )
