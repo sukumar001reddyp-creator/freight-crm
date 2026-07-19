@@ -3,7 +3,6 @@ from flask import (
     redirect,
     url_for,
     render_template,
-    
 )
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_sqlalchemy import SQLAlchemy
@@ -17,9 +16,6 @@ from flask_login import (
 )
 
 from config import Config
-
-
-    
 
 
 # =========================================================
@@ -101,7 +97,6 @@ def create_app():
     from app.reports import reports_bp
     app.register_blueprint(reports_bp)
 
-    
     from app.settings import settings_bp
     app.register_blueprint(settings_bp)
 
@@ -221,90 +216,120 @@ def create_app():
         # EXECUTE SEARCH IF QUERY EXISTS
         search_results = None
         if search_q:
-            search_results = {
-                "clients": client_scope.filter(
-                    (Client.company_name.ilike(f"%{search_q}%")) |
-                    (Client.contact_person_name.ilike(f"%{search_q}%")) |
-                    (Client.email.ilike(f"%{search_q}%")) |
-                    (Client.client_reference.ilike(f"%{search_q}%"))
-                ).limit(5).all(),
-                
-                "enquiries": enquiry_scope.filter(
-                    (Enquiry.enquiry_reference.ilike(f"%{search_q}%")) |
-                    (Enquiry.cargo_description.ilike(f"%{search_q}%")) |
-                    (Client.company_name.ilike(f"%{search_q}%"))
-                ).limit(5).all(),
-                
-                "quotations": quotation_scope.filter(
-                    (Quotation.quotation_number.ilike(f"%{search_q}%")) |
-                    (Client.company_name.ilike(f"%{search_q}%"))
-                ).limit(5).all()
-            }
+            try:
+                search_results = {
+                    "clients": client_scope.filter(
+                        (Client.company_name.ilike(f"%{search_q}%")) |
+                        (Client.contact_person_name.ilike(f"%{search_q}%")) |
+                        (Client.email.ilike(f"%{search_q}%")) |
+                        (Client.client_reference.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
+                    
+                    "enquiries": enquiry_scope.filter(
+                        (Enquiry.enquiry_reference.ilike(f"%{search_q}%")) |
+                        (Enquiry.cargo_description.ilike(f"%{search_q}%")) |
+                        (Client.company_name.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
+                    
+                    "quotations": quotation_scope.filter(
+                        (Quotation.quotation_number.ilike(f"%{search_q}%")) |
+                        (Client.company_name.ilike(f"%{search_q}%"))
+                    ).limit(5).all()
+                }
+            except Exception:
+                search_results = {"clients": [], "enquiries": [], "quotations": []}
 
-        # Top Cards Counts
-        total_clients = client_scope.count()
-        total_enquiries = enquiry_scope.filter(Enquiry.status.notin_(["closed", "cancelled", "converted"])).count()
-        # Safer quotation count with fallback
-    try:
-        total_quotations = quotation_scope.filter(Quotation.status == "pending").count()
-    except Exception:
-        total_quotations = 0
+        # Top Cards Counts — ALL WITH TRY/EXCEPT
+        try:
+            total_clients = client_scope.count()
+        except Exception:
+            total_clients = 0
 
-# And same for the status breakdown:
-    try:
-        quotation_status_counts = {
-            "pending": quotation_scope.filter(Quotation.status == "pending").count(),
-            "approved": quotation_scope.filter(Quotation.status == "approved").count(),
-            "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
-    }
-    except Exception:
-        quotation_status_counts = {"pending": 0, "approved": 0, "rejected": 0}
-        total_shipments = shipment_scope.filter(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"])).count()
+        try:
+            total_enquiries = enquiry_scope.filter(Enquiry.status.notin_(["closed", "cancelled", "converted"])).count()
+        except Exception:
+            total_enquiries = 0
+
+        try:
+            total_quotations = quotation_scope.filter(Quotation.status == "pending").count()
+        except Exception:
+            total_quotations = 0
+
+        try:
+            total_shipments = shipment_scope.filter(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"])).count()
+        except Exception:
+            total_shipments = 0
 
         # Quotation & Enquiry Status Counts
-        quotation_status_counts = {
-            "pending": quotation_scope.filter(Quotation.status == "pending").count(),
-            "approved": quotation_scope.filter(Quotation.status == "approved").count(),
-            "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
-        }
+        try:
+            quotation_status_counts = {
+                "pending": quotation_scope.filter(Quotation.status == "pending").count(),
+                "approved": quotation_scope.filter(Quotation.status == "approved").count(),
+                "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
+            }
+        except Exception:
+            quotation_status_counts = {"pending": 0, "approved": 0, "rejected": 0}
 
-        enquiry_status_counts = {
-            "open": total_enquiries,
-            "converted": enquiry_scope.filter(Enquiry.status == "converted").count(),
-            "closed": enquiry_scope.filter(Enquiry.status.in_(["closed", "cancelled"])).count(),
-        }
+        try:
+            enquiry_status_counts = {
+                "open": total_enquiries,
+                "converted": enquiry_scope.filter(Enquiry.status == "converted").count(),
+                "closed": enquiry_scope.filter(Enquiry.status.in_(["closed", "cancelled"])).count(),
+            }
+        except Exception:
+            enquiry_status_counts = {"open": 0, "converted": 0, "closed": 0}
 
-        closed_shipments_count = shipment_scope.filter(
-            Shipment.shipment_status.in_(["delivered", "closed", "completed", "closed_completed"])
-        ).count()
+        try:
+            closed_shipments_count = shipment_scope.filter(
+                Shipment.shipment_status.in_(["delivered", "closed", "completed", "closed_completed"])
+            ).count()
+        except Exception:
+            closed_shipments_count = 0
 
         # Client Categories
         client_category_counts = {}
-        category_query = db.session.query(Client.category, db.func.count(Client.id)).filter(Client.is_archived.is_(False))
-        if is_sales_dashboard:
-            category_query = category_query.filter(Client.assigned_to_id == current_user.id)
-        for category_name, count in category_query.group_by(Client.category).all():
-            label = str(category_name).strip() if category_name else "Uncategorized"
-            client_category_counts[label] = count
+        try:
+            category_query = db.session.query(Client.category, db.func.count(Client.id)).filter(Client.is_archived.is_(False))
+            if is_sales_dashboard:
+                category_query = category_query.filter(Client.assigned_to_id == current_user.id)
+            for category_name, count in category_query.group_by(Client.category).all():
+                label = str(category_name).strip() if category_name else "Uncategorized"
+                client_category_counts[label] = count
+        except Exception:
+            client_category_counts = {}
 
         # Shipment Stages
-        shipment_stage_counts = {
-            "booked": shipment_scope.filter(Shipment.current_stage == "booked").count(),
-            "cargo_picked_up": shipment_scope.filter(Shipment.current_stage == "cargo_picked_up").count(),
-            "in_transit": shipment_scope.filter(Shipment.current_stage == "in_transit").count(),
-            "arrived_destination": shipment_scope.filter(Shipment.current_stage == "arrived_destination").count(),
-            "customs_clearance": shipment_scope.filter(Shipment.current_stage == "customs_clearance").count(),
-            "out_for_delivery": shipment_scope.filter(Shipment.current_stage == "out_for_delivery").count(),
-            "delivered": shipment_scope.filter(Shipment.current_stage == "delivered").count(),
-            "closed_completed": shipment_scope.filter(Shipment.current_stage == "closed_completed").count(),
-        }
-        
+        try:
+            shipment_stage_counts = {
+                "booked": shipment_scope.filter(Shipment.current_stage == "booked").count(),
+                "cargo_picked_up": shipment_scope.filter(Shipment.current_stage == "cargo_picked_up").count(),
+                "in_transit": shipment_scope.filter(Shipment.current_stage == "in_transit").count(),
+                "arrived_destination": shipment_scope.filter(Shipment.current_stage == "arrived_destination").count(),
+                "customs_clearance": shipment_scope.filter(Shipment.current_stage == "customs_clearance").count(),
+                "out_for_delivery": shipment_scope.filter(Shipment.current_stage == "out_for_delivery").count(),
+                "delivered": shipment_scope.filter(Shipment.current_stage == "delivered").count(),
+                "closed_completed": shipment_scope.filter(Shipment.current_stage == "closed_completed").count(),
+            }
+        except Exception:
+            shipment_stage_counts = {
+                "booked": 0, "cargo_picked_up": 0, "in_transit": 0,
+                "arrived_destination": 0, "customs_clearance": 0,
+                "out_for_delivery": 0, "delivered": 0, "closed_completed": 0
+            }
+
         # Follow-ups & Activities
-        follow_up_tasks = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).order_by(ClientTask.due_date.asc()).limit(5).all()
-        pending_followups_count = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).count()
+        try:
+            follow_up_tasks = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).order_by(ClientTask.due_date.asc()).limit(5).all()
+            pending_followups_count = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).count()
+        except Exception:
+            follow_up_tasks = []
+            pending_followups_count = 0
 
         def client_status_count(*statuses):
-            return client_scope.filter(Client.status.in_(statuses)).count()
+            try:
+                return client_scope.filter(Client.status.in_(statuses)).count()
+            except Exception:
+                return 0
 
         lifecycle_counts = {
             "lead": client_status_count("lead", "prospect"),
@@ -318,7 +343,10 @@ def create_app():
             "referral": client_status_count("referral"),
         }
 
-        recent_activities = activity_scope.order_by(ClientActivity.activity_date.desc(), ClientActivity.id.desc()).limit(6).all()
+        try:
+            recent_activities = activity_scope.order_by(ClientActivity.activity_date.desc(), ClientActivity.id.desc()).limit(6).all()
+        except Exception:
+            recent_activities = []
 
         return render_template(
             "dashboard/index.html",
@@ -338,6 +366,7 @@ def create_app():
             search_results=search_results,
             search_q=search_q
         )
+
     # ==========================================
     # PERMISSIONS
     # ==========================================
