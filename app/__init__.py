@@ -17,7 +17,6 @@ from flask_login import (
 
 from config import Config
 
-
 # =========================================================
 # EXTENSIONS
 # =========================================================
@@ -332,5 +331,11 @@ def create_app():
         return {
             "permissions": permissions
         }
+
+    # ==========================================
+    # BACKUP SCHEDULER (00:00 IST)
+    # ==========================================
+    from app.backup import init_backup_scheduler
+    init_backup_scheduler(app)
 
     return app
