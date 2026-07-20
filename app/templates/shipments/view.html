@@ -70,26 +70,25 @@
             </div>
 
         </div>
-        {% if shipment.shipment_status == "active" %}
+        
 
     <div class="shipment-header-actions">
 
-        <a
-            href="{{
-                url_for(
-                    'shipments.edit_shipment',
-                    shipment_id=shipment.id
-                )
-            }}"
-            class="edit-shipment-btn"
-        >
-            <i class="bi bi-pencil-square"></i>
-            Edit Shipment
-        </a>
+    {% if shipment.shipment_status == "active" %}
+    <a href="{{ url_for('shipments.edit_shipment', shipment_id=shipment.id) }}"
+       class="edit-shipment-btn">
+        <i class="bi bi-pencil-square"></i>
+        Edit Shipment
+    </a>
+    {% endif %}
 
-    </div>
+    <a href="{{ url_for('shipments.download_shipment_pdf', shipment_id=shipment.id) }}"
+       class="edit-shipment-btn">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        Download PDF
+    </a>
 
-{% endif %}
+</div>
 
     </div>
 

@@ -7,13 +7,16 @@
 
 from datetime import datetime, date
 
+from app.pdf_generator import generate_shipment_pdf
+
 from flask import (
     Blueprint,
     render_template,
+    request,
     redirect,
     url_for,
     flash,
-    request,
+    send_file,
 )
 
 from flask_login import (
@@ -60,6 +63,7 @@ SHIPMENT_STAGES = [
 ]
 
 
+    
 # =========================================================
 # CLIENT-OWNERSHIP VISIBILITY
 # =========================================================
@@ -689,6 +693,85 @@ def view_shipment(shipment_id):
         shipment_closure=shipment_closure,
     )
 
+# =========================================================
+# DOWNLOAD SHIPMENT PDF
+# URL:/shipments/<shipment_id>/download-pdf
+# =========================================================
+
+@shipments_bp.route(
+    "/<int:shipment_id>/download-pdf"
+)
+@login_required
+def download_shipment_pdf(shipment_id):
+
+    shipment = get_visible_shipment_or_404(
+        shipment_id
+    )
+
+    milestones = (
+        db.session.execute(
+            db.select(ShipmentMilestone)
+            .where(
+                ShipmentMilestone.shipment_id == shipment.id
+            )
+            .order_by(
+                ShipmentMilestone.completed_at.asc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    documents = (
+        db.session.execute(
+            db.select(ShipmentDocument)
+            .where(
+                ShipmentDocument.shipment_id == shipment.id
+            )
+            .order_by(
+                ShipmentDocument.id.asc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    customs = (
+        db.session.execute(
+            db.select(ShipmentCustomsClearance)
+            .where(
+                ShipmentCustomsClearance.shipment_id == shipment.id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    closure = (
+        db.session.execute(
+            db.select(ShipmentClosure)
+            .where(
+                ShipmentClosure.shipment_id == shipment.id
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    pdf_buffer = generate_shipment_pdf(
+        shipment=shipment,
+        milestones=milestones,
+        documents=documents,
+        customs=customs,
+        closure=closure,
+    )
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"{shipment.shipment_reference}.pdf",
+        mimetype="application/pdf",
+    )
 
 # =========================================================
 # UPDATE SHIPMENT DOCUMENT STATUS
@@ -711,7 +794,19 @@ def update_document_status(
     shipment = get_visible_shipment_or_404(
         shipment_id
     )
-
+    milestones = (
+    db.session.execute(
+        db.select(ShipmentMilestone)
+        .where(
+            ShipmentMilestone.shipment_id == shipment.id
+        )
+        .order_by(
+            ShipmentMilestone.completed_at.asc()
+        )
+    )
+    .scalars()
+    .all()
+)
     if shipment_is_closed(shipment.id) and current_user.role != "admin":
 
         flash(
