@@ -24,9 +24,17 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # === BACKUP SCHEDULER SETTINGS ===
     BACKUP_ENABLED = True
-    BACKUP_TIME = "02:00"
-    MAX_BACKUPS = 30
+    BACKUP_TIME = "00:00"              # 00:00 IST (Midnight)
+    BACKUP_RETENTION_DAYS = 7          # Keep last 7 backups
+
+    # LOCAL DOWNLOADS FOLDER
+    BACKUP_FOLDER = os.path.join(
+        os.path.expanduser("~"),
+        "Downloads",
+        "FreightCRM_Backups"
+    )
 
     GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv(
         "GOOGLE_SERVICE_ACCOUNT_JSON"
