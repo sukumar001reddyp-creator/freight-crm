@@ -12,7 +12,22 @@ from flask import (
     render_template,
     request,
     url_for,
+    send_file,
 )
+
+from io import BytesIO
+
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
 from flask_login import (
     current_user,
     login_required,
@@ -402,6 +417,102 @@ def view_enquiry(enquiry_id):
     return render_template(
         "enquiries/view.html",
         enquiry=enquiry
+    )
+
+@enquiries_bp.route("/<int:enquiry_id>/pdf")
+@login_required
+def download_enquiry_pdf(enquiry_id):
+
+    enquiry = get_enquiry_or_404(enquiry_id)
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer)
+
+    styles = getSampleStyleSheet()
+
+    title_style = styles["Heading1"]
+    title_style.alignment = TA_CENTER
+
+    elements = []
+
+    company_title = styles["Title"]
+    company_title.alignment = TA_CENTER
+    company_title.textColor = colors.HexColor("#7f1d1d")
+
+    elements.append(
+    Paragraph(
+        "<b>ABC FREIGHT LOGISTICS LLC</b>",
+        company_title
+    )
+)
+
+    company_style = styles["Normal"]
+    company_style.alignment = TA_CENTER
+
+    elements.append(
+    Paragraph(
+        "M-15, Industrial Area, Shuwaikh, Kuwait<br/>"
+        "Phone: +965 2222 3333 | Mobile: +965 9999 8888<br/>"
+        "Email: info@abcfreight.com<br/>"
+        "Website: www.abcfreight.com",
+        company_style
+    )
+)
+
+    elements.append(Spacer(1, 15))
+
+    elements.append(
+    Paragraph("ENQUIRY DETAILS", title_style)
+)
+
+    elements.append(Spacer(1, 20))
+
+    data = [
+        ["Enquiry Reference", enquiry.enquiry_reference],
+        ["Client", enquiry.client.company_name],
+        ["Origin", enquiry.origin],
+        ["Destination", enquiry.destination],
+        ["Shipment Mode", enquiry.mode_of_shipment],
+        ["Cargo Description", enquiry.cargo_description],
+        ["Weight / Volume", enquiry.cargo_weight_volume or "-"],
+        ["Status", enquiry.status.replace("_", " ").title()],
+        ["Handled By", enquiry.handled_by.full_name],
+        ["Created Date", enquiry.created_at.strftime("%d %b %Y")],
+    ]
+
+    table = Table(
+        data,
+        colWidths=[170, 320]
+    )
+
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0,0), (0,-1), colors.HexColor("#7f1d1d")),
+            ("TEXTCOLOR", (0,0), (0,-1), colors.white),
+
+            ("BACKGROUND", (1,0), (1,-1), colors.whitesmoke),
+
+            ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
+
+            ("FONTNAME", (0,0), (-1,-1), "Helvetica"),
+
+            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+            ("TOPPADDING", (0,0), (-1,-1), 8),
+        ])
+    )
+
+    elements.append(table)
+
+    doc.build(elements)
+
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"{enquiry.enquiry_reference}.pdf",
+        mimetype="application/pdf"
     )
 # =========================================================
 # UPDATE ENQUIRY STATUS

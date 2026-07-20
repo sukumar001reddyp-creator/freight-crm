@@ -70,6 +70,13 @@
     </div>
 
     <div class="view-header-actions">
+    <a
+    href="{{ url_for('enquiries.download_enquiry_pdf', enquiry_id=enquiry.id) }}"
+    class="download-pdf-btn"
+>
+    <i class="bi bi-download"></i>
+    Download PDF
+</a>
 
     <!-- CREATE QUOTATION -->
 
@@ -955,14 +962,39 @@
         flex-direction: column;
     }
 
-    .create-quotation-link-btn,
-    .edit-enquiry-btn {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
+.download-pdf-btn,
+.create-quotation-link-btn,
+.edit-enquiry-btn {
+    width: 100%;
+    box-sizing: border-box;
 }
 
+}
+.download-pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 10px 15px;
+
+    border-radius: 10px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+
+    transition: 0.2s ease;
+}
+
+.download-pdf-btn:hover {
+    background: #1d4ed8;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
 </style>
 
 {% endblock %}
