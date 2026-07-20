@@ -3449,8 +3449,12 @@ button {
 .profile-action-row {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
     gap: 7px;
+    flex-wrap: nowrap;
+}
+
+.profile-action-row .btn {
+    white-space: nowrap;
 }
 
 .profile-quick-grid {
