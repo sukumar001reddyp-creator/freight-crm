@@ -1,5 +1,7 @@
 import os
 import json
+import pickle
+import base64
 import logging
 from datetime import datetime, date
 from decimal import Decimal
@@ -26,10 +28,11 @@ from apscheduler.triggers.cron import CronTrigger
 from pytz import timezone
 import atexit
 
-# === GOOGLE DRIVE IMPORTS ===
+# === GOOGLE DRIVE IMPORTS (OAuth 2.0) ===
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from google.oauth2 import service_account
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 
 backup_bp = Blueprint(
     "backup",
@@ -49,6 +52,16 @@ DEFAULT_BACKUP_FOLDER = os.path.join(
     "FreightCRM_Backups"
 )
 
+# Project root (one level up from app/)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# OAuth paths
+CLIENT_SECRET_PATH = os.path.join(PROJECT_ROOT, 'client_secret.json')
+TOKEN_PICKLE_PATH = os.path.join(PROJECT_ROOT, 'token.pickle')
+
+# Google Drive Scopes
+SCOPES = ['https://www.googleapis.com/auth/drive']
+
 
 def admin_only():
     return getattr(current_user, "role", "") == "admin"
@@ -63,38 +76,112 @@ def get_backup_folder():
 
 
 # =========================================================
-# GOOGLE DRIVE UPLOAD FUNCTION
+# GOOGLE DRIVE OAUTH CREDENTIALS (Local + Render)
+# =========================================================
+
+def get_drive_credentials():
+    """Get OAuth credentials for Google Drive (Local file or Render env)"""
+    creds = None
+    
+    # Render: token from env var (base64 encoded)
+    token_b64 = os.getenv('GOOGLE_TOKEN_PICKLE_B64')
+    if token_b64:
+        logger.info("Loading token from environment variable...")
+        try:
+            token_bytes = base64.b64decode(token_b64)
+            creds = pickle.loads(token_bytes)
+            logger.info("Token loaded from env successfully")
+        except Exception as e:
+            logger.error(f"Failed to load token from env: {e}")
+            creds = None
+    
+    # Local: token from file
+    if not creds and os.path.exists(TOKEN_PICKLE_PATH):
+        logger.info("Loading token from local file...")
+        try:
+            with open(TOKEN_PICKLE_PATH, 'rb') as token:
+                creds = pickle.load(token)
+            logger.info("Token loaded from file successfully")
+        except Exception as e:
+            logger.error(f"Failed to load token from file: {e}")
+            creds = None
+    
+    # No token found
+    if not creds:
+        logger.warning("No token found. Running in local mode for first-time setup...")
+        # Local only: create new token via browser
+        if os.path.exists(CLIENT_SECRET_PATH):
+            try:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    CLIENT_SECRET_PATH, SCOPES)
+                creds = flow.run_local_server(port=0)
+                # Save for next time
+                with open(TOKEN_PICKLE_PATH, 'wb') as token:
+                    pickle.dump(creds, token)
+                logger.info(f"New token saved to: {TOKEN_PICKLE_PATH}")
+            except Exception as e:
+                logger.error(f"Browser login failed: {e}")
+                return None
+        else:
+            logger.error(f"client_secret.json not found at: {CLIENT_SECRET_PATH}")
+            return None
+    
+    # Refresh if expired
+    if not creds.valid:
+        if creds.expired and creds.refresh_token:
+            logger.info("Token expired, refreshing...")
+            try:
+                creds.refresh(Request())
+                # Save refreshed token
+                if os.getenv('GOOGLE_TOKEN_PICKLE_B64'):
+                    # Render: can't save to file, but refresh works in-memory
+                    pass
+                else:
+                    # Local: save refreshed token
+                    with open(TOKEN_PICKLE_PATH, 'wb') as token:
+                        pickle.dump(creds, token)
+                logger.info("Token refreshed successfully")
+            except Exception as e:
+                logger.error(f"Token refresh failed: {e}")
+                return None
+        else:
+            logger.error("Token invalid and cannot refresh")
+            return None
+    
+    return creds
+
+
+# =========================================================
+# GOOGLE DRIVE UPLOAD FUNCTION (OAuth)
 # =========================================================
 
 def upload_to_drive(file_path, filename):
-    """Upload backup to Google Drive"""
+    """Upload backup to Google Drive using OAuth 2.0"""
     try:
-        # Get credentials from environment
-        creds_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON')
-        if not creds_json:
-            logger.warning("GOOGLE_SERVICE_ACCOUNT_JSON not found")
+        # Get OAuth credentials
+        credentials = get_drive_credentials()
+        
+        if not credentials:
+            logger.warning("No Google Drive credentials available, skipping upload")
             return None
-
-        # Parse JSON
-        creds_info = json.loads(creds_json)
-
-        # Build credentials
-        credentials = service_account.Credentials.from_service_account_info(
-            creds_info,
-            scopes=['https://www.googleapis.com/auth/drive']
-        )
-
+        
         # Build Drive service
         service = build('drive', 'v3', credentials=credentials)
 
-        # Get folder ID from config
+        # Get folder ID from config (optional)
         folder_id = current_app.config.get('GOOGLE_DRIVE_BACKUP_FOLDER')
-
-        # Upload file
-        file_metadata = {
-            'name': filename,
-            'parents': [folder_id] if folder_id else []
-        }
+        
+        # Validate folder ID (Google IDs are ~33 chars, alphanumeric with -_)
+        import re
+        is_valid_id = bool(re.match(r'^[a-zA-Z0-9_-]{20,}$', str(folder_id))) if folder_id else False
+        
+        file_metadata = {'name': filename}
+        
+        if is_valid_id:
+            file_metadata['parents'] = [folder_id]
+            logger.info(f"📁 Uploading to folder: {folder_id}")
+        else:
+            logger.info(f"📁 Uploading to My Drive root")
 
         media = MediaFileUpload(
             file_path,
@@ -201,10 +288,12 @@ def create():
 
         logger.info(f"Backup saved: {dest_path}")
 
-        # === UPLOAD TO GOOGLE DRIVE ===
+        # === UPLOAD TO GOOGLE DRIVE (OAuth) ===
         file_id = upload_to_drive(dest_path, backup_filename)
         if file_id:
             flash(f"✅ Uploaded to Google Drive!", "success")
+        else:
+            flash(f"⚠️ Backup saved locally. Drive upload skipped.", "warning")
 
         return send_file(
             dest_path,
@@ -458,7 +547,7 @@ def run_scheduled_backup(app):
 
             app.logger.info(f"✅ Backup created: {backup_filename}")
 
-            # === UPLOAD TO GOOGLE DRIVE ===
+            # === UPLOAD TO GOOGLE DRIVE (OAuth) ===
             file_id = upload_to_drive(dest_path, backup_filename)
 
             if file_id:
@@ -473,7 +562,7 @@ def run_scheduled_backup(app):
                 db.session.commit()
                 app.logger.info(f"✅ Backup uploaded to Drive: {file_id}")
             else:
-                app.logger.warning("⚠️ Drive upload failed, backup saved locally only")
+                app.logger.warning("⚠️ Drive upload failed or skipped, backup saved locally only")
 
             # Cleanup old local backups
             cleanup_old_backups(app)
