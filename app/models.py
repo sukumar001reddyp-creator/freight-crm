@@ -304,8 +304,18 @@ class Quotation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     quotation_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id", ondelete="RESTRICT"), nullable=False, index=True)
-    
+    enquiry_id = db.Column(
+    db.Integer,
+    db.ForeignKey("enquiries.id", ondelete="RESTRICT"),
+    nullable=True,
+    index=True
+)
+    client_id = db.Column(
+    db.Integer,
+    db.ForeignKey("clients.id", ondelete="RESTRICT"),
+    nullable=True,
+    index=True
+)
     quotation_amount = db.Column(db.Numeric(15, 2), nullable=False)
     currency = db.Column(db.String(10), nullable=False, index=True)
     validity_date = db.Column(db.Date, nullable=False, index=True)
@@ -350,6 +360,10 @@ class Quotation(db.Model):
 
     # Relationships
     enquiry = db.relationship("Enquiry", foreign_keys=[enquiry_id])
+    client = db.relationship(
+    "Client",
+    foreign_keys=[client_id]
+)
     approved_by = db.relationship("User", foreign_keys=[approved_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
 
@@ -365,6 +379,7 @@ class ShipmentPartyDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     quotation_id = db.Column(db.Integer, db.ForeignKey("quotations.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
     enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id", ondelete="RESTRICT"), nullable=False, index=True)
+
     agent_name = db.Column(db.String(255), nullable=False)
     agent_country = db.Column(db.String(120), nullable=False)
     agent_contact_person = db.Column(db.String(255), nullable=False)

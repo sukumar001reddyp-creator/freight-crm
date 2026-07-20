@@ -13,7 +13,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 from app import db
-from app.models import Quotation, Enquiry, ShipmentPartyDetails
+from app.models import Client, Quotation, Enquiry, ShipmentPartyDetails
 from app.sales_scope import (
     scope_quotations, get_enquiry_or_404, get_quotation_or_404,
 )
@@ -124,6 +124,85 @@ def create_quotation(enquiry_id):
 
     return render_template("quotations/create.html", enquiry=enquiry)
 
+@quotations_bp.route("/create", methods=["GET", "POST"])
+@login_required
+def create_direct_quotation():
+
+    clients = Client.query.order_by(Client.company_name).all()
+
+    if request.method == "POST":
+
+        client = Client.query.get_or_404(
+            request.form.get("client_id")
+        )
+
+        quotation = Quotation()
+
+        quotation.client_id = client.id
+        quotation.enquiry_id = None
+
+        quotation.quotation_number = generate_quotation_number()
+
+        quotation.currency = request.form.get("currency")
+        quotation.validity_date = datetime.strptime(
+            request.form.get("validity_date"),
+            "%Y-%m-%d"
+        ).date()
+
+        quotation.shipping_line_airline = request.form.get("shipping_line_airline")
+        quotation.no_of_containers = request.form.get("no_of_containers") or None
+        quotation.container_type_quota = request.form.get("container_type_quota")
+        quotation.etd = datetime.strptime(request.form.get("etd"), "%Y-%m-%dT%H:%M") if request.form.get("etd") else None
+        quotation.cutoff_date_documentation = datetime.strptime(request.form.get("cutoff_date_documentation"), "%Y-%m-%dT%H:%M") if request.form.get("cutoff_date_documentation") else None
+        quotation.cutoff_date_cargo = datetime.strptime(request.form.get("cutoff_date_cargo"), "%Y-%m-%dT%H:%M") if request.form.get("cutoff_date_cargo") else None
+        quotation.free_time_days = request.form.get("free_time_days", type=int)
+        quotation.transit_time_days = request.form.get("transit_time_days", type=int)
+        
+        quotation.incoterms = request.form.get("incoterms")
+        quotation.hs_code = request.form.get("hs_code")
+
+        quotation.payment_terms = request.form.get("payment_terms")
+        quotation.remarks_terms = request.form.get("remarks_terms")
+
+        quotation.ocean_air_freight = Decimal(request.form.get("ocean_air_freight") or 0)
+
+        quotation.origin_charges = Decimal(request.form.get("origin_charges") or 0)
+
+        quotation.destination_charges = Decimal(request.form.get("destination_charges") or 0)
+
+        quotation.insurance_charges = Decimal(request.form.get("insurance_charges") or 0)
+
+        quotation.other_surcharges = Decimal(request.form.get("other_surcharges") or 0)
+
+        quotation.quotation_amount = (
+            quotation.ocean_air_freight
+            + quotation.origin_charges
+            + quotation.destination_charges
+            + quotation.insurance_charges
+            + quotation.other_surcharges
+        )
+
+        quotation.created_by_id = current_user.id
+
+        db.session.add(quotation)
+        db.session.commit()
+
+        flash(
+            "Direct quotation created successfully.",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "quotations.view_quotation",
+                quotation_id=quotation.id
+            )
+        )
+
+    return render_template(
+        "quotations/create_direct.html",
+        clients=clients
+    )
 # =========================================================
 # REST OF THE FILE (unchanged - kept full)
 # =========================================================
