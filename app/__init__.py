@@ -233,10 +233,16 @@ def create_app():
                     "quotations": quotation_scope.filter(
                         (Quotation.quotation_number.ilike(f"%{search_q}%")) |
                         (Client.company_name.ilike(f"%{search_q}%"))
-                    ).limit(5).all()
+                    ).limit(5).all(),
+
+                    
+                    "shipments": shipment_scope.filter(
+                        (Shipment.shipment_reference.ilike(f"%{search_q}%")) |
+                        (Client.company_name.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
                 }
             except Exception:
-                search_results = {"clients": [], "enquiries": [], "quotations": []}
+                search_results = {"clients": [], "enquiries": [], "quotations": [], "shipments": []}
 
         # Top Cards Counts
         total_clients = client_scope.count()
