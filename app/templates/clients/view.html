@@ -97,15 +97,7 @@ Complete relationship, lifecycle and account workspace.
                 <i class="bi bi-pencil-square"></i>
                 Edit Client
             </a>
-            <a
-    href="#"
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#portalAccountModal"
->
-    <i class="bi bi-shield-lock"></i>
-    Create Portal Account
-</a>
+            
 
             {% if client.status in ["lead", "new"] or client.category == "pipeline" %}
             <button
@@ -306,100 +298,7 @@ Complete relationship, lifecycle and account workspace.
 
                 <div class="profile-content-main">
 
-                    <section class="profile-info-card client-pipeline-card">
-
-                        <div class="profile-section-title pipeline-title-row">
-                            <span>
-                                <i class="bi bi-diagram-3-fill"></i>
-                            </span>
-
-                            <div>
-                                <h3>Sales Pipeline / Funnel</h3>
-                                <p>Current opportunity stage and controlled movement path</p>
-                            </div>
-
-                            <div class="pipeline-current-badge">
-                                <small>Current Stage</small>
-                                <strong>
-                                    {% if client.pipeline_stage %}
-                                        {{ dict(pipeline_stages).get(
-                                            client.pipeline_stage,
-                                            client.pipeline_stage|replace('_', ' ')|title
-                                        ) }}
-                                    {% else %}
-                                        Not Started
-                                    {% endif %}
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="pipeline-progress-shell">
-                            <div class="pipeline-stage-track">
-                                {% set current_stage = client.pipeline_stage %}
-                                {% set ns = namespace(current_index=-1) %}
-
-                                {% for value, label in pipeline_stages %}
-                                    {% if value == current_stage %}
-                                        {% set ns.current_index = loop.index0 %}
-                                    {% endif %}
-                                {% endfor %}
-
-                                {% for value, label in pipeline_stages %}
-                                <div
-                                    class="
-                                        pipeline-stage-node
-                                        {% if value == current_stage %}is-current{% endif %}
-                                        {% if ns.current_index >= 0 and loop.index0 < ns.current_index %}is-complete{% endif %}
-                                        {% if value in ['won', 'lost'] %}is-outcome{% endif %}
-                                    "
-                                >
-                                    <div class="pipeline-node-marker">
-                                        {% if ns.current_index >= 0 and loop.index0 < ns.current_index %}
-                                            <i class="bi bi-check-lg"></i>
-                                        {% elif value == current_stage %}
-                                            <i class="bi bi-circle-fill"></i>
-                                        {% else %}
-                                            {{ loop.index }}
-                                        {% endif %}
-                                    </div>
-
-                                    <span>{{ label }}</span>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="pipeline-card-footer">
-                            <div class="pipeline-guidance">
-                                <i class="bi bi-shield-check"></i>
-                                <span>
-                                    {% if not client.pipeline_stage %}
-                                        Pipeline starts at Prospect.
-                                    {% elif client.pipeline_stage in ["won", "lost"] %}
-                                        This opportunity reached a terminal outcome.
-                                    {% else %}
-                                        Movement is restricted to one adjacent stage at a time.
-                                    {% endif %}
-                                </span>
-                            </div>
-
-                            <button
-                                type="button"
-                                class="pipeline-move-btn"
-                                onclick="openPipelineModal()"
-                                {% if not allowed_pipeline_stages %}disabled{% endif %}
-                            >
-                                <i class="bi bi-arrow-left-right"></i>
-                                {% if client.pipeline_stage in ["won", "lost"] %}
-                                    Pipeline Closed
-                                {% else %}
-                                    Move Stage
-                                {% endif %}
-                            </button>
-                        </div>
-
-                    </section>
-
+                    
                     <section class="profile-info-card client-ownership-card">
 
                         <div class="profile-section-title">
