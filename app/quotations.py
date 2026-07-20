@@ -762,30 +762,35 @@ def reject_quotation(quotation_id):
     )
 
 
-import pdfkit
+
 from flask import make_response
+import os
+import pdfkit
 
 @quotations_bp.route("/<int:quotation_id>/download")
 @login_required
 def download_quotation_pdf(quotation_id):
     quotation = get_quotation_or_404(quotation_id)
-    
-    # Render the HTML template with quotation data
-    html_content = render_template("quotations/pdf_template.html", quotation=quotation)
-    
-    # Configuration for wkhtmltopdf executable path
-    # Make sure to provide the correct path to your wkhtmltopdf.exe
-    path_wkhtmltopdf = r'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
-    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-    
-    # Generate PDF from the HTML content
-    pdf = pdfkit.from_string(html_content, False, configuration=config)
-    
-    # Create response with PDF headers
+
+    html_content = render_template(
+        "quotations/pdf_template.html",
+        quotation=quotation
+    )
+
+    if os.name == "nt":
+        config = pdfkit.configuration(
+            wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+        )
+        pdf = pdfkit.from_string(html_content, False, configuration=config)
+    else:
+        pdf = pdfkit.from_string(html_content, False)
+
     response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=Quotation_{quotation.quotation_number}.pdf'
-    
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename=Quotation_{quotation.quotation_number}.pdf'
+    )
+
     return response
 
 @quotations_bp.route("/<int:quotation_id>/edit", methods=["GET", "POST"])
