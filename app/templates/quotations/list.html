@@ -14,16 +14,27 @@
 
     <div class="quotation-header">
 
-        <div>
-            <h1>Quotations</h1>
+    <div>
+        <h1>Quotations</h1>
 
-            <p>
-                Track quotation values, validity dates
-                and client approval decisions.
-            </p>
-        </div>
+        <p>
+            Track quotation values, validity dates
+            and client approval decisions.
+        </p>
+    </div>
+
+    <div class="header-actions">
+
+
+        <a href="{{ url_for('quotations.create_direct_quotation') }}"
+   class="btn-primary">
+    <i class="bi bi-plus-lg"></i>
+    New Direct Quotation
+</a>
 
     </div>
+
+</div>
 
 
     <!-- ==========================================
@@ -688,6 +699,46 @@
         }
 
     }
+
+    .header-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.btn-primary,
+.btn-secondary{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:12px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    font-size:14px;
+    font-weight:700;
+    transition:.2s;
+}
+
+.btn-primary{
+    background:#7f1d1d;
+    color:#fff;
+}
+
+.btn-primary:hover{
+    background:#991b1b;
+    color:#fff;
+}
+
+.btn-secondary{
+    background:#fff;
+    color:#374151;
+    border:1px solid #d1d5db;
+}
+
+.btn-secondary:hover{
+    background:#f3f4f6;
+    color:#111827;
+}
 
 </style>
 
