@@ -456,7 +456,20 @@
                 </div>
 
             </div>
+<div class="side-card">
 
+    <h3>Quotation Actions</h3>
+
+    <a href="{{ url_for('quotations.download_quotation_pdf', quotation_id=quotation.id) }}"
+       class="btn-download-pdf w-100"
+       target="_blank">
+
+        <i class="bi bi-download"></i>
+        Download Quotation PDF
+
+    </a>
+
+</div>
             <!-- QUOTATION DECISION ACTIONS (your original) -->
             {% if quotation.status == "pending" %}
 
@@ -486,15 +499,7 @@
                             Approve Quotation
                         </button>
 
-                        <!-- DOWNLOAD PDF -->
-                        <div style="margin-top: 16px; text-align: center;">
-                            <a href="{{ url_for('quotations.download_quotation_pdf', quotation_id=quotation.id) }}" 
-                               class="btn-download-pdf" 
-                               target="_blank">
-                                <i class="bi bi-download"></i> 
-                                Download Quotation PDF
-                            </a>
-                        </div>
+                        
 
                     </form>
 
@@ -540,7 +545,18 @@
 
             {% endif %}
 
+{% if quotation.status == "approved" %}
+<form action="{{ url_for('shipments.convert_from_quotation', quotation_id=quotation.id) }}"
+      method="POST"
+      class="mt-3">
 
+    <button type="submit" class="convert-shipment-btn">
+        <i class="bi bi-truck"></i>
+        Convert to Shipment
+    </button>
+
+</form>
+{% endif %}
             <!-- CONVERT TO SHIPMENT + AUDIT + DOCUMENT (your original code) -->
             <!-- ... keep all your original right column content as is from here ... -->
 
@@ -1421,5 +1437,55 @@
         color: #111827;
         transform: translateY(-1px);
     }
+
+    /* ==========================================
+   CONVERT TO SHIPMENT BUTTON
+   ========================================== */
+
+.convert-shipment-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    width:100%;
+    box-sizing:border-box;
+
+    padding:11px 14px;
+
+    border:none;
+    border-radius:10px;
+
+    background:#16a34a;
+    color:#ffffff;
+
+    text-decoration:none;
+    cursor:pointer;
+
+    font-family:inherit;
+    font-size:13px;
+    font-weight:800;
+
+    transition:
+        background .2s ease,
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.convert-shipment-btn:hover{
+    background:#15803d;
+    color:#ffffff;
+    transform:translateY(-1px);
+    box-shadow:0 6px 14px rgba(22,163,74,.25);
+}
+
+.convert-shipment-btn:active{
+    transform:translateY(0);
+    box-shadow:none;
+}
+
+.convert-shipment-btn i{
+    font-size:14px;
+}
 </style>
 {% endblock %}
