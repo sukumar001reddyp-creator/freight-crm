@@ -1322,6 +1322,31 @@ def view_client(client_id):
         .all()
     )
 
+    # Client Enquiries
+    client_enquiries = (
+        Enquiry.query
+        .filter_by(client_id=client.id)
+        .order_by(Enquiry.id.desc())
+        .all()
+    )
+
+    # Client Quotations
+    client_quotations = (
+        db.session.query(Quotation)
+        .join(Enquiry, Quotation.enquiry_id == Enquiry.id)
+        .filter(Enquiry.client_id == client.id)
+        .order_by(Quotation.id.desc())
+        .all()
+    )
+
+    # Client Shipments
+    client_shipments = (
+        Shipment.query
+        .filter_by(client_id=client.id)
+        .order_by(Shipment.id.desc())
+        .all()
+    )
+
     merge_candidates = []
     if is_admin_user():
         merge_candidates = (
@@ -1409,9 +1434,9 @@ def view_client(client_id):
         client_history=client_history,
         pipeline_stages=PIPELINE_STAGES,
         merge_candidates=merge_candidates,
-        client_enquiries=[],
-        client_quotations=[],
-        client_shipments=[],
+        client_enquiries=client_enquiries,
+        client_quotations=client_quotations,
+        client_shipments=client_shipments,
         statuses=CLIENT_STATUSES,
         services=dict(SERVICE_OPTIONS),
         categories=dict(CLIENT_CATEGORIES),
