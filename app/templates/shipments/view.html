@@ -48,7 +48,13 @@
             <p>
                 Active freight shipment for
                 <strong>
+                    {% if shipment.client %}
                     {{ shipment.client.company_name }}
+                    {% elif shipment.other_client_name %}
+                        {{ shipment.other_client_name }}
+                    {% else %}
+                    -
+                    {% endif %}
                 </strong>
             </p>
 

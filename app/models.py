@@ -143,6 +143,7 @@ class ClientPipelineHistory(db.Model):
     __tablename__ = "client_pipeline_history"
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id", ondelete="CASCADE"), nullable=False, index=True)
+    other_client_name = db.Column(db.String(200), nullable=True)
     old_stage = db.Column(db.String(50), nullable=True, index=True)
     new_stage = db.Column(db.String(50), nullable=False, index=True)
     remarks = db.Column(db.Text, nullable=True)
@@ -316,6 +317,7 @@ class Quotation(db.Model):
     nullable=True,
     index=True
 )
+    other_client_name = db.Column(db.String(200), nullable=True)
     quotation_amount = db.Column(db.Numeric(15, 2), nullable=False)
     currency = db.Column(db.String(10), nullable=False, index=True)
     validity_date = db.Column(db.Date, nullable=False, index=True)
@@ -325,7 +327,8 @@ class Quotation(db.Model):
     document_stored_filename = db.Column(db.String(255), nullable=True)
     document_file_path = db.Column(db.String(500), nullable=True)
     
-    status = db.Column(db.String(30), nullable=False, default="pending", index=True)
+    status = db.Column(db.String(30), nullable=False, default="draft", index=True)
+    is_deleted = db.Column(db.Boolean, nullable=False, default=False)
     rejection_reason = db.Column(db.Text, nullable=True)
     
     approved_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
@@ -357,6 +360,30 @@ class Quotation(db.Model):
 
     # Remarks / Terms & Conditions
     remarks_terms = db.Column(db.Text, nullable=True)
+    origin = db.Column(
+    db.String(200),
+    nullable=True
+)
+
+    destination = db.Column(
+    db.String(200),
+    nullable=True
+)
+
+    mode_of_shipment = db.Column(
+    db.String(50),
+    nullable=True
+)
+
+    cargo_description = db.Column(
+    db.Text,
+    nullable=True
+)
+
+    cargo_weight_volume = db.Column(
+    db.String(100),
+    nullable=True
+)
 
     # Relationships
     enquiry = db.relationship("Enquiry", foreign_keys=[enquiry_id])
@@ -378,7 +405,7 @@ class ShipmentPartyDetails(db.Model):
     __tablename__ = "shipment_party_details"
     id = db.Column(db.Integer, primary_key=True)
     quotation_id = db.Column(db.Integer, db.ForeignKey("quotations.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
-    enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id", ondelete="RESTRICT"), nullable=False, index=True)
+    enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id", ondelete="RESTRICT"), nullable=True, index=True)
 
     agent_name = db.Column(db.String(255), nullable=False)
     agent_country = db.Column(db.String(120), nullable=False)
@@ -414,9 +441,23 @@ class Shipment(db.Model):
     def shipment_id(self):
         return self.shipment_reference
 
-    enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id", ondelete="RESTRICT"), nullable=False, unique=True, index=True)
+    enquiry_id = db.Column(
+    db.Integer,
+    db.ForeignKey("enquiries.id"),
+    nullable=True
+)
     quotation_id = db.Column(db.Integer, db.ForeignKey("quotations.id", ondelete="RESTRICT"), nullable=False, unique=True, index=True)
-    client_id = db.Column(db.Integer, db.ForeignKey("clients.id", ondelete="RESTRICT"), nullable=False, index=True)
+
+    client_id = db.Column(
+    db.Integer,
+    db.ForeignKey("clients.id"),
+    nullable=True
+)
+
+    other_client_name = db.Column(
+    db.String(200),
+    nullable=True
+)
     origin = db.Column(db.String(255), nullable=False)
     destination = db.Column(db.String(255), nullable=False)
     mode_of_shipment = db.Column(db.String(50), nullable=False, index=True)

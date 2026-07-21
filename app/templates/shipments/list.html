@@ -47,6 +47,14 @@
          ========================================== -->
 
     <div class="shipments-card">
+        <div class="shipment-search-box">
+    <i class="bi bi-search"></i>
+    <input
+        type="text"
+        id="shipmentSearch"
+        placeholder="Search by Shipment Ref, Client, Route, Mode, Status..."
+    >
+</div>
 
         {% if shipments %}
 
@@ -96,22 +104,32 @@
                                 <!-- CLIENT -->
 
                                 <td>
-                                    <div class="client-cell">
+    <div class="client-cell">
 
-                                        <span class="client-icon">
-                                            <i class="bi bi-building"></i>
-                                        </span>
+        <span class="client-icon">
+            <i class="bi bi-building"></i>
+        </span>
 
-                                        <strong>
-                                            {{
-                                                shipment
-                                                .client
-                                                .company_name
-                                            }}
-                                        </strong>
+        <strong>
 
-                                    </div>
-                                </td>
+            {% if shipment.client %}
+
+                {{ shipment.client.company_name }}
+
+            {% elif shipment.other_client_name %}
+
+                {{ shipment.other_client_name }}
+
+            {% else %}
+
+                -
+
+            {% endif %}
+
+        </strong>
+
+    </div>
+</td>
 
 
                                 <!-- ROUTE -->
@@ -618,8 +636,56 @@
         }
 
     }
+    /* ==========================================
+   SEARCH BOX
+   ========================================== */
+
+.shipment-search-box{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:16px;
+    border-bottom:1px solid #e5e7eb;
+    background:#ffffff;
+}
+
+.shipment-search-box i{
+    color:#6b7280;
+    font-size:16px;
+}
+
+.shipment-search-box input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:14px;
+}
 
 
 </style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const search = document.getElementById("shipmentSearch");
+
+    if (!search) return;
+
+    search.addEventListener("keyup", function () {
+
+        const keyword = this.value.toLowerCase();
+
+        document.querySelectorAll(".shipments-table tbody tr").forEach(function(row){
+
+            row.style.display = row.innerText.toLowerCase().includes(keyword)
+                ? ""
+                : "none";
+
+        });
+
+    });
+
+});
+</script>
 
 {% endblock %}

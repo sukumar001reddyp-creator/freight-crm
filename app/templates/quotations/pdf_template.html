@@ -100,7 +100,27 @@
 
     <div class="header">
         <h1>Quotation: {{ quotation.quotation_number }}</h1>
-        <p><strong>Client:</strong> {{ quotation.enquiry.client.company_name }}</p>
+        <p>
+    <strong>Client:</strong>
+
+    {% if quotation.enquiry %}
+
+        {{ quotation.enquiry.client.company_name }}
+
+    {% elif quotation.other_client_name %}
+
+        {{ quotation.other_client_name }}
+
+    {% elif quotation.client %}
+
+        {{ quotation.client.company_name }}
+
+    {% else %}
+
+        N/A
+
+    {% endif %}
+</p>
         <p><strong>Date:</strong> {{ quotation.created_at.strftime('%d %b %Y') }}</p>
         <p><strong>Validity:</strong> {{ quotation.validity_date.strftime('%d %b %Y') if quotation.validity_date else 'N/A' }}</p>
     </div>
