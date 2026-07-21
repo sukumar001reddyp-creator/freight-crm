@@ -322,11 +322,12 @@ def convert_from_quotation(quotation_id):
     require_shipment_write_access()
 
     quotation = db.get_or_404(
-        Quotation,
-        quotation_id
-    )
+    Quotation,
+    quotation_id
+)
 
-    enquiry = quotation.enquiry
+# Enquiry-based quotation or Direct quotation
+    enquiry = quotation.enquiry if quotation.enquiry_id else None
 
     # -----------------------------------------
     # ONLY APPROVED QUOTATION CAN CONVERT
@@ -417,39 +418,41 @@ def convert_from_quotation(quotation_id):
             url_for(
                 "shipments.shipment_list"
             )
+
         )
 
     # -----------------------------------------
-    # ENQUIRY ALREADY CONVERTED?
-    # -----------------------------------------
+# ENQUIRY ALREADY CONVERTED?
+# (Only for enquiry-based quotations)
+# -----------------------------------------
+    if enquiry:
 
-    existing_by_enquiry = (
-        db.session.execute(
-            db.select(Shipment)
-            .where(
-                Shipment.enquiry_id
-                == enquiry.id
+        existing_by_enquiry = (
+            db.session.execute(
+                db.select(Shipment)
+                .where(
+                    Shipment.enquiry_id == enquiry.id
             )
         )
-        .scalars()
-        .first()
+            .scalars()
+            .first()
     )
 
-    if existing_by_enquiry:
+        if existing_by_enquiry:
 
-        flash(
+            flash(
             (
-                f"Enquiry "
-                f"{enquiry.enquiry_reference} "
-                f"was already converted to shipment "
-                f"{existing_by_enquiry.shipment_reference}."
+                    f"Enquiry "
+                    f"{enquiry.enquiry_reference} "
+                    f"was already converted to shipment "
+                    f"{existing_by_enquiry.shipment_reference}."
             ),
-            "warning"
+                "warning"
         )
 
-        return redirect(
-            url_for(
-                "shipments.shipment_list"
+            return redirect(
+                url_for(
+                    "shipments.shipment_list"
             )
         )
 
@@ -458,35 +461,48 @@ def convert_from_quotation(quotation_id):
     # -----------------------------------------
 
     shipment = Shipment(
-        shipment_reference=(
-            generate_shipment_reference()
-        ),
-        enquiry_id=enquiry.id,
-        quotation_id=quotation.id,
-        client_id=enquiry.client_id,
-        origin=enquiry.origin,
-        destination=enquiry.destination,
-        mode_of_shipment=(
-            enquiry.mode_of_shipment
-        ),
-        cargo_description=(
-            enquiry.cargo_description
-        ),
-        cargo_weight_volume=(
-            enquiry.cargo_weight_volume
-        ),
-        shipment_status="active",
-        current_stage="booked",
-        handled_by_id=(
-            enquiry.handled_by_id
-        ),
-        created_by_id=(
-            current_user.id
-        ),
-    )
+    shipment_reference=generate_shipment_reference(),
 
-    # Original enquiry becomes converted
-    enquiry.status = "converted"
+    enquiry_id=enquiry.id if enquiry else None,
+
+    quotation_id=quotation.id,
+
+    client_id=(
+        enquiry.client_id
+        if enquiry
+        else quotation.client_id
+    ),
+
+    other_client_name=(
+        None
+        if enquiry
+        else quotation.other_client_name
+    ),
+
+    origin=enquiry.origin if enquiry else quotation.origin,
+
+    destination=enquiry.destination if enquiry else quotation.destination,
+
+    mode_of_shipment=enquiry.mode_of_shipment if enquiry else quotation.mode_of_shipment,
+
+    cargo_description=enquiry.cargo_description if enquiry else quotation.cargo_description),
+
+    cargo_weight_volume=enquiry.cargo_weight_volume if enquiry else quotation.cargo_weight_volume,
+
+    shipment_status="active",
+    current_stage="booked",
+
+    handled_by_id=(
+        enquiry.handled_by_id
+        if enquiry
+        else quotation.created_by_id
+    ),
+
+    created_by_id=current_user.id,
+
+    # Enquiry quotations only
+    if enquiry:
+        enquiry.status = "converted"
 
     # -----------------------------------------
     # DEFAULT DOCUMENT CHECKLIST

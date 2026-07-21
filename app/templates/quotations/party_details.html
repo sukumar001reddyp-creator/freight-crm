@@ -92,7 +92,19 @@ Capture agent, shipper and consignee information before shipment conversion.
                 <small>Enquiry</small>
 
                 <strong>
-                    {{ quotation.enquiry.enquiry_reference }}
+                   <strong>
+
+{% if quotation.enquiry %}
+
+    {{ quotation.enquiry.enquiry_reference }}
+
+{% else %}
+
+    Direct Quotation
+
+{% endif %}
+
+</strong>
                 </strong>
             </div>
 
@@ -109,7 +121,23 @@ Capture agent, shipper and consignee information before shipment conversion.
                 <small>Client</small>
 
                 <strong>
-                    {{ quotation.enquiry.client.company_name }}
+                    {% if quotation.enquiry %}
+
+    {{ quotation.enquiry.client.company_name }}
+
+{% elif quotation.other_client_name %}
+
+    {{ quotation.other_client_name }}
+
+{% elif quotation.client %}
+
+    {{ quotation.client.company_name }}
+
+{% else %}
+
+    N/A
+
+{% endif %}
                 </strong>
             </div>
 

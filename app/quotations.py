@@ -90,6 +90,12 @@ def create_quotation(enquiry_id):
             quotation_amount=total_amount, # ఇక్కడ కాలిక్యులేట్ చేసిన టోటల్ అమౌంట్ వేస్తున్నాం
             currency=currency,
             validity_date=datetime.strptime(validity, "%Y-%m-%d").date(),
+
+            origin=request.form.get("origin"),
+            destination=request.form.get("destination"),
+            mode_of_shipment=request.form.get("mode_of_shipment"),
+            cargo_description=request.form.get("cargo_description"),
+            cargo_weight_volume=request.form.get("cargo_weight_volume"),
             
             shipping_line_airline=shipping_line,
             no_of_containers=no_containers,
@@ -132,14 +138,24 @@ def create_direct_quotation():
 
     if request.method == "POST":
 
-        client = Client.query.get_or_404(
-            request.form.get("client_id")
-        )
+        client_id = request.form.get("client_id")
+        other_client_name = request.form.get("other_client_name")
 
         quotation = Quotation()
 
-        quotation.client_id = client.id
         quotation.enquiry_id = None
+
+        if client_id == "others":
+
+            quotation.client_id = None
+            quotation.other_client_name = other_client_name
+
+        else:
+
+            client = Client.query.get_or_404(client_id)
+
+            quotation.client_id = client.id
+            quotation.other_client_name = None
 
         quotation.quotation_number = generate_quotation_number()
 
@@ -213,8 +229,10 @@ def quotation_list():
     quotations = (
         db.session.execute(
             scope_quotations(
-                db.select(Quotation)
-            )
+                db.select(Quotation).where(
+                    Quotation.is_deleted == False
+    )
+)
             .order_by(
                 Quotation.created_at.desc()
             )
@@ -908,3 +926,25 @@ def edit_quotation(quotation_id):
         return redirect(url_for("quotations.view_quotation", quotation_id=quotation.id))
 
     return render_template("quotations/edit.html", quotation=quotation)
+
+@quotations_bp.route("/<int:quotation_id>/delete", methods=["POST"])
+@login_required
+def delete_quotation(quotation_id):
+    quotation = get_quotation_or_404(quotation_id)
+
+    # Prevent deleting approved quotations
+    if quotation.status == "approved":
+        flash("Approved quotations cannot be deleted.", "warning")
+        return redirect(
+            url_for(
+                "quotations.view_quotation",
+                quotation_id=quotation.id,
+            )
+        )
+
+    quotation.is_deleted = True
+    db.session.commit()
+
+    flash("Quotation deleted successfully.", "success")
+
+    return redirect(url_for("quotations.quotation_list"))

@@ -322,13 +322,27 @@
 
                         <div class="locked-item">
 
-                            <span>Client</span>
+    <span>Client</span>
 
-                            <strong>
-                                {{ shipment.client.company_name }}
-                            </strong>
+    <strong>
 
-                        </div>
+        {% if shipment.client %}
+
+            {{ shipment.client.company_name }}
+
+        {% elif shipment.other_client_name %}
+
+            {{ shipment.other_client_name }}
+
+        {% else %}
+
+            -
+
+        {% endif %}
+
+    </strong>
+
+</div>
 
 
                         <div class="locked-item">
@@ -348,17 +362,23 @@
 
                         <div class="locked-item">
 
-                            <span>Original Enquiry</span>
+    <span>Original Enquiry</span>
 
-                            <strong>
-                                {{
-                                    shipment
-                                    .enquiry
-                                    .enquiry_reference
-                                }}
-                            </strong>
+    <strong>
 
-                        </div>
+        {% if shipment.enquiry %}
+
+            {{ shipment.enquiry.enquiry_reference }}
+
+        {% else %}
+
+            Direct Quotation
+
+        {% endif %}
+
+    </strong>
+
+</div>
 
 
                         <div class="locked-item">

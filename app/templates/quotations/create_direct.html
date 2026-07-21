@@ -27,9 +27,14 @@
         <div class="form-field">
             <label>Client <span>*</span></label>
 
-            <select name="client_id" required>
+            <select
+    name="client_id"
+    id="clientSelect"
+    required
+
 
                 <option value="">Select Client</option>
+                
 
                 {% for client in clients %}
 
@@ -39,7 +44,24 @@
 
                 {% endfor %}
 
+                <option value="others">
+                    Others
+                </option>
+
             </select>
+            <div
+    id="otherClientBox"
+    style="display:none;margin-top:12px;"
+>
+
+    <input
+        type="text"
+        id="otherClientName"
+        name="other_client_name"
+        placeholder="Enter Client Name"
+    >
+
+</div>
 
         </div>
 
@@ -51,6 +73,35 @@
             <h3>Shipment Details</h3>
             <div class="quotation-form-grid">
                 <div class="form-field">
+                    <div class="form-field">
+    <label>Origin <span>*</span></label>
+    <input type="text" name="origin" required>
+</div>
+
+<div class="form-field">
+    <label>Destination <span>*</span></label>
+    <input type="text" name="destination" required>
+</div>
+
+<div class="form-field">
+    <label>Mode of Shipment <span>*</span></label>
+    <select name="mode_of_shipment" required>
+        <option value="">Select</option>
+        <option value="Sea">Sea</option>
+        <option value="Air">Air</option>
+        <option value="Road">Road</option>
+    </select>
+</div>
+
+<div class="form-field form-field-full">
+    <label>Cargo Description</label>
+    <textarea name="cargo_description" rows="3"></textarea>
+</div>
+
+<div class="form-field">
+    <label>Weight / Volume</label>
+    <input type="text" name="cargo_weight_volume">
+</div>
                     <label>Shipping Line / Airline</label>
                     <input type="text" name="shipping_line_airline" placeholder="e.g. Maersk/Emirates">
                 </div>
@@ -178,6 +229,33 @@
             input.addEventListener('input', calculateTotal);
         }
     });
+
+    const clientSelect = document.getElementById("clientSelect");
+
+const otherClientBox = document.getElementById("otherClientBox");
+
+const otherClientName = document.getElementById("otherClientName");
+
+clientSelect.addEventListener("change", function () {
+
+    if (this.value === "others") {
+
+        otherClientBox.style.display = "block";
+
+        otherClientName.required = true;
+
+    }
+    else {
+
+        otherClientBox.style.display = "none";
+
+        otherClientName.required = false;
+
+        otherClientName.value = "";
+
+    }
+
+});
 </script>
 {% endblock %}
 
