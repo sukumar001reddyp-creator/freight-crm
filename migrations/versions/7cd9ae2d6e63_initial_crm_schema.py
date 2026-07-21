@@ -1,8 +1,8 @@
-"""Fresh start with all fields
+"""Initial CRM schema
 
-Revision ID: ab753bd554b5
+Revision ID: 7cd9ae2d6e63
 Revises: 
-Create Date: 2026-07-19 13:26:28.933648
+Create Date: 2026-07-21 17:12:13.557710
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ab753bd554b5'
+revision = '7cd9ae2d6e63'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,6 +25,15 @@ def upgrade():
     sa.Column('file_id', sa.String(length=255), nullable=True),
     sa.Column('error', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('settings',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('maintenance', sa.Boolean(), nullable=True),
+    sa.Column('app_env', sa.String(length=50), nullable=True),
+    sa.Column('base_currency', sa.String(length=10), nullable=True),
+    sa.Column('alert_email', sa.String(length=100), nullable=True),
+    sa.Column('backup_interval', sa.String(length=20), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -166,6 +175,7 @@ def upgrade():
     op.create_table('client_pipeline_history',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
+    sa.Column('other_client_name', sa.String(length=200), nullable=True),
     sa.Column('old_stage', sa.String(length=50), nullable=True),
     sa.Column('new_stage', sa.String(length=50), nullable=False),
     sa.Column('remarks', sa.Text(), nullable=True),
@@ -251,8 +261,8 @@ def upgrade():
     sa.Column('equipment_type', sa.String(length=50), nullable=True),
     sa.Column('cargo_description', sa.Text(), nullable=False),
     sa.Column('total_pieces', sa.Integer(), nullable=True),
-    sa.Column('weight_kg', sa.Numeric(precision=12, scale=2), nullable=True),
-    sa.Column('volume_cbm', sa.Numeric(precision=12, scale=2), nullable=True),
+    sa.Column('weight_kg', sa.Float(), nullable=True),
+    sa.Column('volume_cbm', sa.Float(), nullable=True),
     sa.Column('cargo_weight_volume', sa.String(length=150), nullable=True),
     sa.Column('handled_by_id', sa.Integer(), nullable=False),
     sa.Column('sales_coordinator_id', sa.Integer(), nullable=True),
@@ -294,7 +304,9 @@ def upgrade():
     op.create_table('quotations',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('quotation_number', sa.String(length=50), nullable=False),
-    sa.Column('enquiry_id', sa.Integer(), nullable=False),
+    sa.Column('enquiry_id', sa.Integer(), nullable=True),
+    sa.Column('client_id', sa.Integer(), nullable=True),
+    sa.Column('other_client_name', sa.String(length=200), nullable=True),
     sa.Column('quotation_amount', sa.Numeric(precision=15, scale=2), nullable=False),
     sa.Column('currency', sa.String(length=10), nullable=False),
     sa.Column('validity_date', sa.Date(), nullable=False),
@@ -302,6 +314,7 @@ def upgrade():
     sa.Column('document_stored_filename', sa.String(length=255), nullable=True),
     sa.Column('document_file_path', sa.String(length=500), nullable=True),
     sa.Column('status', sa.String(length=30), nullable=False),
+    sa.Column('is_deleted', sa.Boolean(), nullable=False),
     sa.Column('rejection_reason', sa.Text(), nullable=True),
     sa.Column('approved_by_id', sa.Integer(), nullable=True),
     sa.Column('approved_at', sa.DateTime(timezone=True), nullable=True),
@@ -323,13 +336,21 @@ def upgrade():
     sa.Column('destination_charges', sa.Float(), nullable=True),
     sa.Column('insurance_charges', sa.Float(), nullable=True),
     sa.Column('other_surcharges', sa.Float(), nullable=True),
+    sa.Column('payment_terms', sa.String(length=100), nullable=True),
     sa.Column('remarks_terms', sa.Text(), nullable=True),
+    sa.Column('origin', sa.String(length=200), nullable=True),
+    sa.Column('destination', sa.String(length=200), nullable=True),
+    sa.Column('mode_of_shipment', sa.String(length=50), nullable=True),
+    sa.Column('cargo_description', sa.Text(), nullable=True),
+    sa.Column('cargo_weight_volume', sa.String(length=100), nullable=True),
     sa.ForeignKeyConstraint(['approved_by_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ondelete='RESTRICT'),
     sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['enquiry_id'], ['enquiries.id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('quotations', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_quotations_client_id'), ['client_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_quotations_currency'), ['currency'], unique=False)
         batch_op.create_index(batch_op.f('ix_quotations_enquiry_id'), ['enquiry_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_quotations_quotation_number'), ['quotation_number'], unique=True)
@@ -351,7 +372,7 @@ def upgrade():
     op.create_table('shipment_party_details',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('quotation_id', sa.Integer(), nullable=False),
-    sa.Column('enquiry_id', sa.Integer(), nullable=False),
+    sa.Column('enquiry_id', sa.Integer(), nullable=True),
     sa.Column('agent_name', sa.String(length=255), nullable=False),
     sa.Column('agent_country', sa.String(length=120), nullable=False),
     sa.Column('agent_contact_person', sa.String(length=255), nullable=False),
@@ -381,9 +402,10 @@ def upgrade():
     op.create_table('shipments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('shipment_reference', sa.String(length=50), nullable=False),
-    sa.Column('enquiry_id', sa.Integer(), nullable=False),
+    sa.Column('enquiry_id', sa.Integer(), nullable=True),
     sa.Column('quotation_id', sa.Integer(), nullable=False),
-    sa.Column('client_id', sa.Integer(), nullable=False),
+    sa.Column('client_id', sa.Integer(), nullable=True),
+    sa.Column('other_client_name', sa.String(length=200), nullable=True),
     sa.Column('origin', sa.String(length=255), nullable=False),
     sa.Column('destination', sa.String(length=255), nullable=False),
     sa.Column('mode_of_shipment', sa.String(length=50), nullable=False),
@@ -407,18 +429,16 @@ def upgrade():
     sa.Column('status', sa.String(length=50), nullable=True),
     sa.Column('etd', sa.DateTime(), nullable=True),
     sa.Column('eta', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
     sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['enquiry_id'], ['enquiries.id'], ondelete='RESTRICT'),
+    sa.ForeignKeyConstraint(['enquiry_id'], ['enquiries.id'], ),
     sa.ForeignKeyConstraint(['handled_by_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['quotation_id'], ['quotations.id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('hbl_no')
     )
     with op.batch_alter_table('shipments', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_shipments_client_id'), ['client_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_shipments_current_stage'), ['current_stage'], unique=False)
-        batch_op.create_index(batch_op.f('ix_shipments_enquiry_id'), ['enquiry_id'], unique=True)
         batch_op.create_index(batch_op.f('ix_shipments_handled_by_id'), ['handled_by_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_shipments_mode_of_shipment'), ['mode_of_shipment'], unique=False)
         batch_op.create_index(batch_op.f('ix_shipments_quotation_id'), ['quotation_id'], unique=True)
@@ -512,11 +532,32 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_shipment_milestones_shipment_id'), ['shipment_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_shipment_milestones_stage'), ['stage'], unique=False)
 
+    op.create_table('shipment_tasks',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('shipment_id', sa.Integer(), nullable=False),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('due_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('status', sa.String(length=30), nullable=False),
+    sa.ForeignKeyConstraint(['shipment_id'], ['shipments.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('shipment_tasks', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_shipment_tasks_due_date'), ['due_date'], unique=False)
+        batch_op.create_index(batch_op.f('ix_shipment_tasks_shipment_id'), ['shipment_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_shipment_tasks_status'), ['status'], unique=False)
+
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
+    with op.batch_alter_table('shipment_tasks', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_shipment_tasks_status'))
+        batch_op.drop_index(batch_op.f('ix_shipment_tasks_shipment_id'))
+        batch_op.drop_index(batch_op.f('ix_shipment_tasks_due_date'))
+
+    op.drop_table('shipment_tasks')
     with op.batch_alter_table('shipment_milestones', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_shipment_milestones_stage'))
         batch_op.drop_index(batch_op.f('ix_shipment_milestones_shipment_id'))
@@ -548,9 +589,7 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_shipments_quotation_id'))
         batch_op.drop_index(batch_op.f('ix_shipments_mode_of_shipment'))
         batch_op.drop_index(batch_op.f('ix_shipments_handled_by_id'))
-        batch_op.drop_index(batch_op.f('ix_shipments_enquiry_id'))
         batch_op.drop_index(batch_op.f('ix_shipments_current_stage'))
-        batch_op.drop_index(batch_op.f('ix_shipments_client_id'))
 
     op.drop_table('shipments')
     with op.batch_alter_table('shipment_party_details', schema=None) as batch_op:
@@ -568,6 +607,7 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_quotations_quotation_number'))
         batch_op.drop_index(batch_op.f('ix_quotations_enquiry_id'))
         batch_op.drop_index(batch_op.f('ix_quotations_currency'))
+        batch_op.drop_index(batch_op.f('ix_quotations_client_id'))
 
     op.drop_table('quotations')
     with op.batch_alter_table('support_tickets', schema=None) as batch_op:
@@ -650,5 +690,6 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_users_email'))
 
     op.drop_table('users')
+    op.drop_table('settings')
     op.drop_table('backup_logs')
     # ### end Alembic commands ###
