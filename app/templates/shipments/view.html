@@ -1278,38 +1278,61 @@
 
                     <!-- ENQUIRY -->
 
-                    <a
-                        href="{{
-                            url_for(
-                                'enquiries.view_enquiry',
-                                enquiry_id=shipment.enquiry.id
-                            )
-                        }}"
-                        class="source-record-card"
-                    >
+{% if shipment.enquiry %}
 
-                        <span class="source-icon enquiry-source-icon">
-                            <i class="bi bi-inbox-fill"></i>
-                        </span>
+<a
+    href="{{
+        url_for(
+            'enquiries.view_enquiry',
+            enquiry_id=shipment.enquiry.id
+        )
+    }}"
+    class="source-record-card"
+>
 
-                        <div>
-                            <small>
-                                Original Enquiry
-                            </small>
+    <span class="source-icon enquiry-source-icon">
+        <i class="bi bi-inbox-fill"></i>
+    </span>
 
-                            <strong>
-                                {{
-                                    shipment
-                                    .enquiry
-                                    .enquiry_reference
-                                }}
-                            </strong>
-                        </div>
+    <div>
 
-                        <i class="bi bi-arrow-up-right"></i>
+        <small>
+            Original Enquiry
+        </small>
 
-                    </a>
+        <strong>
+            {{ shipment.enquiry.enquiry_reference }}
+        </strong>
 
+    </div>
+
+    <i class="bi bi-arrow-up-right"></i>
+
+</a>
+
+{% else %}
+
+<div class="source-record-card">
+
+    <span class="source-icon enquiry-source-icon">
+        <i class="bi bi-dash-circle-fill"></i>
+    </span>
+
+    <div>
+
+        <small>
+            Original Enquiry
+        </small>
+
+        <strong>
+            Direct Quotation
+        </strong>
+
+    </div>
+
+</div>
+
+{% endif %}
 
                     <!-- QUOTATION -->
 
@@ -1363,40 +1386,60 @@
 
             <div class="side-card">
 
-                <h3>Client</h3>
+    <h3>Client</h3>
 
-                <div class="client-summary">
+    <div class="client-summary">
 
-                    <span class="client-avatar">
-                        <i class="bi bi-building-fill"></i>
-                    </span>
+        <span class="client-avatar">
+            <i class="bi bi-building-fill"></i>
+        </span>
 
-                    <div>
-                        <strong>
-                            {{ shipment.client.company_name }}
-                        </strong>
+        <div>
 
-                        <span>
-                            Linked shipment client
-                        </span>
-                    </div>
+            <strong>
 
-                </div>
+                {% if shipment.client %}
 
-                <a
-                    href="{{
-                        url_for(
-                            'clients.view_client',
-                            client_id=shipment.client.id
-                        )
-                    }}"
-                    class="side-link-btn"
-                >
-                    View Client
-                    <i class="bi bi-arrow-right"></i>
-                </a>
+                    {{ shipment.client.company_name }}
 
-            </div>
+                {% elif shipment.other_client_name %}
+
+                    {{ shipment.other_client_name }}
+
+                {% else %}
+
+                    -
+
+                {% endif %}
+
+            </strong>
+
+            <span>
+                Linked shipment client
+            </span>
+
+        </div>
+
+    </div>
+
+    {% if shipment.client %}
+
+    <a
+        href="{{
+            url_for(
+                'clients.view_client',
+                client_id=shipment.client.id
+            )
+        }}"
+        class="side-link-btn"
+    >
+        View Client
+        <i class="bi bi-arrow-right"></i>
+    </a>
+
+    {% endif %}
+
+</div>
 
 
             <!-- WORKFLOW STATUS -->

@@ -1,7 +1,4 @@
-import sqlite3
 
-conn = sqlite3.connect(r"instance\freight_crm.db")
-cursor = conn.cursor()
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS support_messages (
