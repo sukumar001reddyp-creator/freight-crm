@@ -18,9 +18,10 @@ class Config:
         "freight-crm-dev-secret-key"
     )
 
-    SQLALCHEMY_DATABASE_URI = (
-        database_url or "sqlite:///freight_crm.db"
-    )
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable is not set.")
+
+    SQLALCHEMY_DATABASE_URI = database_url
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

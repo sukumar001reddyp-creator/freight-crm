@@ -1,6 +1,4 @@
-import sqlite3
 
-conn = sqlite3.connect(r"instance\freight_crm.db")
 cursor = conn.cursor()
 
 try:
