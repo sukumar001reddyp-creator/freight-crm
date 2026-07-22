@@ -4,21 +4,13 @@
     {{ enquiry.enquiry_reference }} | Freight CRM
 {% endblock %}
 
-{% block page_title %}
-    Enquiry Details
-{% endblock %}
-
-{% block page_subtitle %}
-    Review freight requirement and enquiry ownership
-{% endblock %}
-
 {% block content %}
 
 <div class="enquiry-view-page">
 
-    <!-- =====================================
-         TOP HEADER
-         ===================================== -->
+    <!-- ==========================================
+         PAGE HEADER & ACTIONS
+         ========================================== -->
 
     <div class="view-header">
 
@@ -30,67 +22,52 @@
             </a>
 
             <div class="reference-row">
-                <h2>
-                    {{ enquiry.enquiry_reference }}
-                </h2>
-
+                <h2>{{ enquiry.enquiry_reference }}</h2>
                 <span class="enquiry-status status-{{ enquiry.status }}">
                     {{ enquiry.status | replace("_", " ") | title }}
                 </span>
             </div>
 
             <p>
-                Created for
-                <strong>
-                    {{ enquiry.client.company_name }}
-                </strong>
+                Created for <strong>{{ enquiry.client.company_name }}</strong>
             </p>
 
         </div>
 
         <div class="view-header-actions">
             <a href="{{ url_for('enquiries.download_enquiry_pdf', enquiry_id=enquiry.id) }}" class="download-pdf-btn">
-                <i class="bi bi-download"></i>
-                Download PDF
+                <i class="bi bi-download"></i> Download PDF
             </a>
 
-            <!-- CREATE QUOTATION -->
             <a href="{{ url_for('quotations.create_quotation', enquiry_id=enquiry.id) }}" class="create-quotation-link-btn">
-                <i class="bi bi-file-earmark-plus"></i>
-                Create Quotation
+                <i class="bi bi-file-earmark-plus"></i> Create Quotation
             </a>
 
-            <!-- EDIT ENQUIRY -->
             <a href="{{ url_for('enquiries.edit_enquiry', enquiry_id=enquiry.id) }}" class="edit-enquiry-btn">
-                <i class="bi bi-pencil-square"></i>
-                Edit Enquiry
+                <i class="bi bi-pencil-square"></i> Edit Enquiry
             </a>
         </div>
 
     </div>
 
-    <!-- =====================================
+    <!-- ==========================================
          MAIN GRID
-         ===================================== -->
+         ========================================== -->
 
     <div class="detail-grid">
 
-        <!-- =================================
-             LEFT SIDE
-             ================================= -->
-
+        <!-- LEFT COLUMN: ALL ENQUIRY FIELDS -->
         <div class="detail-main">
 
-            <!-- SHIPMENT REQUIREMENT -->
+            <!-- 1. SHIPMENT REQUIREMENT -->
             <div class="detail-card">
-
                 <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-geo-alt-fill"></i>
                     </span>
                     <div>
                         <h3>Shipment Requirement</h3>
-                        <p>Route and requested freight mode</p>
+                        <p>Route, ports, and requested freight mode.</p>
                     </div>
                 </div>
 
@@ -110,14 +87,13 @@
                     </div>
                 </div>
 
-                <!-- PROPER PLACEMENT FOR PORTS & MODE -->
                 <div class="info-row">
-                    <span class="info-label">Origin Port</span>
+                    <span class="info-label">Origin Port (POL)</span>
                     <strong>{{ enquiry.origin_port or "Not Provided" }}</strong>
                 </div>
 
                 <div class="info-row">
-                    <span class="info-label">Destination Port</span>
+                    <span class="info-label">Destination Port (POD)</span>
                     <strong>{{ enquiry.destination_port or "Not Provided" }}</strong>
                 </div>
 
@@ -126,44 +102,85 @@
                     <strong>{{ enquiry.mode_of_shipment | replace("_", " ") | title }}</strong>
                 </div>
 
+                <div class="info-row">
+                    <span class="info-label">Equipment Type</span>
+                    <strong>{{ enquiry.equipment_type or "Not Provided" }}</strong>
+                </div>
             </div>
 
-            <!-- CARGO DETAILS -->
+            <!-- 2. CARGO DETAILS -->
             <div class="detail-card">
-
                 <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-box-seam-fill"></i>
                     </span>
                     <div>
-                        <h3>Cargo Details</h3>
-                        <p>Goods description and available weight or volume information</p>
+                        <h3>Cargo Specifications</h3>
+                        <p>Goods description, weights, volumes, and piece counts.</p>
+                    </div>
+                </div>
+
+                <div class="cargo-description mb-3">
+                    <span class="info-label">Cargo Description</span>
+                    <p>{{ enquiry.cargo_description }}</p>
+                </div>
+
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span>Total Pieces</span>
+                        <strong>{{ enquiry.total_pieces or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Weight (KG)</span>
+                        <strong>{{ enquiry.weight_kg ~ " KG" if enquiry.weight_kg else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Volume (CBM)</span>
+                        <strong>{{ enquiry.volume_cbm ~ " CBM" if enquiry.volume_cbm else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Combined Weight/Vol</span>
+                        <strong>{{ enquiry.cargo_weight_volume or "N/A" }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. COMMERCIAL & TERMS -->
+            <div class="detail-card">
+                <div class="card-heading">
+                    <span class="heading-icon">
+                        <i class="bi bi-file-text-fill"></i>
+                    </span>
+                    <div>
+                        <h3>Commercial Terms & Timeline</h3>
+                        <p>Incoterms, expected timelines, and handling notes.</p>
+                    </div>
+                </div>
+
+                <div class="detail-info-grid mb-3">
+                    <div class="detail-item">
+                        <span>Expected Timeline</span>
+                        <strong>{{ enquiry.expected_timeline or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Incoterms</span>
+                        <strong>{{ enquiry.incoterms or "N/A" }}</strong>
                     </div>
                 </div>
 
                 <div class="cargo-description">
-                    <span class="info-label">Description</span>
-                    <p>{{ enquiry.cargo_description }}</p>
+                    <span class="info-label">Additional Instructions / Notes</span>
+                    <p>{{ enquiry.additional_instructions or "No additional instructions provided." }}</p>
                 </div>
-
-                <div class="info-row">
-                    <span class="info-label">Weight / Volume</span>
-                    <strong>{{ enquiry.cargo_weight_volume or "Not provided" }}</strong>
-                </div>
-
             </div>
 
         </div>
 
-        <!-- =================================
-             RIGHT SIDE
-             ================================= -->
-
+        <!-- RIGHT COLUMN: SIDEBAR PANELS -->
         <div class="detail-sidebar">
 
-            <!-- CLIENT -->
+            <!-- CLIENT PROFILE LINK -->
             <div class="detail-card">
-
                 <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-building"></i>
@@ -181,23 +198,21 @@
                         <i class="bi bi-arrow-up-right"></i>
                     </a>
                 </div>
-
             </div>
 
-            <!-- OWNERSHIP -->
+            <!-- OWNERSHIP & STAFF -->
             <div class="detail-card">
-
                 <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-person-badge-fill"></i>
                     </span>
                     <div>
                         <h3>Ownership</h3>
-                        <p>Responsible staff member</p>
+                        <p>Responsible staff members</p>
                     </div>
                 </div>
 
-                <div class="owner-box">
+                <div class="owner-box mb-3">
                     <div class="owner-avatar">
                         {{ enquiry.handled_by.full_name[0] | upper }}
                     </div>
@@ -207,11 +222,21 @@
                     </div>
                 </div>
 
+                {% if enquiry.sales_coordinator %}
+                <div class="owner-box pt-2 border-top">
+                    <div class="owner-avatar bg-secondary">
+                        {{ enquiry.sales_coordinator.full_name[0] | upper }}
+                    </div>
+                    <div>
+                        <strong>{{ enquiry.sales_coordinator.full_name }}</strong>
+                        <span>Sales Coordinator</span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- STATUS MANAGEMENT -->
             <div class="detail-card">
-
                 <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-arrow-repeat"></i>
@@ -232,23 +257,20 @@
                     </select>
 
                     <button type="submit" class="status-update-btn">
-                        <i class="bi bi-check2-circle"></i>
-                        Update Status
+                        <i class="bi bi-check2-circle"></i> Update Status
                     </button>
                 </form>
-
             </div>
 
             <!-- ENQUIRY META -->
             <div class="detail-card">
-
                 <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-info-circle-fill"></i>
                     </span>
                     <div>
                         <h3>Enquiry Information</h3>
-                        <p>Record metadata</p>
+                        <p>Record metadata & timestamps</p>
                     </div>
                 </div>
 
@@ -260,15 +282,19 @@
 
                     <div class="meta-item">
                         <span>Enquiry Date</span>
-                        <strong>{{ enquiry.enquiry_date.strftime("%d %b %Y") }}</strong>
+                        <strong>{{ enquiry.enquiry_date.strftime("%d %b %Y") if enquiry.enquiry_date else "N/A" }}</strong>
                     </div>
 
                     <div class="meta-item">
-                        <span>Created</span>
-                        <strong>{{ enquiry.created_at.strftime("%d %b %Y") }}</strong>
+                        <span>Created At</span>
+                        <strong>{{ enquiry.created_at.strftime("%d %b %Y %H:%M") if enquiry.created_at else "N/A" }}</strong>
+                    </div>
+
+                    <div class="meta-item">
+                        <span>Updated At</span>
+                        <strong>{{ enquiry.updated_at.strftime("%d %b %Y %H:%M") if enquiry.updated_at else "N/A" }}</strong>
                     </div>
                 </div>
-
             </div>
 
         </div>
@@ -280,11 +306,11 @@
 {% endblock %}
 
 {% block extra_css %}
-
 <style>
     .enquiry-view-page {
-        max-width: 1180px;
+        max-width: 1350px;
         margin: 0 auto;
+        padding-bottom: 40px;
     }
 
     .view-header {
@@ -292,7 +318,8 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 16px;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
     }
 
     .view-header-left {
@@ -305,13 +332,14 @@
         align-items: center;
         gap: 8px;
         flex-shrink: 0;
+        flex-wrap: wrap;
     }
 
     .back-link {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         color: #6b7280;
         text-decoration: none;
         font-size: 12px;
@@ -319,7 +347,7 @@
     }
 
     .back-link:hover {
-        color: #7f1d1d;
+        color: #4f46e5;
     }
 
     .reference-row {
@@ -331,14 +359,14 @@
 
     .reference-row h2 {
         margin: 0;
-        color: #111827;
+        color: #0f172a;
         font-size: 24px;
         font-weight: 800;
     }
 
     .view-header p {
-        margin: 5px 0 0;
-        color: #6b7280;
+        margin: 6px 0 0;
+        color: #64748b;
         font-size: 13px;
     }
 
@@ -349,27 +377,19 @@
         border-radius: 999px;
         font-size: 12px;
         font-weight: 800;
+        text-transform: uppercase;
     }
 
-    .status-open {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-converted {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .status-closed {
-        background: #f3f4f6;
-        color: #4b5563;
-    }
+    .status-open { background: #fef3c7; color: #92400e; }
+    .status-in_progress { background: #eef2ff; color: #4f46e5; }
+    .status-quoted { background: #e0e7ff; color: #3730a3; }
+    .status-converted { background: #dcfce7; color: #166534; }
+    .status-closed { background: #f3f4f6; color: #4b5563; }
 
     .detail-grid {
         display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
-        gap: 16px;
+        grid-template-columns: minmax(0, 2fr) minmax(320px, 0.9fr);
+        gap: 20px;
         align-items: start;
     }
 
@@ -377,48 +397,54 @@
     .detail-sidebar {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 20px;
     }
 
     .detail-card {
-        padding: 18px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
         background: #ffffff;
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        transition: all 0.2s ease;
+    }
+
+    .detail-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
     }
 
     .card-heading {
         display: flex;
         align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 12px;
+        margin-bottom: 16px;
     }
 
     .heading-icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        flex: 0 0 36px;
-        width: 36px;
-        height: 36px;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
         border-radius: 10px;
-        background: #fef2f2;
-        color: #7f1d1d;
-        font-size: 16px;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: 18px;
     }
 
     .card-heading h3 {
         margin: 0 0 2px;
-        color: #111827;
-        font-size: 15px;
-        font-weight: 800;
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
     }
 
     .card-heading p {
         margin: 0;
-        color: #9ca3af;
-        font-size: 11.5px;
+        color: #64748b;
+        font-size: 13px;
         line-height: 1.4;
     }
 
@@ -428,9 +454,10 @@
         gap: 12px;
         align-items: center;
         padding: 14px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         border-radius: 10px;
-        background: #f9fafb;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
     }
 
     .route-point {
@@ -441,20 +468,20 @@
 
     .route-label,
     .info-label {
-        color: #9ca3af;
-        font-size: 10px;
+        color: #64748b;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
 
     .route-point strong {
-        color: #111827;
+        color: #0f172a;
         font-size: 14px;
     }
 
     .route-arrow {
-        color: #7f1d1d;
+        color: #4f46e5;
         font-size: 18px;
     }
 
@@ -464,32 +491,52 @@
         justify-content: space-between;
         gap: 12px;
         padding-top: 12px;
-        border-top: 1px solid #eef2f7;
-        margin-top: 12px;
-    }
-
-    .info-row:first-of-type {
-        border-top: 1px solid #eef2f7;
-        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
         margin-top: 12px;
     }
 
     .info-row strong {
-        color: #374151;
-        font-size: 13px;
+        color: #0f172a;
+        font-size: 13.5px;
         text-align: right;
-    }
-
-    .cargo-description {
-        margin-bottom: 12px;
+        font-weight: 600;
     }
 
     .cargo-description p {
         margin: 6px 0 0;
-        color: #374151;
-        font-size: 13px;
+        color: #334155;
+        font-size: 13.5px;
         line-height: 1.6;
         white-space: pre-wrap;
+    }
+
+    .detail-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .detail-item {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+    }
+
+    .detail-item span {
+        display: block;
+        margin-bottom: 4px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-item strong {
+        color: #0f172a;
+        font-size: 13.5px;
+        font-weight: 600;
     }
 
     .sidebar-value {
@@ -499,8 +546,9 @@
     }
 
     .sidebar-value strong {
-        color: #111827;
+        color: #0f172a;
         font-size: 14px;
+        font-weight: 600;
     }
 
     .sidebar-value a {
@@ -508,10 +556,14 @@
         align-items: center;
         gap: 4px;
         width: fit-content;
-        color: #7f1d1d;
+        color: #4f46e5;
         text-decoration: none;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
+    }
+
+    .sidebar-value a:hover {
+        text-decoration: underline;
     }
 
     .owner-box {
@@ -527,22 +579,24 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        background: #7f1d1d;
+        background: #4f46e5;
         color: #ffffff;
         font-size: 14px;
         font-weight: 800;
+        flex-shrink: 0;
     }
 
     .owner-box strong {
         display: block;
         margin-bottom: 2px;
-        color: #111827;
-        font-size: 13px;
+        color: #0f172a;
+        font-size: 13.5px;
+        font-weight: 600;
     }
 
     .owner-box span {
-        color: #9ca3af;
-        font-size: 10px;
+        color: #64748b;
+        font-size: 11px;
     }
 
     .meta-list {
@@ -555,7 +609,7 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 10px;
-        padding: 9px 0;
+        padding: 10px 0;
         border-bottom: 1px solid #f1f5f9;
     }
 
@@ -564,14 +618,15 @@
     }
 
     .meta-item span {
-        color: #9ca3af;
-        font-size: 11.5px;
+        color: #64748b;
+        font-size: 12px;
     }
 
     .meta-item strong {
-        color: #374151;
-        font-size: 11.5px;
+        color: #334155;
+        font-size: 12px;
         text-align: right;
+        font-weight: 600;
     }
 
     .status-update-form {
@@ -581,26 +636,26 @@
     }
 
     .status-update-form label {
-        color: #374151;
-        font-size: 11.5px;
+        color: #334155;
+        font-size: 12px;
         font-weight: 700;
     }
 
     .status-update-form select {
         width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #d1d5db;
+        padding: 9px 12px;
+        border: 1px solid #cbd5e1;
         border-radius: 8px;
         outline: none;
         background: #ffffff;
-        color: #111827;
+        color: #0f172a;
         font-family: inherit;
-        font-size: 12.5px;
+        font-size: 13px;
     }
 
     .status-update-form select:focus {
-        border-color: #991b1b;
-        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.10);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
 
     .status-update-btn {
@@ -609,88 +664,59 @@
         justify-content: center;
         gap: 6px;
         width: 100%;
-        padding: 9px 12px;
+        padding: 10px 14px;
         border: 0;
         border-radius: 8px;
-        background: #7f1d1d;
+        background: #4f46e5;
         color: #ffffff;
         cursor: pointer;
         font-family: inherit;
-        font-size: 12.5px;
-        font-weight: 800;
+        font-size: 13px;
+        font-weight: 700;
         transition: 0.2s ease;
     }
 
     .status-update-btn:hover {
-        background: #991b1b;
+        background: #4338ca;
         transform: translateY(-1px);
     }
 
-    .edit-enquiry-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border-radius: 8px;
-        background: #7f1d1d;
-        color: #ffffff;
-        text-decoration: none;
-        font-size: 12.5px;
-        font-weight: 800;
-        transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .edit-enquiry-btn:hover {
-        background: #991b1b;
-        color: #ffffff;
-        transform: translateY(-1px);
-    }
-
-    .create-quotation-link-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border: 1px solid #7f1d1d;
-        border-radius: 8px;
-        background: #ffffff;
-        color: #7f1d1d;
-        text-decoration: none;
-        font-size: 12.5px;
-        font-weight: 800;
-        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-    }
-
-    .create-quotation-link-btn:hover {
-        background: #7f1d1d;
-        color: #ffffff;
-        transform: translateY(-1px);
-    }
-
+    .edit-enquiry-btn,
+    .create-quotation-link-btn,
     .download-pdf-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        padding: 8px 14px;
+        padding: 9px 14px;
         border-radius: 8px;
-        background: #2563eb;
-        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
         text-decoration: none;
-        font-size: 12.5px;
-        font-weight: 800;
-        transition: 0.2s ease;
+        transition: all 0.2s ease;
     }
 
-    .download-pdf-btn:hover {
-        background: #1d4ed8;
+    .edit-enquiry-btn {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+    }
+    .edit-enquiry-btn:hover { background: #e2e8f0; color: #0f172a; transform: translateY(-1px); }
+
+    .create-quotation-link-btn {
+        border: 1px solid #4f46e5;
+        background: #ffffff;
+        color: #4f46e5;
+    }
+    .create-quotation-link-btn:hover { background: #4f46e5; color: #ffffff; transform: translateY(-1px); }
+
+    .download-pdf-btn {
+        background: #047857;
         color: #ffffff;
-        transform: translateY(-1px);
     }
+    .download-pdf-btn:hover { background: #065f46; color: #ffffff; transform: translateY(-1px); }
 
-    @media (max-width: 900px) {
+    @media (max-width: 992px) {
         .detail-grid {
             grid-template-columns: 1fr;
         }
@@ -700,37 +726,22 @@
         .view-header {
             flex-direction: column;
         }
-
         .view-header-actions {
             width: 100%;
             flex-direction: column;
         }
-
         .download-pdf-btn,
         .create-quotation-link-btn,
         .edit-enquiry-btn {
             width: 100%;
-            box-sizing: border-box;
         }
-
         .route-display {
             grid-template-columns: 1fr;
         }
-
         .route-arrow {
             transform: rotate(90deg);
             width: fit-content;
         }
-
-        .info-row {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .info-row strong {
-            text-align: left;
-        }
     }
 </style>
-
 {% endblock %}

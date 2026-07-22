@@ -30,7 +30,7 @@
 
             {% if quotation.enquiry %}
             <p>
-                Linked to enquiry 
+                Linked enquiry 
                 <a href="{{ url_for('enquiries.view_enquiry', enquiry_id=quotation.enquiry.id) }}">
                     {{ quotation.enquiry.enquiry_reference }}
                 </a>
@@ -60,144 +60,303 @@
 
     <div class="quotation-detail-grid">
 
-        <!-- LEFT COLUMN -->
+        <!-- LEFT COLUMN: ALL QUOTATION FIELDS -->
         <div class="quotation-main-column">
 
-            <!-- QUOTATION INFORMATION -->
+            <!-- 1. GENERAL INFORMATION -->
             <div class="detail-card">
                 <div class="detail-card-heading">
                     <span class="heading-icon">
-                        <i class="bi bi-file-earmark-text"></i>
+                        <i class="bi bi-info-circle"></i>
                     </span>
                     <div>
-                        <h3>Quotation Information</h3>
-                        <p>Commercial quotation and validity details.</p>
+                        <h3>General Information</h3>
+                        <p>Reference numbers, currency, and validity status.</p>
                     </div>
                 </div>
-
-                {% if quotation.enquiry or quotation.other_client_name %}
                 <div class="detail-info-grid">
                     <div class="detail-item">
                         <span>Quotation Number</span>
-                        <strong>{{ quotation.quotation_number }}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Status</span>
-                        <strong>{{ quotation.status | replace("_", " ") | title }}</strong>
+                        <strong>{{ quotation.quotation_number or "N/A" }}</strong>
                     </div>
                     <div class="detail-item">
                         <span>Currency</span>
-                        <strong>{{ quotation.currency }}</strong>
+                        <strong>{{ quotation.currency or "N/A" }}</strong>
                     </div>
                     <div class="detail-item">
                         <span>Validity Date</span>
-                        <strong>{{ quotation.validity_date.strftime("%d %b %Y") }}</strong>
+                        <strong>{{ quotation.validity_date.strftime("%d %b %Y") if quotation.validity_date else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Enquiry Link ID</span>
+                        <strong>{{ quotation.enquiry_id or "Direct Quotation" }}</strong>
                     </div>
                 </div>
-
-                <!-- AMOUNT HIGHLIGHT -->
-                <div class="quotation-amount-box">
-                    <span>Quotation Amount</span>
-                    <strong>
-                        {{ quotation.currency }} 
-                        {{ "{:,.2f}".format(quotation.quotation_amount) }}
-                    </strong>
-                </div>
-                {% endif %}
-
-                {% if quotation.other_client_name %}
-                <div class="detail-item" style="margin-top: 10px;">
-                    <span>Client Name</span>
-                    <strong>{{ quotation.other_client_name }}</strong>
-                </div>
-                {% endif %}
             </div>
 
-            <!-- LINKED ENQUIRY OR DIRECT -->
-            {% if quotation.enquiry %}
+            <!-- 2. CLIENT INFORMATION -->
+            <div class="detail-card">
+                <div class="detail-card-heading">
+                    <span class="heading-icon">
+                        <i class="bi bi-building"></i>
+                    </span>
+                    <div>
+                        <h3>Client Information</h3>
+                        <p>Customer details associated with this quotation.</p>
+                    </div>
+                </div>
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span>Client Name</span>
+                        <strong>{% if quotation.client %}{{ quotation.client.company_name }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.company_name }}{% else %}{{ quotation.other_client_name or "N/A" }}{% endif %}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Contact Person</span>
+                        <strong>{% if quotation.client %}{{ quotation.client.contact_person_name or "N/A" }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.contact_person_name or "N/A" }}{% else %}N/A{% endif %}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Email</span>
+                        <strong>{% if quotation.client %}{{ quotation.client.email or "N/A" }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.email or "N/A" }}{% else %}N/A{% endif %}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Phone</span>
+                        <strong>{% if quotation.client %}{{ quotation.client.primary_phone or "N/A" }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.primary_phone or "N/A" }}{% else %}N/A{% endif %}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SHIPMENT & ROUTING INFORMATION -->
+            <div class="detail-card">
+                <div class="detail-card-heading">
+                    <span class="heading-icon">
+                        <i class="bi bi-truck"></i>
+                    </span>
+                    <div>
+                        <h3>Shipment & Routing Information</h3>
+                        <p>Origin, destination, ports and routing parameters.</p>
+                    </div>
+                </div>
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span>Origin</span>
+                        <strong>{{ quotation.origin or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Destination</span>
+                        <strong>{{ quotation.destination or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Origin Port (POL)</span>
+                        <strong>{{ quotation.origin_port or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Destination Port (POD)</span>
+                        <strong>{{ quotation.destination_port or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Mode of Shipment</span>
+                        <strong>{{ quotation.mode_of_shipment or "N/A" }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. CARGO DETAILS -->
             <div class="detail-card">
                 <div class="detail-card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-box-seam"></i>
                     </span>
                     <div>
-                        <h3>Linked Enquiry</h3>
-                        <p>Shipment requirement connected to this quotation.</p>
+                        <h3>Cargo Details</h3>
+                        <p>Shipment cargo, description, and carrier info.</p>
+                    </div>
+                </div>
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span>Cargo Description</span>
+                        <strong>{{ quotation.cargo_description or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Cargo Weight / Volume</span>
+                        <strong>{{ quotation.cargo_weight_volume or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Shipping Line / Airline</span>
+                        <strong>{{ quotation.shipping_line_airline or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>No. of Containers</span>
+                        <strong>{{ quotation.no_of_containers or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Container Type</span>
+                        <strong>{{ quotation.container_type_quota or "N/A" }}</strong>
                     </div>
                 </div>
             </div>
-            {% else %}
+
+            <!-- 5. SCHEDULE & TRANSIT DETAILS -->
             <div class="detail-card">
                 <div class="detail-card-heading">
                     <span class="heading-icon">
-                        <i class="bi bi-person-workspace"></i>
+                        <i class="bi bi-calendar-event"></i>
                     </span>
                     <div>
-                        <h3>Direct Quotation</h3>
-                        <p>This quotation was created directly without an enquiry.</p>
+                        <h3>Schedule & Transit Details</h3>
+                        <p>Departure schedule, cutoffs, and compliance codes.</p>
                     </div>
                 </div>
                 <div class="detail-info-grid">
                     <div class="detail-item">
-                        <span>Client Name</span>
-                        <strong>{{ quotation.other_client_name }}</strong>
+                        <span>Estimated Time of Departure (ETD)</span>
+                        <strong>{{ quotation.etd.strftime("%d %b %Y %H:%M") if quotation.etd else "N/A" }}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Source</span>
-                        <strong>Direct Quotation</strong>
+                        <span>Documentation Cutoff</span>
+                        <strong>{{ quotation.cutoff_date_documentation.strftime("%d %b %Y %H:%M") if quotation.cutoff_date_documentation else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Cargo Cutoff</span>
+                        <strong>{{ quotation.cutoff_date_cargo.strftime("%d %b %Y %H:%M") if quotation.cutoff_date_cargo else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Free Time (Days)</span>
+                        <strong>{{ quotation.free_time_days or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Transit Time (Days)</span>
+                        <strong>{{ quotation.transit_time_days or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Incoterms</span>
+                        <strong>{{ quotation.incoterms or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>HS Code</span>
+                        <strong>{{ quotation.hs_code or "N/A" }}</strong>
                     </div>
                 </div>
             </div>
-            {% endif %}
 
-            <!-- DECISION INFORMATION -->
-            {% if quotation.status == "approved" %}
-            <div class="detail-card decision-approved-card">
+            <!-- 6. COST BREAKDOWN -->
+            <div class="detail-card">
                 <div class="detail-card-heading">
-                    <span class="heading-icon approved-icon">
-                        <i class="bi bi-check-circle-fill"></i>
+                    <span class="heading-icon">
+                        <i class="bi bi-cash-stack"></i>
                     </span>
                     <div>
-                        <h3>Approval Information</h3>
-                        <p>Client approval decision recorded for this quotation.</p>
+                        <h3>Cost Breakdown & Surcharges</h3>
+                        <p>Complete freight charges and summary totals.</p>
                     </div>
                 </div>
                 <div class="detail-info-grid">
                     <div class="detail-item">
+                        <span>Ocean / Air Freight</span>
+                        <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.ocean_air_freight or 0) }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Origin Charges</span>
+                        <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.origin_charges or 0) }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Destination Charges</span>
+                        <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.destination_charges or 0) }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Insurance Charges</span>
+                        <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.insurance_charges or 0) }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Other Surcharges</span>
+                        <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.other_surcharges or 0) }}</strong>
+                    </div>
+                </div>
+
+                <!-- GRAND TOTAL BOX -->
+                <div class="quotation-amount-box">
+                    <span>Grand Total Amount</span>
+                    <strong>
+                        {{ quotation.currency }} 
+                        {{ "{:,.2f}".format(quotation.quotation_amount or 0) }}
+                    </strong>
+                </div>
+            </div>
+
+            <!-- 7. PAYMENT & REMARKS -->
+            <div class="detail-card">
+                <div class="detail-card-heading">
+                    <span class="heading-icon">
+                        <i class="bi bi-chat-left-text"></i>
+                    </span>
+                    <div>
+                        <h3>Payment & Remarks</h3>
+                        <p>Payment conditions and general terms notes.</p>
+                    </div>
+                </div>
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span>Payment Terms</span>
+                        <strong>{{ quotation.payment_terms or "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Quotation Status</span>
+                        <strong>{{ quotation.status|replace("_"," ")|title }}</strong>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span>Remarks & Terms</span>
+                        <strong class="remarks-text">{{ quotation.remarks_terms or "No remarks provided." }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. ATTACHED DOCUMENTS & AUDIT TRAIL -->
+            <div class="detail-card">
+                <div class="detail-card-heading">
+                    <span class="heading-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </span>
+                    <div>
+                        <h3>Decision & Audit Trail</h3>
+                        <p>Creation tracking, approval signatures, and system logs.</p>
+                    </div>
+                </div>
+                <div class="detail-info-grid">
+                    <div class="detail-item">
+                        <span>Created By</span>
+                        <strong>{{ quotation.created_by.full_name if quotation.created_by else "System" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Created Date</span>
+                        <strong>{{ quotation.created_at.strftime("%d %b %Y %H:%M") if quotation.created_at else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Last Updated At</span>
+                        <strong>{{ quotation.updated_at.strftime("%d %b %Y %H:%M") if quotation.updated_at else "N/A" }}</strong>
+                    </div>
+                    <div class="detail-item">
                         <span>Approved By</span>
-                        <strong>
-                            {% if quotation.approved_by %}{{ quotation.approved_by.full_name }}{% else %}—{% endif %}
-                        </strong>
+                        <strong>{% if quotation.approved_by %}{{ quotation.approved_by.full_name }}{% else %}N/A{% endif %}</strong>
                     </div>
                     <div class="detail-item">
                         <span>Approved Date</span>
-                        <strong>
-                            {% if quotation.approved_at %}{{ quotation.approved_at.strftime("%d %b %Y %H:%M") }}{% else %}—{% endif %}
-                        </strong>
+                        <strong>{% if quotation.approved_at %}{{ quotation.approved_at.strftime("%d %b %Y %H:%M") }}{% else %}N/A{% endif %}</strong>
                     </div>
+                    <div class="detail-item">
+                        <span>Is Deleted Status</span>
+                        <strong>{{ "Yes (Soft Deleted)" if quotation.is_deleted else "Active" }}</strong>
+                    </div>
+                    {% if quotation.status == "rejected" %}
+                    <div class="detail-item full-width">
+                        <span>Rejection Reason</span>
+                        <strong class="rejection-reason-text" style="color: #dc2626;">{{ quotation.rejection_reason or "No reason recorded." }}</strong>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            {% elif quotation.status == "rejected" %}
-            <div class="detail-card decision-rejected-card">
-                <div class="detail-card-heading">
-                    <span class="heading-icon rejected-icon">
-                        <i class="bi bi-x-circle-fill"></i>
-                    </span>
-                    <div>
-                        <h3>Rejection Information</h3>
-                        <p>Rejection decision retained for history and reporting.</p>
-                    </div>
-                </div>
-                <div class="rejection-reason-box">
-                    <span>Rejection Reason</span>
-                    <p>{{ quotation.rejection_reason or "No reason recorded." }}</p>
-                </div>
-            </div>
-            {% endif %}
 
         </div>
 
-        <!-- RIGHT COLUMN -->
+        <!-- RIGHT COLUMN: WORKFLOW, ACTIONS & CLIENT DECISION -->
         <div class="quotation-side-column">
 
             <!-- WORKFLOW STATUS -->
@@ -287,13 +446,16 @@
 
             <!-- CONVERT TO SHIPMENT -->
             {% if quotation.status == "approved" %}
-            <form action="{{ url_for('shipments.convert_from_quotation', quotation_id=quotation.id) }}" 
-                  method="POST" class="mt-2">
-                <button type="submit" class="convert-shipment-btn">
-                    <i class="bi bi-truck"></i>
-                    Convert to Shipment
-                </button>
-            </form>
+            <div class="side-card">
+                <h3>Shipment Workflow</h3>
+                <form action="{{ url_for('shipments.convert_from_quotation', quotation_id=quotation.id) }}" 
+                      method="POST">
+                    <button type="submit" class="convert-shipment-btn">
+                        <i class="bi bi-truck"></i>
+                        Convert to Shipment
+                    </button>
+                </form>
+            </div>
             {% endif %}
 
         </div>
@@ -306,9 +468,9 @@
 <style>
     /* ==================== RESET & BASE ==================== */
     .quotation-view-page {
-        max-width: 1200px;
+        max-width: 1350px;
         margin: 0 auto;
-        padding: 0 10px;
+        padding: 0 10px 40px 10px;
     }
 
     /* ==================== HEADER ==================== */
@@ -342,7 +504,7 @@
         font-weight: 700;
     }
 
-    .back-link:hover { color: #7f1d1d; }
+    .back-link:hover { color: #4f46e5; }
 
     .quotation-reference-row {
         display: flex;
@@ -365,7 +527,7 @@
     }
 
     .quotation-header-left p a {
-        color: #7f1d1d;
+        color: #4f46e5;
         font-weight: 800;
     }
 
@@ -388,8 +550,8 @@
     /* ==================== GRID ==================== */
     .quotation-detail-grid {
         display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(280px, 0.85fr);
-        gap: 16px;
+        grid-template-columns: minmax(0, 2fr) minmax(320px, 0.9fr);
+        gap: 20px;
         align-items: start;
     }
 
@@ -397,118 +559,131 @@
     .quotation-side-column {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 20px;
     }
 
     /* ==================== CARDS ==================== */
     .detail-card,
     .side-card {
-        padding: 18px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
         background: #ffffff;
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        transition: all 0.2s ease;
+    }
+
+    .detail-card:hover,
+    .side-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
     }
 
     .detail-card-heading {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 14px;
+        gap: 14px;
+        margin-bottom: 16px;
     }
 
     .heading-icon {
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 10px;
-        background: #fef2f2;
-        color: #7f1d1d;
+        background: #eef2ff;
+        color: #4f46e5;
         font-size: 18px;
     }
 
     .detail-card-heading h3,
     .side-card h3 {
         margin: 0 0 4px;
-        color: #111827;
-        font-size: 15px;
-        font-weight: 800;
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
     }
 
     .detail-card-heading p {
         margin: 0;
-        color: #6b7280;
-        font-size: 12.5px;
+        color: #64748b;
+        font-size: 13px;
         line-height: 1.4;
     }
 
     /* ==================== INFO GRID ==================== */
     .detail-info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 12px;
     }
 
     .detail-item {
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-radius: 10px;
-        background: #f9fafb;
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
     }
 
     .detail-item span {
         display: block;
-        margin-bottom: 3px;
-        color: #9ca3af;
-        font-size: 10px;
-        font-weight: 800;
+        margin-bottom: 4px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
     .detail-item strong {
-        color: #111827;
-        font-size: 13px;
-        font-weight: 800;
-        line-height: 1.3;
+        color: #0f172a;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+
+    .detail-item.full-width {
+        grid-column: 1 / -1;
     }
 
     /* ==================== AMOUNT BOX ==================== */
     .quotation-amount-box {
-        margin-top: 14px;
-        padding: 14px;
-        border: 1px solid #dbeafe;
+        margin-top: 16px;
+        padding: 16px;
+        border: 1px solid #a7f3d0;
         border-radius: 10px;
-        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        background: #ecfdf5;
         text-align: center;
     }
 
     .quotation-amount-box span {
         display: block;
-        color: #1d4ed8;
-        font-size: 10px;
-        font-weight: 800;
+        color: #047857;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         margin-bottom: 4px;
     }
 
     .quotation-amount-box strong {
-        font-size: 24px;
-        font-weight: 900;
-        color: #1e3a8a;
+        font-size: 22px;
+        font-weight: 800;
+        color: #065f46;
     }
 
     /* ==================== SIDE CARDS & BUTTONS ==================== */
-    .side-card h3 { margin-bottom: 12px; }
+    .side-card h3 { margin-bottom: 14px; }
 
     .workflow-status-box {
         display: flex;
         align-items: flex-start;
-        gap: 10px;
-        padding: 12px;
+        gap: 12px;
+        padding: 14px;
         border-radius: 10px;
         font-size: 13px;
     }
@@ -526,7 +701,7 @@
         gap: 6px;
         width: 100%;
         padding: 10px 14px;
-        background: #065f46;
+        background: #047857;
         color: white;
         text-decoration: none;
         border-radius: 8px;
@@ -536,11 +711,11 @@
     }
 
     .btn-download-pdf:hover {
-        background: #047857;
+        background: #065f46;
         transform: translateY(-1px);
     }
 
-    .delete-form { margin-top: 10px; }
+    .delete-form { margin-top: 12px; }
 
     .delete-quotation-btn {
         width: 100%;
@@ -549,7 +724,7 @@
         color: white;
         border: none;
         border-radius: 8px;
-        font-weight: 800;
+        font-weight: 700;
         font-size: 13px;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -567,7 +742,7 @@
 
     .decision-help-text {
         margin: 0 0 12px;
-        color: #6b7280;
+        color: #64748b;
         font-size: 12px;
     }
 
@@ -579,7 +754,7 @@
         border: none;
         border-radius: 8px;
         font-size: 13px;
-        font-weight: 800;
+        font-weight: 700;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
@@ -601,17 +776,17 @@
     .reject-quotation-btn:hover { background: #b91c1c; transform: translateY(-1px); }
 
     .convert-shipment-btn {
-        background: #16a34a;
+        background: #4f46e5;
         color: white;
     }
-    .convert-shipment-btn:hover { background: #15803d; transform: translateY(-1px); }
+    .convert-shipment-btn:hover { background: #4338ca; transform: translateY(-1px); }
 
     .decision-divider {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: 12px 0;
-        color: #9ca3af;
+        margin: 14px 0;
+        color: #94a3b8;
         font-size: 10px;
         font-weight: 700;
     }
@@ -621,7 +796,7 @@
         content: "";
         flex: 1;
         height: 1px;
-        background: #e5e7eb;
+        background: #e2e8f0;
     }
 
     .reject-form {
@@ -631,64 +806,19 @@
     }
 
     .reject-form label {
-        font-weight: 800;
+        font-weight: 700;
         font-size: 12px;
-        color: #374151;
+        color: #334155;
     }
 
     .reject-form textarea {
         resize: vertical;
-        min-height: 75px;
+        min-height: 80px;
         padding: 10px;
-        border: 1px solid #d1d5db;
+        border: 1px solid #cbd5e1;
         border-radius: 8px;
         font-family: inherit;
         font-size: 13px;
-    }
-
-    /* Decision Cards */
-    .decision-approved-card { border-left: 4px solid #16a34a; }
-    .decision-rejected-card { border-left: 4px solid #dc2626; }
-
-    .approved-icon { background: #f0fdf4; color: #16a34a; }
-    .rejected-icon { background: #fef2f2; color: #dc2626; }
-
-    .rejection-reason-box {
-        padding: 12px;
-        background: #fef2f2;
-        border-radius: 10px;
-        font-size: 13px;
-    }
-
-    .rejection-reason-box span {
-        font-size: 10px;
-        font-weight: 800;
-        color: #991b1b;
-        text-transform: uppercase;
-    }
-
-    /* ==================== RESPONSIVE ==================== */
-    @media (max-width: 900px) {
-        .quotation-detail-grid {
-            grid-template-columns: 1fr;
-        }
-        .quotation-view-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .header-actions { text-align: right; }
-    }
-
-    @media (max-width: 640px) {
-        .detail-info-grid {
-            grid-template-columns: 1fr;
-        }
-        .quotation-amount-box strong {
-            font-size: 20px;
-        }
-        .detail-card, .side-card {
-            padding: 14px;
-        }
     }
 
     /* Edit Button */
@@ -697,9 +827,9 @@
         align-items: center;
         gap: 6px;
         padding: 9px 16px;
-        background: #f3f4f6;
-        border: 1px solid #d1d5db;
-        color: #374151;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #334155;
         text-decoration: none;
         border-radius: 8px;
         font-weight: 700;
@@ -708,10 +838,21 @@
     }
 
     .edit-btn:hover {
-        background: #e5e7eb;
-        border-color: #9ca3af;
-        color: #111827;
+        background: #e2e8f0;
+        color: #0f172a;
         transform: translateY(-1px);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 992px) {
+        .quotation-detail-grid {
+            grid-template-columns: 1fr;
+        }
+        .quotation-view-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .header-actions { text-align: right; }
     }
 </style>
 {% endblock %}
