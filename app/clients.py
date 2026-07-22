@@ -597,9 +597,10 @@ def bulk_reassign_owner():
 
         db.session.commit()
         flash(f"{changed_count} client(s) reassigned successfully.", "success")
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        flash("Unable to complete bulk owner reassignment.", "danger")
+        current_app.logger.exception(e)
+        flash(str(e), "danger")
 
     return redirect(url_for("clients.client_list"))
 
