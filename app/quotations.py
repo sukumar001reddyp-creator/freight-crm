@@ -91,11 +91,14 @@ def create_quotation(enquiry_id):
             currency=currency,
             validity_date=datetime.strptime(validity, "%Y-%m-%d").date(),
 
-            origin=request.form.get("origin"),
-            destination=request.form.get("destination"),
-            mode_of_shipment=request.form.get("mode_of_shipment"),
-            cargo_description=request.form.get("cargo_description"),
-            cargo_weight_volume=request.form.get("cargo_weight_volume"),
+            origin=enquiry.origin,
+            destination=enquiry.destination,
+            origin_port=enquiry.origin_port,
+            destination_port=enquiry.destination_port,
+            mode_of_shipment=enquiry.mode_of_shipment,
+            cargo_description=enquiry.cargo_description,
+            cargo_weight_volume=enquiry.cargo_weight_volume,
+            incoterms=enquiry.incoterms,
             
             shipping_line_airline=shipping_line,
             no_of_containers=no_containers,
@@ -105,7 +108,6 @@ def create_quotation(enquiry_id):
             cutoff_date_cargo=cutoff_cargo,
             free_time_days=free_time,
             transit_time_days=transit_time,
-            incoterms=incoterms,
             hs_code=hs_code,
             
             payment_terms=payment_terms,
