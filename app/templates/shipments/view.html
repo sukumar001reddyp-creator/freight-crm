@@ -746,63 +746,72 @@
 
                     <div class="info-item">
                         <span>Shipment Reference</span>
-
-                        <strong>
-                            {{ shipment.shipment_reference }}
-                        </strong>
+                        <strong>{{ shipment.shipment_reference }}</strong>
                     </div>
 
+                    <div class="info-item">
+                        <span>HBL / Tracking No.</span>
+                        <strong>{{ shipment.hbl_no or "N/A" }}</strong>
+                    </div>
 
                     <div class="info-item">
                         <span>Status</span>
-
-                        <strong>
-                            {{
-                                shipment.shipment_status
-                                |replace("_", " ")
-                                |title
-                            }}
-                        </strong>
+                        <strong>{{ shipment.shipment_status | replace("_", " ") | title }}</strong>
                     </div>
-
-
-                    <div class="info-item">
-                        <span>Origin</span>
-
-                        <strong>
-                            {{ shipment.origin }}
-                        </strong>
-                    </div>
-
-
-                    <div class="info-item">
-                        <span>Destination</span>
-
-                        <strong>
-                            {{ shipment.destination }}
-                        </strong>
-                    </div>
-
 
                     <div class="info-item">
                         <span>Mode of Shipment</span>
-
-                        <strong>
-                            {{
-                                shipment.mode_of_shipment
-                                |replace("_", " ")
-                                |title
-                            }}
-                        </strong>
+                        <strong>{{ shipment.mode_of_shipment | replace("_", " ") | title }}</strong>
                     </div>
 
+                    <div class="info-item">
+                        <span>Shipping Line</span>
+                        <strong>{{ shipment.shipping_line or "N/A" }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Vessel / Flight</span>
+                        <strong>{{ shipment.vessel or "N/A" }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Container No.</span>
+                        <strong>{{ shipment.container_no or "N/A" }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Container Type</span>
+                        <strong>{{ shipment.container_type or "N/A" }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Origin</span>
+                        <strong>{{ shipment.origin }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Destination</span>
+                        <strong>{{ shipment.destination }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Estimated Time of Departure (ETD)</span>
+                        <strong>{{ shipment.etd.strftime("%d %b %Y %H:%M") if shipment.etd else "Not scheduled" }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Estimated Time of Arrival (ETA)</span>
+                        <strong>{{ shipment.eta.strftime("%d %b %Y %H:%M") if shipment.eta else "Not scheduled" }}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Volume</span>
+                        <strong>{{ shipment.volume or "N/A" }}</strong>
+                    </div>
 
                     <div class="info-item">
                         <span>Handled By</span>
-
-                        <strong>
-                            {{ shipment.handled_by.full_name }}
-                        </strong>
+                        <strong>{{ shipment.handled_by.full_name if shipment.handled_by else "N/A" }}</strong>
                     </div>
 
                 </div>
