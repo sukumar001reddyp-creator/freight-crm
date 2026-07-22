@@ -3,6 +3,7 @@ from flask import (
     redirect,
     url_for,
     render_template,
+    send_from_directory,
 )
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_sqlalchemy import SQLAlchemy
@@ -33,6 +34,9 @@ login_manager = LoginManager()
 def create_app():
 
     app = Flask(__name__)
+
+
+
 
     app.config.from_object(Config)
 
@@ -343,5 +347,13 @@ def create_app():
     # ==========================================
     from app.backup import init_backup_scheduler
     init_backup_scheduler(app)
+
+    @app.route("/service-worker.js")
+    def service_worker():
+        return send_from_directory(
+        app.root_path,
+        "service-worker.js",
+        mimetype="application/javascript"
+    )
 
     return app
