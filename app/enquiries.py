@@ -440,7 +440,8 @@ def download_enquiry_pdf(enquiry_id):
 
     buffer = BytesIO()
 
-    doc = SimpleDocTemplate(buffer)
+    # పేజ్ మార్జిన్స్ సెట్ చేయడం (A4)
+    doc = SimpleDocTemplate(buffer, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
 
     styles = getSampleStyleSheet()
 
@@ -454,64 +455,73 @@ def download_enquiry_pdf(enquiry_id):
     company_title.textColor = colors.HexColor("#7f1d1d")
 
     elements.append(
-    Paragraph(
-        "<b>ABC FREIGHT LOGISTICS LLC</b>",
-        company_title
+        Paragraph(
+            "<b>ABC FREIGHT LOGISTICS LLC</b>",
+            company_title
+        )
     )
-)
 
     company_style = styles["Normal"]
     company_style.alignment = TA_CENTER
 
     elements.append(
-    Paragraph(
-        "M-15, Industrial Area, Shuwaikh, Kuwait<br/>"
-        "Phone: +965 2222 3333 | Mobile: +965 9999 8888<br/>"
-        "Email: info@abcfreight.com<br/>"
-        "Website: www.abcfreight.com",
-        company_style
+        Paragraph(
+            "M-15, Industrial Area, Shuwaikh, Kuwait<br/>"
+            "Phone: +965 2222 3333 | Mobile: +965 9999 8888<br/>"
+            "Email: info@abcfreight.com | Website: www.abcfreight.com",
+            company_style
+        )
     )
-)
 
     elements.append(Spacer(1, 15))
 
     elements.append(
-    Paragraph("ENQUIRY DETAILS", title_style)
-)
+        Paragraph("ENQUIRY COMPREHENSIVE REPORT", title_style)
+    )
 
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 15))
 
+    # అన్ని ఫీల్డ్స్‌ని పీడీఎఫ్ టేబుల్ లోకి మ్యాప్ చేయడం
     data = [
         ["Enquiry Reference", enquiry.enquiry_reference],
-        ["Client", enquiry.client.company_name],
+        ["Client Company", enquiry.client.company_name if enquiry.client else "N/A"],
         ["Origin", enquiry.origin],
         ["Destination", enquiry.destination],
-        ["Shipment Mode", enquiry.mode_of_shipment],
-        ["Cargo Description", enquiry.cargo_description],
-        ["Weight / Volume", enquiry.cargo_weight_volume or "-"],
-        ["Status", enquiry.status.replace("_", " ").title()],
-        ["Handled By", enquiry.handled_by.full_name],
-        ["Created Date", enquiry.created_at.strftime("%d %b %Y")],
+        ["Origin Port (POL)", enquiry.origin_port or "N/A"],
+        ["Destination Port (POD)", enquiry.destination_port or "N/A"],
+        ["Mode of Shipment", enquiry.mode_of_shipment.replace("_", " ").title() if enquiry.mode_of_shipment else "N/A"],
+        ["Equipment Type", enquiry.equipment_type or "N/A"],
+        ["Cargo Description", enquiry.cargo_description or "N/A"],
+        ["Total Pieces", str(enquiry.total_pieces) if enquiry.total_pieces else "N/A"],
+        ["Weight (KG)", str(enquiry.weight_kg) if enquiry.weight_kg else "N/A"],
+        ["Volume (CBM)", str(enquiry.volume_cbm) if enquiry.volume_cbm else "N/A"],
+        ["Cargo Weight / Volume", enquiry.cargo_weight_volume or "N/A"],
+        ["Expected Timeline", enquiry.expected_timeline or "N/A"],
+        ["Incoterms", enquiry.incoterms or "N/A"],
+        ["Additional Instructions", enquiry.additional_instructions or "N/A"],
+        ["Enquiry Status", enquiry.status.replace("_", " ").title()],
+        ["Handled By", enquiry.handled_by.full_name if enquiry.handled_by else "N/A"],
+        ["Sales Coordinator", enquiry.sales_coordinator.full_name if enquiry.sales_coordinator else "N/A"],
+        ["Enquiry Date", enquiry.enquiry_date.strftime("%d %b %Y") if enquiry.enquiry_date else "N/A"],
+        ["Created At", enquiry.created_at.strftime("%d %b %Y %H:%M") if enquiry.created_at else "N/A"],
+        ["Updated At", enquiry.updated_at.strftime("%d %b %Y %H:%M") if enquiry.updated_at else "N/A"],
     ]
 
     table = Table(
         data,
-        colWidths=[170, 320]
+        colWidths=[180, 360]
     )
 
     table.setStyle(
         TableStyle([
-            ("BACKGROUND", (0,0), (0,-1), colors.HexColor("#7f1d1d")),
-            ("TEXTCOLOR", (0,0), (0,-1), colors.white),
-
-            ("BACKGROUND", (1,0), (1,-1), colors.whitesmoke),
-
-            ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-
-            ("FONTNAME", (0,0), (-1,-1), "Helvetica"),
-
-            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
-            ("TOPPADDING", (0,0), (-1,-1), 8),
+            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#7f1d1d")),
+            ("TEXTCOLOR", (0, 0), (0, -1), colors.white),
+            ("BACKGROUND", (1, 0), (1, -1), colors.HexColor("#f9fafb")),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d1d5db")),
+            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9.5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
         ])
     )
 
@@ -524,7 +534,7 @@ def download_enquiry_pdf(enquiry_id):
     return send_file(
         buffer,
         as_attachment=True,
-        download_name=f"{enquiry.enquiry_reference}.pdf",
+        download_name=f"Enquiry_{enquiry.enquiry_reference}.pdf",
         mimetype="application/pdf"
     )
 # =========================================================

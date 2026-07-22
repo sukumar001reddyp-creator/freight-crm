@@ -1,166 +1,313 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body { 
-            font-family: 'Helvetica', Arial, sans-serif; 
-            color: #333; 
-            margin: 40px; 
-            line-height: 1.5;
-        }
-        
-        /* Company Name at the top */
-        .company-header { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            border-bottom: 2px solid #7f1d1d;
-            padding-bottom: 15px;
-        }
-        .company-header h2 { 
-            color: #7f1d1d; 
-            margin: 0; 
-            text-transform: uppercase; 
-            font-size: 22px;
-        }
+<meta charset="UTF-8">
 
-        /* Quotation Header */
-        .header { 
-            border-bottom: 3px solid #7f1d1d; 
-            padding-bottom: 20px; 
-            margin-bottom: 30px; 
-        }
-        .header h1 { 
-            color: #7f1d1d; 
-            margin: 0 0 8px 0; 
-            font-size: 26px;
-        }
-        .header p { 
-            color: #6b7280; 
-            font-size: 14px; 
-            margin: 4px 0;
-        }
+<style>
 
-        /* Table Styling */
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 30px; 
-        }
-        th { 
-            background-color: #7f1d1d; 
-            color: white; 
-            padding: 12px; 
-            text-align: left; 
-            font-weight: 700;
-        }
-        td { 
-            border: 1px solid #e5e7eb; 
-            padding: 10px; 
-            font-size: 13px; 
-        }
-        tr:nth-child(even) { 
-            background-color: #f9fafb; 
-        }
+/* CSS ikkada */
 
-        /* Bold Amount Styling */
-        .amount-bold { 
-            font-size: 18px; 
-            font-weight: 800; 
-            color: #1e3a8a; 
-        }
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:12px;
+    color:#222;
+    line-height:1.5;
+}
 
-        h3 { 
-            color: #111827; 
-            border-left: 5px solid #7f1d1d; 
-            padding-left: 10px; 
-            margin: 25px 0 12px 0; 
-        }
-        
-        .details-box { 
-            background: #f9fafb; 
-            padding: 18px; 
-            border-radius: 8px; 
-            border: 1px solid #e5e7eb; 
-            margin-bottom: 20px;
-        }
-        
-        .total-row {
-            background-color: #fef2f2 !important;
-            font-weight: bold;
-        }
-    </style>
+.company-header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.company-header h2{
+    margin:0;
+    color:#7f1d1d;
+    font-size:24px;
+}
+
+.company-header p{
+    margin-top:5px;
+    color:#666;
+}
+
+.header{
+    border:1px solid #ccc;
+    background:#f8f8f8;
+    padding:15px;
+    margin-bottom:20px;
+}
+
+h1{
+    margin:0 0 10px;
+    color:#7f1d1d;
+}
+
+h3{
+    background:#7f1d1d;
+    color:#fff;
+    padding:8px;
+    margin:20px 0 0;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:20px;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:8px;
+}
+
+th{
+    background:#efefef;
+}
+
+.details-box{
+    border:1px solid #ccc;
+    padding:10px;
+    margin-top:10px;
+}
+
+.total-row{
+    background:#f4f4f4;
+    font-weight:bold;
+}
+
+.amount-bold{
+    font-weight:bold;
+    color:#7f1d1d;
+    font-size:15px;
+}
+
+@page{
+    size:A4;
+    margin:18mm;
+}
+
+</style>
+
 </head>
+
 <body>
 
-    <!-- Company Name Section -->
-    <div class="company-header">
-        <h2>YOUR COMPANY NAME HERE</h2>
-        <p>Freight Forwarding & Logistics</p>
-    </div>
-
-    <div class="header">
-        <h1>Quotation: {{ quotation.quotation_number }}</h1>
-        <p>
-    <strong>Client:</strong>
-
-    {% if quotation.enquiry %}
-
-        {{ quotation.enquiry.client.company_name }}
-
-    {% elif quotation.other_client_name %}
-
-        {{ quotation.other_client_name }}
-
-    {% elif quotation.client %}
-
-        {{ quotation.client.company_name }}
-
-    {% else %}
-
-        N/A
-
-    {% endif %}
-</p>
-        <p><strong>Date:</strong> {{ quotation.created_at.strftime('%d %b %Y') }}</p>
-        <p><strong>Validity:</strong> {{ quotation.validity_date.strftime('%d %b %Y') if quotation.validity_date else 'N/A' }}</p>
-    </div>
-
-    <h3>Shipment Details</h3>
-    <table>
-        <tr><th width="40%">Field</th><th>Information</th></tr>
-        <tr><td>Shipping Line / Airline</td><td>{{ quotation.shipping_line_airline or 'N/A' }}</td></tr>
-        <tr><td>Containers</td><td>{{ quotation.no_of_containers or 'N/A' }} × {{ quotation.container_type_quota or 'N/A' }}</td></tr>
-        <tr><td>ETD</td><td>{{ quotation.etd.strftime('%d %b %Y %H:%M') if quotation.etd else 'N/A' }}</td></tr>
-        <tr><td>Incoterms</td><td>{{ quotation.incoterms or 'N/A' }}</td></tr>
-        <tr><td>HS Code</td><td>{{ quotation.hs_code or 'N/A' }}</td></tr>
-    </table>
-
-    <!-- NEW COST BREAKDOWN -->
-    <h3>Cost Breakdown</h3>
-    <table>
-        <tr>
-            <th width="60%">Description</th>
-            <th width="40%">Amount ({{ quotation.currency }})</th>
-        </tr>
-        <tr><td>Ocean / Air Freight</td><td>{{ "{:,.2f}".format(quotation.ocean_air_freight or 0) }}</td></tr>
-        <tr><td>Origin Charges</td><td>{{ "{:,.2f}".format(quotation.origin_charges or 0) }}</td></tr>
-        <tr><td>Destination Charges</td><td>{{ "{:,.2f}".format(quotation.destination_charges or 0) }}</td></tr>
-        <tr><td>Insurance Charges</td><td>{{ "{:,.2f}".format(quotation.insurance_charges or 0) }}</td></tr>
-        <tr><td>Other Surcharges</td><td>{{ "{:,.2f}".format(quotation.other_surcharges or 0) }}</td></tr>
-        <tr class="total-row">
-            <td><strong>Total Quotation Amount</strong></td>
-            <td class="amount-bold">{{ "{:,.2f}".format(quotation.quotation_amount or 0) }}</td>
-        </tr>
-    </table>
-
-    <h3>Remarks & Terms</h3>
-    <div class="details-box">
-        <p>{{ quotation.remarks_terms or 'No additional remarks provided.' }}</p>
-    </div>
-
-    <p style="text-align: center; color: #6b7280; margin-top: 40px; font-size: 12px;">
-        This is a computer generated quotation. For any queries contact us.
-    </p>
+    <!-- IKKADA nenu ichina Part 1 nunchi Part 5 motham paste cheyyali -->
 
 </body>
+
 </html>
+
+<!-- ================= COMPANY HEADER ================= -->
+<div class="company-header"><h2>YOUR COMPANY NAME HERE</h2><p>Freight Forwarding & Logistics</p></div>
+
+<!-- ================= QUOTATION HEADER ================= -->
+<div class="header">
+<h1>Quotation: {{ quotation.quotation_number }}</h1>
+
+<p><strong>Client:</strong>
+{% if quotation.enquiry %}
+{{ quotation.enquiry.client.company_name }}
+{% elif quotation.other_client_name %}
+{{ quotation.other_client_name }}
+{% elif quotation.client %}
+{{ quotation.client.company_name }}
+{% else %}
+N/A
+{% endif %}
+</p>
+
+<p><strong>Quotation Date:</strong> {{ quotation.created_at.strftime('%d %b %Y') }}</p>
+<p><strong>Validity:</strong> {{ quotation.validity_date.strftime('%d %b %Y') if quotation.validity_date else 'N/A' }}</p>
+<p><strong>Currency:</strong> {{ quotation.currency }}</p>
+<p><strong>Total Amount:</strong> <span class="amount-bold">{{ "{:,.2f}".format(quotation.quotation_amount or 0) }} {{ quotation.currency }}</span></p>
+</div>
+
+<!-- ================= CLIENT & SHIPMENT OVERVIEW ================= -->
+<h3>Client & Shipment Information</h3>
+
+<table>
+<tr><th width="40%">Field</th><th>Value</th></tr>
+
+<tr><td>Origin</td><td>{{ quotation.origin or 'N/A' }}</td></tr>
+
+<tr><td>Destination</td><td>{{ quotation.destination or 'N/A' }}</td></tr>
+
+<tr><td>Origin Port (POL)</td><td>{{ quotation.origin_port or 'N/A' }}</td></tr>
+
+<tr><td>Destination Port (POD)</td><td>{{ quotation.destination_port or 'N/A' }}</td></tr>
+
+<tr><td>Mode of Shipment</td><td>{{ quotation.mode_of_shipment or 'N/A' }}</td></tr>
+
+</table>
+<!-- ================= SHIPMENT DETAILS ================= -->
+
+<h3>Shipment Details</h3>
+
+<table>
+
+<tr><th width="40%">Field</th><th>Value</th></tr>
+
+<tr><td>Cargo Description</td><td>{{ quotation.cargo_description or 'N/A' }}</td></tr>
+
+<tr><td>Cargo Weight / Volume</td><td>{{ quotation.cargo_weight_volume or 'N/A' }}</td></tr>
+
+<tr><td>Shipping Line / Airline</td><td>{{ quotation.shipping_line_airline or 'N/A' }}</td></tr>
+
+<tr><td>No. of Containers</td><td>{{ quotation.no_of_containers or 'N/A' }}</td></tr>
+
+<tr><td>Container Type</td><td>{{ quotation.container_type_quota or 'N/A' }}</td></tr>
+
+<tr><td>Estimated Time of Departure (ETD)</td><td>{{ quotation.etd.strftime('%d %b %Y %H:%M') if quotation.etd else 'N/A' }}</td></tr>
+
+<tr><td>Documentation Cutoff</td><td>{{ quotation.cutoff_date_documentation.strftime('%d %b %Y %H:%M') if quotation.cutoff_date_documentation else 'N/A' }}</td></tr>
+
+<tr><td>Cargo Cutoff</td><td>{{ quotation.cutoff_date_cargo.strftime('%d %b %Y %H:%M') if quotation.cutoff_date_cargo else 'N/A' }}</td></tr>
+
+<tr><td>Free Time (Days)</td><td>{{ quotation.free_time_days or 'N/A' }}</td></tr>
+
+<tr><td>Transit Time (Days)</td><td>{{ quotation.transit_time_days or 'N/A' }}</td></tr>
+
+<tr><td>Incoterms</td><td>{{ quotation.incoterms or 'N/A' }}</td></tr>
+
+<tr><td>HS Code</td><td>{{ quotation.hs_code or 'N/A' }}</td></tr>
+
+</table>
+<!-- ================= COST BREAKDOWN ================= -->
+
+<h3>Cost Breakdown</h3>
+
+<table>
+
+<tr><th width="60%">Charge Description</th><th width="40%">Amount ({{ quotation.currency }})</th></tr>
+
+<tr><td>Ocean / Air Freight</td><td>{{ "{:,.2f}".format(quotation.ocean_air_freight or 0) }}</td></tr>
+
+<tr><td>Origin Charges</td><td>{{ "{:,.2f}".format(quotation.origin_charges or 0) }}</td></tr>
+
+<tr><td>Destination Charges</td><td>{{ "{:,.2f}".format(quotation.destination_charges or 0) }}</td></tr>
+
+<tr><td>Insurance Charges</td><td>{{ "{:,.2f}".format(quotation.insurance_charges or 0) }}</td></tr>
+
+<tr><td>Other Surcharges</td><td>{{ "{:,.2f}".format(quotation.other_surcharges or 0) }}</td></tr>
+
+<tr><td>Payment Terms</td><td>{{ quotation.payment_terms or 'N/A' }}</td></tr>
+
+<tr class="total-row"><td><strong>Grand Total</strong></td><td class="amount-bold">{{ "{:,.2f}".format(quotation.quotation_amount or 0) }} {{ quotation.currency }}</td></tr>
+
+</table>
+
+<!-- ================= REMARKS & TERMS ================= -->
+
+<h3>Remarks & Terms</h3>
+
+<div class="details-box">
+
+<p><strong>Remarks:</strong><br>{{ quotation.remarks_terms or 'No remarks provided.' }}</p>
+
+<p><strong>Payment Terms:</strong> {{ quotation.payment_terms or 'N/A' }}</p>
+
+<p><strong>Quotation Status:</strong> {{ quotation.status|replace('_',' ')|title }}</p>
+
+{% if quotation.approved_by %}
+
+<p><strong>Approved By:</strong> {{ quotation.approved_by.full_name }}</p>
+
+<p><strong>Approved Date:</strong> {{ quotation.approved_at.strftime('%d %b %Y %H:%M') if quotation.approved_at else 'N/A' }}</p>
+
+{% endif %}
+
+</div>
+
+<!-- ================= FOOTER ================= -->
+
+<br><br>
+
+<table>
+
+<tr>
+
+<td width="50%" style="border:none;vertical-align:top;">
+
+<strong>Prepared By</strong><br><br>
+
+{{ quotation.created_by.full_name if quotation.created_by else 'System' }}
+
+</td>
+
+<td width="50%" style="border:none;text-align:right;vertical-align:top;">
+
+<strong>Authorized Signature</strong><br><br><br>
+
+_________________________
+
+</td>
+
+</tr>
+
+</table>
+
+<p style="text-align:center;color:#6b7280;font-size:12px;margin-top:30px;">
+
+This is a computer-generated quotation and does not require a physical signature.
+
+</p>
+
+<!-- ================= COMPANY CONTACT ================= -->
+
+<h3>Company Information</h3>
+
+<table>
+
+<tr><td width="35%"><strong>Company Name</strong></td><td>YOUR COMPANY NAME HERE</td></tr>
+
+<tr><td><strong>Address</strong></td><td>YOUR COMPANY ADDRESS HERE</td></tr>
+
+<tr><td><strong>Phone</strong></td><td>+965 XXXXXXXX</td></tr>
+
+<tr><td><strong>Email</strong></td><td>info@yourcompany.com</td></tr>
+
+<tr><td><strong>Website</strong></td><td>www.yourcompany.com</td></tr>
+
+</table>
+
+<br>
+
+<div class="details-box">
+
+<p><strong>Terms & Conditions</strong></p>
+
+<ol style="margin:0;padding-left:18px;">
+
+<li>This quotation is valid until {{ quotation.validity_date.strftime('%d %b %Y') if quotation.validity_date else 'N/A' }}.</li>
+
+<li>Rates are subject to carrier availability and space confirmation.</li>
+
+<li>Additional charges arising after quotation issuance will be billed separately.</li>
+
+<li>Customs duties, taxes and government charges are excluded unless specifically mentioned.</li>
+
+<li>Shipment is subject to our standard freight forwarding terms and conditions.</li>
+
+</ol>
+
+</div>
+
+<hr>
+
+<p style="text-align:center;font-size:11px;color:#777;">
+
+Generated on {{ quotation.created_at.strftime('%d %b %Y %H:%M') }}
+
+| Quotation No: {{ quotation.quotation_number }}
+
+| Status: {{ quotation.status|title }}
+
+</p>
+
+<p style="text-align:center;font-size:10px;color:#999;">
+
+Thank you for choosing our logistics services. We look forward to serving your business.
+
+</p>
+

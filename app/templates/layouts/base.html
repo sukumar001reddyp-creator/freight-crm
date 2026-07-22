@@ -39,12 +39,12 @@
     --transition-bounce: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Header Topbar Refresh */
+/* Header Topbar Refresh with Light Green Touch */
 .topbar {
-    background: rgba(255, 255, 255, 0.8) !important;
+    background: rgba(236, 253, 245, 0.85) !important; /* Soft light green tint */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 1px solid #d1fae5; /* Light green subtle border */
     padding: 14px 24px;
 }
 
@@ -79,13 +79,13 @@
     justify-content: center;
     transition: var(--transition-bounce);
     position: relative;
-    text-decoration: none; /* fallback if anchor */
+    text-decoration: none;
 }
 
 .top-action-btn:hover {
-    background: var(--primary-light);
-    color: var(--primary);
-    border-color: rgba(127, 29, 29, 0.2);
+    background: #ecfdf5;
+    color: #047857;
+    border-color: rgba(4, 120, 87, 0.2);
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
 }
@@ -120,7 +120,7 @@
 }
 
 .top-user-trigger:hover {
-    border-color: rgba(127, 29, 29, 0.2);
+    border-color: rgba(4, 120, 87, 0.2);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
@@ -140,15 +140,26 @@
     font-size: 13px;
     border-radius: var(--radius-md);
     box-shadow: 0 2px 4px rgba(127, 29, 29, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.top-user-copy {
+    text-align: left;
+    margin-left: 8px;
 }
 
 .top-user-copy strong {
+    display: block;
     color: var(--text-main);
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.2;
 }
 
 .top-user-copy span {
+    display: block;
     font-size: 11px;
     color: var(--text-muted);
 }
@@ -188,19 +199,19 @@
     display: grid;
     gap: 2px;
     padding: 12px;
-    background: var(--primary-light);
+    background: #ecfdf5;
     border-radius: var(--radius-lg);
     margin-bottom: 6px;
 }
 
 .top-user-dropdown-head strong {
-    color: var(--primary);
+    color: #047857;
     font-size: 13px;
     font-weight: 700;
 }
 
 .top-user-dropdown-head span {
-    color: #991b1b;
+    color: #065f46;
     font-size: 11px;
     opacity: 0.8;
 }
@@ -220,9 +231,9 @@
 }
 
 .top-user-dropdown-item:hover {
-    background: #f1f5f9;
-    color: var(--text-main);
-    padding-left: 18px; /* Smooth slide-in hover effect */
+    background: #ecfdf5;
+    color: #047857;
+    padding-left: 18px;
 }
 
 .top-user-dropdown-item i {
@@ -232,7 +243,7 @@
 }
 
 .top-user-dropdown-item:hover i {
-    color: var(--primary);
+    color: #047857;
 }
 
 .top-user-dropdown-item.danger {
@@ -322,21 +333,18 @@
                     <span class="nav-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
                     <span>Quotations</span>
                 </a>
-            
                 {% endif %}
 
                 {% if permissions.can_access_shipments() %}
-                
-<a href="{{ url_for('shipments.shipment_list') }}" class="nav-item {% if request.endpoint == 'shipments.shipment_list' %}active{% endif %}">
-    <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
-    <span>Shipments</span>
-</a>
+                <a href="{{ url_for('shipments.shipment_list') }}" class="nav-item {% if request.endpoint == 'shipments.shipment_list' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
+                    <span>Shipments</span>
+                </a>
 
-
-<a href="{{ url_for('shipments.track_shipment') }}" class="nav-item {% if request.endpoint == 'shipments.track_shipment' %}active{% endif %}">
-    <span class="nav-icon"><i class="bi bi-geo-alt-fill"></i></span>
-    <span>Live Tracking</span>
-</a>
+                <a href="{{ url_for('shipments.track_shipment') }}" class="nav-item {% if request.endpoint == 'shipments.track_shipment' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                    <span>Live Tracking</span>
+                </a>
                 {% endif %}
 
                 {% if permissions.can_access_tasks() %}
@@ -356,7 +364,6 @@
                 </a>
                 {% endif %}
 
-                <!-- Support Tickets with Count -->
                 <a href="{{ url_for('support.admin_list') }}" class="nav-item {% if request.endpoint == 'support.admin_list' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-headset"></i></span>
                     <span>Support Tickets</span>
@@ -379,19 +386,17 @@
                 </a>
                 {% endif %}
 
-{% if current_user.role == "admin" or permissions.can_access_settings() %}
-<a href="{{ url_for('settings.index') }}" class="nav-item {% if request.blueprint == 'settings' %}active{% endif %}">
-    <span class="nav-icon">
-        <i class="bi bi-gear-fill"></i>
-    </span>
-    <span>Settings</span>
-</a>
-{% endif %}
+                {% if current_user.role == "admin" or permissions.can_access_settings() %}
+                <a href="{{ url_for('settings.index') }}" class="nav-item {% if request.blueprint == 'settings' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-gear-fill"></i></span>
+                    <span>Settings</span>
+                </a>
+                {% endif %}
             </nav>
         </div>
 
         <div class="sidebar-user">
-            <div class="user-avatar">{{ current_user.full_name[0]|upper }}</div>
+            <div class="user-avatar" style="display:flex; align-items:center; justify-content:center;">{{ current_user.full_name[0]|upper }}</div>
             <div class="user-copy">
                 <strong>{{ current_user.full_name }}</strong>
                 <span>{{ current_user.role_label }}</span>
@@ -417,8 +422,7 @@
                 </div>
             </div>
 
-            <div class="topbar-actions">
-                <!-- REDIRECTED ALERTS BUTTON TO SUPPORT TICKETS -->
+            <div class="topbar-actions" style="display: flex; align-items: center;">
                 <a href="{{ url_for('support.admin_list') }}" class="top-action-btn notification-btn" title="View Support Tickets">
                     <i class="bi bi-bell"></i>
                     {% if sidebar_support_count > 0 %}
@@ -427,7 +431,7 @@
                 </a>
 
                 <!-- User Profile Dropdown Menu -->
-                <div class="top-user-menu" id="topUserMenu">
+                <div class="top-user-menu" id="topUserMenu" style="position: relative;">
                     <button type="button" class="top-user-trigger" id="topUserTrigger" aria-expanded="false" aria-haspopup="true">
                         <div class="top-user-avatar">{{ current_user.full_name[0]|upper }}</div>
                         <div class="top-user-copy">
@@ -483,7 +487,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // --- Dropdown Management ---
     const menu = document.getElementById("topUserMenu");
     const trigger = document.getElementById("topUserTrigger");
 
@@ -509,7 +512,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- Alert Notification Animation Close ---
     const alertCloses = document.querySelectorAll(".alert-close");
     alertCloses.forEach(button => {
         button.addEventListener("click", function () {
@@ -523,7 +525,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
-<script src="https://cdn.tailwindcss.com"></script>
 
 {% block extra_js %}{% endblock %}
 
