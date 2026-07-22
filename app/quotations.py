@@ -165,6 +165,13 @@ def create_direct_quotation():
             "%Y-%m-%d"
         ).date()
 
+        quotation.origin = request.form.get("origin")
+        quotation.destination = request.form.get("destination")
+        quotation.origin_port = request.form.get("origin_port")
+        quotation.destination_port = request.form.get("destination_port")
+        quotation.mode_of_shipment = request.form.get("mode_of_shipment")
+        quotation.cargo_description = request.form.get("cargo_description")
+        quotation.cargo_weight_volume = request.form.get("cargo_weight_volume")
         quotation.shipping_line_airline = request.form.get("shipping_line_airline")
         quotation.no_of_containers = request.form.get("no_of_containers") or None
         quotation.container_type_quota = request.form.get("container_type_quota")

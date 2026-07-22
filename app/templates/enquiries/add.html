@@ -31,10 +31,7 @@
             </p>
         </div>
 
-        <a
-            href="{{ url_for('enquiries.enquiry_list') }}"
-            class="back-enquiry-btn"
-        >
+        <a href="{{ url_for('enquiries.enquiry_list') }}" class="back-enquiry-btn">
             <i class="bi bi-arrow-left"></i>
             Back to Enquiries
         </a>
@@ -42,11 +39,7 @@
     </div>
 
 
-    <form
-        method="POST"
-        action="{{ url_for('enquiries.add_enquiry') }}"
-        class="enquiry-form-card"
-    >
+    <form method="POST" action="{{ url_for('enquiries.add_enquiry') }}" class="enquiry-form-card">
 
         <!-- =====================================
              SECTION 1 — CLIENT
@@ -81,11 +74,7 @@
                         <span>*</span>
                     </label>
 
-                    <select
-                        id="client_id"
-                        name="client_id"
-                        required
-                    >
+                    <select id="client_id" name="client_id" required>
                         <option value="">
                             Select client
                         </option>
@@ -94,10 +83,7 @@
 
                             <option
                                 value="{{ client.id }}"
-                                {% if
-                                    request.form.get('client_id')
-                                    == client.id|string
-                                %}
+                                {% if request.form.get('client_id') == client.id|string %}
                                     selected
                                 {% endif %}
                             >
@@ -184,6 +170,42 @@
                 </div>
 
 
+                <div class="form-field">
+
+                    <label for="origin_port">
+                        Origin Port
+                        <small>(Optional)</small>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="origin_port"
+                        name="origin_port"
+                        value="{{ request.form.get('origin_port', '') }}"
+                        placeholder="e.g. Chennai Port"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="destination_port">
+                        Destination Port
+                        <small>(Optional)</small>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="destination_port"
+                        name="destination_port"
+                        value="{{ request.form.get('destination_port', '') }}"
+                        placeholder="e.g. Jebel Ali Port"
+                    >
+
+                </div>
+
+
                 <div class="form-field form-field-full">
 
                     <label for="mode_of_shipment">
@@ -191,22 +213,14 @@
                         <span>*</span>
                     </label>
 
-                    <select
-                        id="mode_of_shipment"
-                        name="mode_of_shipment"
-                        required
-                    >
+                    <select id="mode_of_shipment" name="mode_of_shipment" required>
                         <option value="">
                             Select shipment mode
                         </option>
 
                         <option
                             value="air_freight"
-                            {% if
-                                request.form.get(
-                                    'mode_of_shipment'
-                                ) == 'air_freight'
-                            %}
+                            {% if request.form.get('mode_of_shipment') == 'air_freight' %}
                                 selected
                             {% endif %}
                         >
@@ -215,11 +229,7 @@
 
                         <option
                             value="sea_freight"
-                            {% if
-                                request.form.get(
-                                    'mode_of_shipment'
-                                ) == 'sea_freight'
-                            %}
+                            {% if request.form.get('mode_of_shipment') == 'sea_freight' %}
                                 selected
                             {% endif %}
                         >
@@ -228,11 +238,7 @@
 
                         <option
                             value="land_freight"
-                            {% if
-                                request.form.get(
-                                    'mode_of_shipment'
-                                ) == 'land_freight'
-                            %}
+                            {% if request.form.get('mode_of_shipment') == 'land_freight' %}
                                 selected
                             {% endif %}
                         >
@@ -271,34 +277,6 @@
 
             </div>
 
-           
-<div class="form-section">
-    <div class="form-section-heading">
-        <span class="section-icon"><i class="bi bi-person-badge-fill"></i></span>
-        <div>
-            <h3>Additional Info & Ownership</h3>
-        </div>
-    </div>
-    <div class="form-grid">
-        <div class="form-field">
-            <label for="incoterms">Incoterms</label>
-            <input type="text" name="incoterms" placeholder="e.g. FOB">
-        </div>
-        <div class="form-field">
-            <label for="sales_coordinator_id">Sales Co-ordinator</label>
-            <select name="sales_coordinator_id">
-                <option value="">Select</option>
-                {% for user in users %}
-                    <option value="{{ user.id }}">{{ user.full_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-field form-field-full">
-            <label for="additional_instructions">Additional Instructions</label>
-            <textarea name="additional_instructions"></textarea>
-        </div>
-    </div>
-</div>
 
             <div class="form-grid">
 
@@ -330,12 +308,7 @@
                         type="text"
                         id="cargo_weight_volume"
                         name="cargo_weight_volume"
-                        value="{{
-                            request.form.get(
-                                'cargo_weight_volume',
-                                ''
-                            )
-                        }}"
+                        value="{{ request.form.get('cargo_weight_volume', '') }}"
                         placeholder="e.g. 2500 kg / 18 CBM / 2 containers"
                     >
 
@@ -352,7 +325,86 @@
 
 
         <!-- =====================================
-             SECTION 4 — OWNERSHIP
+             SECTION 4 — ADDITIONAL INFO & INCOTERMS
+             ===================================== -->
+
+        <div class="form-section">
+
+            <div class="form-section-heading">
+
+                <span class="section-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </span>
+
+                <div>
+                    <h3>Additional Info & Incoterms</h3>
+
+                    <p>
+                        Specify trade terms and special instructions.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <div class="form-field">
+
+                    <label for="incoterms">Incoterms</label>
+
+                    <input
+                        type="text"
+                        id="incoterms"
+                        name="incoterms"
+                        value="{{ request.form.get('incoterms', '') }}"
+                        placeholder="e.g. FOB"
+                    >
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="sales_coordinator_id">Sales Co-ordinator</label>
+
+                    <select id="sales_coordinator_id" name="sales_coordinator_id">
+                        <option value="">Select</option>
+                        {% for user in users %}
+                            <option
+                                value="{{ user.id }}"
+                                {% if request.form.get('sales_coordinator_id') == user.id|string %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ user.full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+
+
+                <div class="form-field form-field-full">
+
+                    <label for="additional_instructions">Additional Instructions</label>
+
+                    <textarea
+                        id="additional_instructions"
+                        name="additional_instructions"
+                        rows="3"
+                        placeholder="Enter any special handling or instructions..."
+                    >{{ request.form.get('additional_instructions', '') }}</textarea>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             SECTION 5 — OWNERSHIP
              ===================================== -->
 
         <div class="form-section">
@@ -384,11 +436,7 @@
                         <span>*</span>
                     </label>
 
-                    <select
-                        id="handled_by_id"
-                        name="handled_by_id"
-                        required
-                    >
+                    <select id="handled_by_id" name="handled_by_id" required>
                         <option value="">
                             Select staff owner
                         </option>
@@ -397,11 +445,7 @@
 
                             <option
                                 value="{{ user.id }}"
-                                {% if
-                                    request.form.get(
-                                        'handled_by_id'
-                                    ) == user.id|string
-                                %}
+                                {% if request.form.get('handled_by_id') == user.id|string %}
                                     selected
                                 {% endif %}
                             >
@@ -425,17 +469,11 @@
 
         <div class="form-actions">
 
-            <a
-                href="{{ url_for('enquiries.enquiry_list') }}"
-                class="cancel-enquiry-btn"
-            >
+            <a href="{{ url_for('enquiries.enquiry_list') }}" class="cancel-enquiry-btn">
                 Cancel
             </a>
 
-            <button
-                type="submit"
-                class="save-enquiry-btn"
-            >
+            <button type="submit" class="save-enquiry-btn">
                 <i class="bi bi-check2-circle"></i>
                 Create Enquiry
             </button>
@@ -517,8 +555,7 @@
         border: 1px solid #e5e7eb;
         border-radius: 16px;
         background: #ffffff;
-        box-shadow:
-            0 8px 24px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
 
     .form-section {
@@ -562,8 +599,7 @@
 
     .form-grid {
         display: grid;
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
     }
 
@@ -600,9 +636,7 @@
         color: #111827;
         font-family: inherit;
         font-size: 14px;
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .form-field textarea {
@@ -614,8 +648,7 @@
     .form-field select:focus,
     .form-field textarea:focus {
         border-color: #991b1b;
-        box-shadow:
-            0 0 0 3px rgba(153, 27, 27, 0.10);
+        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.10);
     }
 
     .form-field small {
@@ -656,7 +689,6 @@
     }
 
     @media (max-width: 768px) {
-
         .enquiry-form-header {
             flex-direction: column;
         }
@@ -688,7 +720,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-
     }
 
 </style>
