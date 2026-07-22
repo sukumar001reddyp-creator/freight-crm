@@ -223,6 +223,15 @@ def add_enquiry():
             ""
         ).strip()
 
+        origin_port = request.form.get(
+            "origin_port",
+    ""
+        ).strip()
+
+        destination_port = request.form.get(
+            "destination_port",
+    ""
+        ).strip()
         mode_of_shipment = request.form.get(
             "mode_of_shipment",
             ""
@@ -342,6 +351,10 @@ def add_enquiry():
             client_id=client.id,
             origin=origin,
             destination=destination,
+
+            origin_port=origin_port or None,
+            destination_port=destination_port or None,
+
             mode_of_shipment=mode_of_shipment,
             cargo_description=cargo_description,
             cargo_weight_volume=(
@@ -674,6 +687,16 @@ def edit_enquiry(enquiry_id):
             ""
         ).strip()
 
+        origin_port = request.form.get(
+            "origin_port",
+    ""
+        ).strip()
+
+        destination_port = request.form.get(
+            "destination_port",
+    ""
+        ).strip()
+
         mode_of_shipment = request.form.get(
             "mode_of_shipment",
             ""
@@ -787,6 +810,9 @@ def edit_enquiry(enquiry_id):
         enquiry.origin = origin
 
         enquiry.destination = destination
+
+        enquiry.origin_port = origin_port or None
+        enquiry.destination_port = destination_port or None
 
         enquiry.mode_of_shipment = (
             mode_of_shipment

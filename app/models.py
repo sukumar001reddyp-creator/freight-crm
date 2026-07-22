@@ -267,6 +267,8 @@ class Enquiry(db.Model):
     
     origin = db.Column(db.String(255), nullable=False)
     destination = db.Column(db.String(255), nullable=False)
+    origin_port = db.Column(db.String(200), nullable=True)
+    destination_port = db.Column(db.String(200), nullable=True)
     mode_of_shipment = db.Column(db.String(50), nullable=False, index=True)
     equipment_type = db.Column(db.String(50), nullable=True)
     
@@ -364,7 +366,9 @@ class Quotation(db.Model):
     db.String(200),
     nullable=True
 )
-
+    origin_port = db.Column(db.String(200), nullable=True)
+    destination_port = db.Column(db.String(200), nullable=True)
+    
     destination = db.Column(
     db.String(200),
     nullable=True

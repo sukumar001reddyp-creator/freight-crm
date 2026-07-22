@@ -24,33 +24,19 @@
 
         <div class="view-header-left">
 
-            <a
-                href="{{ url_for('enquiries.enquiry_list') }}"
-                class="back-link"
-            >
+            <a href="{{ url_for('enquiries.enquiry_list') }}" class="back-link">
                 <i class="bi bi-arrow-left"></i>
                 Back to Enquiries
             </a>
 
             <div class="reference-row">
-
                 <h2>
                     {{ enquiry.enquiry_reference }}
                 </h2>
 
-                <span
-                    class="
-                        enquiry-status
-                        status-{{ enquiry.status }}
-                    "
-                >
-                    {{
-                        enquiry.status
-                        |replace("_", " ")
-                        |title
-                    }}
+                <span class="enquiry-status status-{{ enquiry.status }}">
+                    {{ enquiry.status | replace("_", " ") | title }}
                 </span>
-
             </div>
 
             <p>
@@ -62,56 +48,26 @@
 
         </div>
 
+        <div class="view-header-actions">
+            <a href="{{ url_for('enquiries.download_enquiry_pdf', enquiry_id=enquiry.id) }}" class="download-pdf-btn">
+                <i class="bi bi-download"></i>
+                Download PDF
+            </a>
+
+            <!-- CREATE QUOTATION -->
+            <a href="{{ url_for('quotations.create_quotation', enquiry_id=enquiry.id) }}" class="create-quotation-link-btn">
+                <i class="bi bi-file-earmark-plus"></i>
+                Create Quotation
+            </a>
+
+            <!-- EDIT ENQUIRY -->
+            <a href="{{ url_for('enquiries.edit_enquiry', enquiry_id=enquiry.id) }}" class="edit-enquiry-btn">
+                <i class="bi bi-pencil-square"></i>
+                Edit Enquiry
+            </a>
+        </div>
+
     </div>
-    <div class="view-header">
-
-    <div class="view-header-left">
-        ...
-    </div>
-
-    <div class="view-header-actions">
-    <a
-    href="{{ url_for('enquiries.download_enquiry_pdf', enquiry_id=enquiry.id) }}"
-    class="download-pdf-btn"
->
-    <i class="bi bi-download"></i>
-    Download PDF
-</a>
-
-    <!-- CREATE QUOTATION -->
-
-    <a
-        href="{{
-            url_for(
-                'quotations.create_quotation',
-                enquiry_id=enquiry.id
-            )
-        }}"
-        class="create-quotation-link-btn"
-    >
-        <i class="bi bi-file-earmark-plus"></i>
-        Create Quotation
-    </a>
-
-
-    <!-- EDIT ENQUIRY -->
-
-    <a
-        href="{{
-            url_for(
-                'enquiries.edit_enquiry',
-                enquiry_id=enquiry.id
-            )
-        }}"
-        class="edit-enquiry-btn"
-    >
-        <i class="bi bi-pencil-square"></i>
-        Edit Enquiry
-    </a>
-
-</div>
-
-</div>
 
     <!-- =====================================
          MAIN GRID
@@ -126,134 +82,78 @@
         <div class="detail-main">
 
             <!-- SHIPMENT REQUIREMENT -->
-
             <div class="detail-card">
 
                 <div class="card-heading">
-
                     <span class="heading-icon">
                         <i class="bi bi-geo-alt-fill"></i>
                     </span>
-
                     <div>
                         <h3>Shipment Requirement</h3>
-
-                        <p>
-                            Route and requested freight mode
-                        </p>
+                        <p>Route and requested freight mode</p>
                     </div>
-
                 </div>
 
-
                 <div class="route-display">
-
                     <div class="route-point">
-
-                        <span class="route-label">
-                            Origin
-                        </span>
-
-                        <strong>
-                            {{ enquiry.origin }}
-                        </strong>
-
+                        <span class="route-label">Origin</span>
+                        <strong>{{ enquiry.origin }}</strong>
                     </div>
-
 
                     <div class="route-arrow">
                         <i class="bi bi-arrow-right"></i>
                     </div>
 
-
                     <div class="route-point">
-
-                        <span class="route-label">
-                            Destination
-                        </span>
-
-                        <strong>
-                            {{ enquiry.destination }}
-                        </strong>
-
+                        <span class="route-label">Destination</span>
+                        <strong>{{ enquiry.destination }}</strong>
                     </div>
-
                 </div>
 
+                <!-- PROPER PLACEMENT FOR PORTS & MODE -->
+                <div class="info-row">
+                    <span class="info-label">Origin Port</span>
+                    <strong>{{ enquiry.origin_port or "Not Provided" }}</strong>
+                </div>
 
                 <div class="info-row">
+                    <span class="info-label">Destination Port</span>
+                    <strong>{{ enquiry.destination_port or "Not Provided" }}</strong>
+                </div>
 
-                    <span class="info-label">
-                        Mode of Shipment
-                    </span>
-
-                    <strong>
-                        {{
-                            enquiry.mode_of_shipment
-                            |replace("_", " ")
-                            |title
-                        }}
-                    </strong>
-
+                <div class="info-row">
+                    <span class="info-label">Mode of Shipment</span>
+                    <strong>{{ enquiry.mode_of_shipment | replace("_", " ") | title }}</strong>
                 </div>
 
             </div>
 
-
             <!-- CARGO DETAILS -->
-
             <div class="detail-card">
 
                 <div class="card-heading">
-
                     <span class="heading-icon">
                         <i class="bi bi-box-seam-fill"></i>
                     </span>
-
                     <div>
                         <h3>Cargo Details</h3>
-
-                        <p>
-                            Goods description and available
-                            weight or volume information
-                        </p>
+                        <p>Goods description and available weight or volume information</p>
                     </div>
-
                 </div>
-
 
                 <div class="cargo-description">
-
-                    <span class="info-label">
-                        Description
-                    </span>
-
-                    <p>
-                        {{ enquiry.cargo_description }}
-                    </p>
-
+                    <span class="info-label">Description</span>
+                    <p>{{ enquiry.cargo_description }}</p>
                 </div>
 
-
                 <div class="info-row">
-
-                    <span class="info-label">
-                        Weight / Volume
-                    </span>
-
-                    <strong>
-                        {{
-                            enquiry.cargo_weight_volume
-                            or "Not provided"
-                        }}
-                    </strong>
-
+                    <span class="info-label">Weight / Volume</span>
+                    <strong>{{ enquiry.cargo_weight_volume or "Not provided" }}</strong>
                 </div>
 
             </div>
 
         </div>
-
 
         <!-- =================================
              RIGHT SIDE
@@ -262,237 +162,111 @@
         <div class="detail-sidebar">
 
             <!-- CLIENT -->
-
             <div class="detail-card">
 
                 <div class="card-heading">
-
                     <span class="heading-icon">
                         <i class="bi bi-building"></i>
                     </span>
-
                     <div>
                         <h3>Client</h3>
                         <p>Linked CRM record</p>
                     </div>
-
                 </div>
 
-
                 <div class="sidebar-value">
-
-                    <strong>
-                        {{ enquiry.client.company_name }}
-                    </strong>
-
-                    <a
-                        href="{{
-                            url_for(
-                                'clients.view_client',
-                                client_id=enquiry.client.id
-                            )
-                        }}"
-                    >
+                    <strong>{{ enquiry.client.company_name }}</strong>
+                    <a href="{{ url_for('clients.view_client', client_id=enquiry.client.id) }}">
                         Open Client Profile
                         <i class="bi bi-arrow-up-right"></i>
                     </a>
-
                 </div>
 
             </div>
 
-
             <!-- OWNERSHIP -->
-
             <div class="detail-card">
 
                 <div class="card-heading">
-
                     <span class="heading-icon">
                         <i class="bi bi-person-badge-fill"></i>
                     </span>
-
                     <div>
                         <h3>Ownership</h3>
                         <p>Responsible staff member</p>
                     </div>
-
                 </div>
 
-
                 <div class="owner-box">
-
                     <div class="owner-avatar">
-                        {{
-                            enquiry.handled_by
-                            .full_name[0]
-                            |upper
-                        }}
+                        {{ enquiry.handled_by.full_name[0] | upper }}
                     </div>
-
                     <div>
-                        <strong>
-                            {{
-                                enquiry.handled_by
-                                .full_name
-                            }}
-                        </strong>
-
-                        <span>
-                            Handled By
-                        </span>
+                        <strong>{{ enquiry.handled_by.full_name }}</strong>
+                        <span>Handled By</span>
                     </div>
-
                 </div>
 
             </div>
-            <!-- =================================
-     STATUS MANAGEMENT
-     ================================= -->
 
-<div class="detail-card">
-
-    <div class="card-heading">
-
-        <span class="heading-icon">
-            <i class="bi bi-arrow-repeat"></i>
-        </span>
-
-        <div>
-            <h3>Enquiry Status</h3>
-
-            <p>
-                Update the current workflow stage
-            </p>
-        </div>
-
-    </div>
-
-
-    <form
-        method="POST"
-        action="{{
-            url_for(
-                'enquiries.update_enquiry_status',
-                enquiry_id=enquiry.id
-            )
-        }}"
-        class="status-update-form"
-    >
-
-        <label for="status">
-            Current Status
-        </label>
-
-        <select
-            id="status"
-            name="status"
-            required
-        >
-
-            <option
-                value="open"
-                {% if enquiry.status == "open" %}
-                    selected
-                {% endif %}
-            >
-                Open
-            </option>
-
-            <option
-                value="in_progress"
-                {% if enquiry.status == "in_progress" %}
-                    selected
-                {% endif %}
-            >
-                In Progress
-            </option>
-
-            <option
-                value="quoted"
-                {% if enquiry.status == "quoted" %}
-                    selected
-                {% endif %}
-            >
-                Quoted
-            </option>
-
-            <option
-                value="closed"
-                {% if enquiry.status == "closed" %}
-                    selected
-                {% endif %}
-            >
-                Closed
-            </option>
-
-        </select>
-
-
-        <button
-            type="submit"
-            class="status-update-btn"
-        >
-            <i class="bi bi-check2-circle"></i>
-            Update Status
-        </button>
-
-    </form>
-
-</div>
-
-            <!-- ENQUIRY META -->
-
+            <!-- STATUS MANAGEMENT -->
             <div class="detail-card">
 
                 <div class="card-heading">
+                    <span class="heading-icon">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </span>
+                    <div>
+                        <h3>Enquiry Status</h3>
+                        <p>Update the current workflow stage</p>
+                    </div>
+                </div>
 
+                <form method="POST" action="{{ url_for('enquiries.update_enquiry_status', enquiry_id=enquiry.id) }}" class="status-update-form">
+                    <label for="status">Current Status</label>
+                    <select id="status" name="status" required>
+                        <option value="open" {% if enquiry.status == "open" %}selected{% endif %}>Open</option>
+                        <option value="in_progress" {% if enquiry.status == "in_progress" %}selected{% endif %}>In Progress</option>
+                        <option value="quoted" {% if enquiry.status == "quoted" %}selected{% endif %}>Quoted</option>
+                        <option value="closed" {% if enquiry.status == "closed" %}selected{% endif %}>Closed</option>
+                    </select>
+
+                    <button type="submit" class="status-update-btn">
+                        <i class="bi bi-check2-circle"></i>
+                        Update Status
+                    </button>
+                </form>
+
+            </div>
+
+            <!-- ENQUIRY META -->
+            <div class="detail-card">
+
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-info-circle-fill"></i>
                     </span>
-
                     <div>
                         <h3>Enquiry Information</h3>
                         <p>Record metadata</p>
                     </div>
-
                 </div>
 
-
                 <div class="meta-list">
-
                     <div class="meta-item">
                         <span>Reference</span>
-
-                        <strong>
-                            {{ enquiry.enquiry_reference }}
-                        </strong>
+                        <strong>{{ enquiry.enquiry_reference }}</strong>
                     </div>
-
 
                     <div class="meta-item">
                         <span>Enquiry Date</span>
-
-                        <strong>
-                            {{
-                                enquiry.enquiry_date
-                                .strftime("%d %b %Y")
-                            }}
-                        </strong>
+                        <strong>{{ enquiry.enquiry_date.strftime("%d %b %Y") }}</strong>
                     </div>
-
 
                     <div class="meta-item">
                         <span>Created</span>
-
-                        <strong>
-                            {{
-                                enquiry.created_at
-                                .strftime("%d %b %Y")
-                            }}
-                        </strong>
+                        <strong>{{ enquiry.created_at.strftime("%d %b %Y") }}</strong>
                     </div>
-
                 </div>
 
             </div>
@@ -505,28 +279,42 @@
 
 {% endblock %}
 
-
 {% block extra_css %}
 
 <style>
-
     .enquiry-view-page {
         max-width: 1180px;
         margin: 0 auto;
     }
 
     .view-header {
-        margin-bottom: 22px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .view-header-left {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .view-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
     }
 
     .back-link {
         display: inline-flex;
         align-items: center;
-        gap: 7px;
-        margin-bottom: 14px;
+        gap: 6px;
+        margin-bottom: 10px;
         color: #6b7280;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
     }
 
@@ -538,26 +326,26 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 10px;
     }
 
     .reference-row h2 {
         margin: 0;
         color: #111827;
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 800;
     }
 
     .view-header p {
-        margin: 7px 0 0;
+        margin: 5px 0 0;
         color: #6b7280;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .enquiry-status {
         display: inline-flex;
         align-items: center;
-        padding: 5px 10px;
+        padding: 4px 10px;
         border-radius: 999px;
         font-size: 12px;
         font-weight: 800;
@@ -580,10 +368,8 @@
 
     .detail-grid {
         display: grid;
-        grid-template-columns:
-            minmax(0, 2fr)
-            minmax(280px, 1fr);
-        gap: 20px;
+        grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+        gap: 16px;
         align-items: start;
     }
 
@@ -591,76 +377,72 @@
     .detail-sidebar {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 16px;
     }
 
     .detail-card {
-        padding: 22px;
+        padding: 18px;
         border: 1px solid #e5e7eb;
-        border-radius: 15px;
+        border-radius: 12px;
         background: #ffffff;
-        box-shadow:
-            0 6px 18px rgba(15, 23, 42, 0.04);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
     }
 
     .card-heading {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 20px;
+        gap: 10px;
+        margin-bottom: 14px;
     }
 
     .heading-icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
+        flex: 0 0 36px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
         background: #fef2f2;
         color: #7f1d1d;
-        font-size: 17px;
+        font-size: 16px;
     }
 
     .card-heading h3 {
-        margin: 0 0 3px;
+        margin: 0 0 2px;
         color: #111827;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 800;
     }
 
     .card-heading p {
         margin: 0;
         color: #9ca3af;
-        font-size: 12px;
-        line-height: 1.5;
+        font-size: 11.5px;
+        line-height: 1.4;
     }
 
     .route-display {
         display: grid;
-        grid-template-columns:
-            minmax(0, 1fr)
-            auto
-            minmax(0, 1fr);
-        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 12px;
         align-items: center;
-        padding: 20px;
-        margin-bottom: 18px;
-        border-radius: 13px;
+        padding: 14px;
+        margin-bottom: 12px;
+        border-radius: 10px;
         background: #f9fafb;
     }
 
     .route-point {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 3px;
     }
 
     .route-label,
     .info-label {
         color: #9ca3af;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -668,92 +450,99 @@
 
     .route-point strong {
         color: #111827;
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .route-arrow {
         color: #7f1d1d;
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .info-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        padding-top: 16px;
+        gap: 12px;
+        padding-top: 12px;
         border-top: 1px solid #eef2f7;
+        margin-top: 12px;
+    }
+
+    .info-row:first-of-type {
+        border-top: 1px solid #eef2f7;
+        padding-top: 12px;
+        margin-top: 12px;
     }
 
     .info-row strong {
         color: #374151;
-        font-size: 14px;
+        font-size: 13px;
         text-align: right;
     }
 
     .cargo-description {
-        margin-bottom: 18px;
+        margin-bottom: 12px;
     }
 
     .cargo-description p {
-        margin: 8px 0 0;
+        margin: 6px 0 0;
         color: #374151;
-        font-size: 14px;
-        line-height: 1.7;
+        font-size: 13px;
+        line-height: 1.6;
         white-space: pre-wrap;
     }
 
     .sidebar-value {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
     }
 
     .sidebar-value strong {
         color: #111827;
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .sidebar-value a {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
         width: fit-content;
         color: #7f1d1d;
         text-decoration: none;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 700;
     }
 
     .owner-box {
         display: flex;
         align-items: center;
-        gap: 11px;
+        gap: 10px;
     }
 
     .owner-avatar {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 42px;
-        height: 42px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         background: #7f1d1d;
         color: #ffffff;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 800;
     }
 
     .owner-box strong {
         display: block;
-        margin-bottom: 3px;
+        margin-bottom: 2px;
         color: #111827;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .owner-box span {
         color: #9ca3af;
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .meta-list {
@@ -765,8 +554,8 @@
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
-        gap: 14px;
-        padding: 11px 0;
+        gap: 10px;
+        padding: 9px 0;
         border-bottom: 1px solid #f1f5f9;
     }
 
@@ -776,24 +565,153 @@
 
     .meta-item span {
         color: #9ca3af;
-        font-size: 12px;
+        font-size: 11.5px;
     }
 
     .meta-item strong {
         color: #374151;
-        font-size: 12px;
+        font-size: 11.5px;
         text-align: right;
     }
 
-    @media (max-width: 900px) {
+    .status-update-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 
+    .status-update-form label {
+        color: #374151;
+        font-size: 11.5px;
+        font-weight: 700;
+    }
+
+    .status-update-form select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 12.5px;
+    }
+
+    .status-update-form select:focus {
+        border-color: #991b1b;
+        box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.10);
+    }
+
+    .status-update-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        padding: 9px 12px;
+        border: 0;
+        border-radius: 8px;
+        background: #7f1d1d;
+        color: #ffffff;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .status-update-btn:hover {
+        background: #991b1b;
+        transform: translateY(-1px);
+    }
+
+    .edit-enquiry-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: #7f1d1d;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 800;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .edit-enquiry-btn:hover {
+        background: #991b1b;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .create-quotation-link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border: 1px solid #7f1d1d;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #7f1d1d;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 800;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .create-quotation-link-btn:hover {
+        background: #7f1d1d;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .download-pdf-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .download-pdf-btn:hover {
+        background: #1d4ed8;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 900px) {
         .detail-grid {
             grid-template-columns: 1fr;
         }
-
     }
 
     @media (max-width: 640px) {
+        .view-header {
+            flex-direction: column;
+        }
+
+        .view-header-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .download-pdf-btn,
+        .create-quotation-link-btn,
+        .edit-enquiry-btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
 
         .route-display {
             grid-template-columns: 1fr;
@@ -812,189 +730,7 @@
         .info-row strong {
             text-align: left;
         }
-
     }
-    .status-update-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.status-update-form label {
-    color: #374151;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.status-update-form select {
-    width: 100%;
-    padding: 10px 11px;
-    border: 1px solid #d1d5db;
-    border-radius: 9px;
-    outline: none;
-    background: #ffffff;
-    color: #111827;
-    font-family: inherit;
-    font-size: 13px;
-}
-
-.status-update-form select:focus {
-    border-color: #991b1b;
-    box-shadow:
-        0 0 0 3px rgba(153, 27, 27, 0.10);
-}
-
-.status-update-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    width: 100%;
-    padding: 10px 13px;
-    border: 0;
-    border-radius: 9px;
-    background: #7f1d1d;
-    color: #ffffff;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 800;
-    transition: 0.2s ease;
-}
-
-.status-update-btn:hover {
-    background: #991b1b;
-    transform: translateY(-1px);
-}
-.view-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.view-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.edit-enquiry-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 15px;
-    border-radius: 10px;
-    background: #7f1d1d;
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 800;
-    transition:
-        background 0.2s ease,
-        transform 0.2s ease;
-}
-
-.edit-enquiry-btn:hover {
-    background: #991b1b;
-    color: #ffffff;
-    transform: translateY(-1px);
-}
-
-@media (max-width: 640px) {
-
-    .view-header {
-        flex-direction: column;
-    }
-
-    .view-header-actions,
-    .edit-enquiry-btn {
-        width: 100%;
-    }
-
-    .edit-enquiry-btn {
-        box-sizing: border-box;
-    }
-
-}
-/* ==========================================
-   CREATE QUOTATION BUTTON
-   ========================================== */
-
-.create-quotation-link-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    padding: 10px 15px;
-
-    border: 1px solid #7f1d1d;
-    border-radius: 10px;
-
-    background: #ffffff;
-    color: #7f1d1d;
-
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 800;
-
-    transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        transform 0.2s ease;
-}
-
-.create-quotation-link-btn:hover {
-    background: #7f1d1d;
-    color: #ffffff;
-    transform: translateY(-1px);
-}
-
-
-/* MOBILE */
-
-@media (max-width: 640px) {
-
-    .view-header-actions {
-        width: 100%;
-        flex-direction: column;
-    }
-
-.download-pdf-btn,
-.create-quotation-link-btn,
-.edit-enquiry-btn {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-}
-.download-pdf-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    padding: 10px 15px;
-
-    border-radius: 10px;
-
-    background: #2563eb;
-    color: #ffffff;
-
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 800;
-
-    transition: 0.2s ease;
-}
-
-.download-pdf-btn:hover {
-    background: #1d4ed8;
-    color: #ffffff;
-    transform: translateY(-1px);
-}
 </style>
 
 {% endblock %}

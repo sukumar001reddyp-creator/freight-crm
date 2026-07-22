@@ -223,7 +223,39 @@
                     >
 
                 </div>
+                <div class="edit-field">
 
+    <label for="origin_port">
+        Origin Port
+        <small>(Optional)</small>
+    </label>
+
+    <input
+        type="text"
+        id="origin_port"
+        name="origin_port"
+        value="{{ request.form.get('origin_port', enquiry.origin_port or '') }}"
+        placeholder="e.g. Chennai Port"
+    >
+
+</div>
+
+<div class="edit-field">
+
+    <label for="destination_port">
+        Destination Port
+        <small>(Optional)</small>
+    </label>
+
+    <input
+        type="text"
+        id="destination_port"
+        name="destination_port"
+        value="{{ request.form.get('destination_port', enquiry.destination_port or '') }}"
+        placeholder="e.g. Jebel Ali Port"
+    >
+
+</div>
 
                 <!-- MODE -->
 
