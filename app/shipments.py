@@ -422,9 +422,9 @@ def convert_from_quotation(quotation_id):
         )
 
     # -----------------------------------------
-# ENQUIRY ALREADY CONVERTED?
-# (Only for enquiry-based quotations)
-# -----------------------------------------
+    # ENQUIRY ALREADY CONVERTED?
+    # (Only for enquiry-based quotations)
+    # -----------------------------------------
     if enquiry:
 
         existing_by_enquiry = (
@@ -432,75 +432,75 @@ def convert_from_quotation(quotation_id):
                 db.select(Shipment)
                 .where(
                     Shipment.enquiry_id == enquiry.id
+                )
             )
-        )
             .scalars()
             .first()
-    )
+        )
 
         if existing_by_enquiry:
 
             flash(
-            (
+                (
                     f"Enquiry "
                     f"{enquiry.enquiry_reference} "
                     f"was already converted to shipment "
                     f"{existing_by_enquiry.shipment_reference}."
-            ),
+                ),
                 "warning"
-        )
+            )
 
             return redirect(
                 url_for(
                     "shipments.shipment_list"
+                )
             )
-        )
 
     # -----------------------------------------
     # CREATE SHIPMENT OBJECT
     # -----------------------------------------
 
     shipment = Shipment(
-    shipment_reference=generate_shipment_reference(),
+        shipment_reference=generate_shipment_reference(),
 
-    enquiry_id=enquiry.id if enquiry else None,
+        enquiry_id=enquiry.id if enquiry else None,
 
-    quotation_id=quotation.id,
+        quotation_id=quotation.id,
 
-    client_id=(
-        enquiry.client_id
-        if enquiry
-        else quotation.client_id
-    ),
+        client_id=(
+            enquiry.client_id
+            if enquiry
+            else quotation.client_id
+        ),
 
-    other_client_name=(
-        None
-        if enquiry
-        else quotation.other_client_name
-    ),
+        other_client_name=(
+            None
+            if enquiry
+            else quotation.other_client_name
+        ),
 
-    origin=enquiry.origin if enquiry else quotation.origin,
+        origin=enquiry.origin if enquiry else quotation.origin,
 
-    destination=enquiry.destination if enquiry else quotation.destination,
+        destination=enquiry.destination if enquiry else quotation.destination,
 
-    mode_of_shipment=enquiry.mode_of_shipment if enquiry else quotation.mode_of_shipment,
+        mode_of_shipment=enquiry.mode_of_shipment if enquiry else quotation.mode_of_shipment,
 
-    cargo_description=enquiry.cargo_description if enquiry else quotation.cargo_description),
+        cargo_description=enquiry.cargo_description if enquiry else quotation.cargo_description,
 
-    cargo_weight_volume=enquiry.cargo_weight_volume if enquiry else quotation.cargo_weight_volume,
+        cargo_weight_volume=enquiry.cargo_weight_volume if enquiry else quotation.cargo_weight_volume,
 
-    shipment_status="active",
-    current_stage="booked",
+        shipment_status="active",
+        current_stage="booked",
 
-    handled_by_id=(
-        enquiry.handled_by_id
-        if enquiry
-        else quotation.created_by_id
-    ),
+        handled_by_id=(
+            enquiry.handled_by_id
+            if enquiry
+            else quotation.created_by_id
+        ),
 
-    created_by_id=current_user.id,
+        created_by_id=current_user.id,
+    )
 
-    # Enquiry quotations only
     if enquiry:
         enquiry.status = "converted"
 
@@ -573,20 +573,19 @@ def convert_from_quotation(quotation_id):
         db.session.commit()
 
     except Exception:
-
         db.session.rollback()
 
         flash(
             "Unable to convert quotation to shipment.",
             "danger"
-        )
+    )
 
         return redirect(
             url_for(
                 "quotations.view_quotation",
                 quotation_id=quotation.id
-            )
         )
+    )
 
     flash(
         (

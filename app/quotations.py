@@ -580,11 +580,9 @@ def manage_party_details(quotation_id):
         # -------------------------------------
 
         try:
-
             db.session.commit()
 
         except Exception:
-
             db.session.rollback()
 
             flash(
@@ -601,6 +599,20 @@ def manage_party_details(quotation_id):
                 party_details=party_details,
             )
 
+        flash(
+            (
+                "Agent, shipper and consignee "
+                "details saved successfully."
+            ),
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "quotations.view_quotation",
+                quotation_id=quotation.id
+            )
+        )
 
         # ------------------------------------- 
         # SUCCESS
