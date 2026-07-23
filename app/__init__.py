@@ -1,444 +1,411 @@
-<!-- CLIENT INFORMATION -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-building"></i></span>
-        <div>
-            <h3>Client Information</h3>
-            <p>Customer details associated with this quotation.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Client Name</span>
-            <strong>{% if quotation.client %}{{ quotation.client.company_name }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.company_name }}{% else %}{{ quotation.other_client_name or "N/A" }}{% endif %}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Contact Person</span>
-            <strong>{% if quotation.client %}{{ quotation.client.contact_person_name or "N/A" }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.contact_person_name or "N/A" }}{% else %}N/A{% endif %}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Email</span>
-            <strong>{% if quotation.client %}{{ quotation.client.email or "N/A" }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.email or "N/A" }}{% else %}N/A{% endif %}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Phone</span>
-            <strong>{% if quotation.client %}{{ quotation.client.primary_phone or "N/A" }}{% elif quotation.enquiry %}{{ quotation.enquiry.client.primary_phone or "N/A" }}{% else %}N/A{% endif %}</strong>
-        </div>
-    </div>
-</div>
+from flask import (
+    Flask,
+    redirect,
+    url_for,
+    render_template,
+    send_from_directory,
+)
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from app.permissions import permissions
 
-<!-- SHIPMENT INFORMATION -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-truck"></i></span>
-        <div>
-            <h3>Shipment Information</h3>
-            <p>Origin, destination and shipment routing details.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Origin</span>
-            <strong>{{ quotation.origin or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Destination</span>
-            <strong>{{ quotation.destination or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Origin Port (POL)</span>
-            <strong>{{ quotation.origin_port or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Destination Port (POD)</span>
-            <strong>{{ quotation.destination_port or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Mode of Shipment</span>
-            <strong>{{ quotation.mode_of_shipment or "N/A" }}</strong>
-        </div>
-    </div>
-</div>
+from flask_login import (
+    LoginManager,
+    login_required,
+    current_user,
+)
 
-<!-- CARGO DETAILS -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-box-seam"></i></span>
-        <div>
-            <h3>Cargo Details</h3>
-            <p>Shipment cargo and carrier information.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Cargo Description</span>
-            <strong>{{ quotation.cargo_description or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Cargo Weight / Volume</span>
-            <strong>{{ quotation.cargo_weight_volume or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Shipping Line / Airline</span>
-            <strong>{{ quotation.shipping_line_airline or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>No. of Containers</span>
-            <strong>{{ quotation.no_of_containers or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Container Type</span>
-            <strong>{{ quotation.container_type_quota or "N/A" }}</strong>
-        </div>
-    </div>
-</div>
+from config import Config
+from sqlalchemy import text  # <-- సీక్వెన్స్ ఫిక్స్ కోసం ఇది అవసరం
 
-<!-- SCHEDULE & TRANSIT DETAILS -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-calendar-event"></i></span>
-        <div>
-            <h3>Schedule & Transit Details</h3>
-            <p>Departure schedule, transit and shipment timing information.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Estimated Time of Departure (ETD)</span>
-            <strong>{{ quotation.etd.strftime("%d %b %Y %H:%M") if quotation.etd else "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Documentation Cutoff</span>
-            <strong>{{ quotation.cutoff_date_documentation.strftime("%d %b %Y %H:%M") if quotation.cutoff_date_documentation else "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Cargo Cutoff</span>
-            <strong>{{ quotation.cutoff_date_cargo.strftime("%d %b %Y %H:%M") if quotation.cutoff_date_cargo else "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Free Time (Days)</span>
-            <strong>{{ quotation.free_time_days or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Transit Time (Days)</span>
-            <strong>{{ quotation.transit_time_days or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Incoterms</span>
-            <strong>{{ quotation.incoterms or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>HS Code</span>
-            <strong>{{ quotation.hs_code or "N/A" }}</strong>
-        </div>
-    </div>
-</div>
+# =========================================================
+# EXTENSIONS
+# =========================================================
 
-<!-- COST BREAKDOWN -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-cash-stack"></i></span>
-        <div>
-            <h3>Cost Breakdown</h3>
-            <p>Complete freight charges and quotation pricing.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Ocean / Air Freight</span>
-            <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.ocean_air_freight or 0) }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Origin Charges</span>
-            <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.origin_charges or 0) }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Destination Charges</span>
-            <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.destination_charges or 0) }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Insurance Charges</span>
-            <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.insurance_charges or 0) }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Other Surcharges</span>
-            <strong>{{ quotation.currency }} {{ "{:,.2f}".format(quotation.other_surcharges or 0) }}</strong>
-        </div>
-        <div class="detail-item quotation-amount-box full-width">
-            <span>Grand Total</span>
-            <strong class="grand-total-amount">{{ quotation.currency }} {{ "{:,.2f}".format(quotation.quotation_amount or 0) }}</strong>
-        </div>
-    </div>
-</div>
+db = SQLAlchemy()
+migrate = Migrate()
+login_manager = LoginManager()
 
-<!-- PAYMENT & REMARKS -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-chat-left-text"></i></span>
-        <div>
-            <h3>Payment & Remarks</h3>
-            <p>Payment conditions and additional quotation notes.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Payment Terms</span>
-            <strong>{{ quotation.payment_terms or "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Quotation Status</span>
-            <strong>{{ quotation.status|replace("_"," ")|title }}</strong>
-        </div>
-        <div class="detail-item full-width">
-            <span>Remarks</span>
-            <strong class="remarks-text">{{ quotation.remarks_terms or "No remarks provided." }}</strong>
-        </div>
-    </div>
-</div>
 
-<!-- DECISION & AUDIT INFORMATION -->
-<div class="detail-card">
-    <div class="detail-card-heading">
-        <span class="heading-icon"><i class="bi bi-shield-check"></i></span>
-        <div>
-            <h3>Decision & Audit Information</h3>
-            <p>Approval history and audit trail for this quotation.</p>
-        </div>
-    </div>
-    <div class="detail-info-grid">
-        <div class="detail-item">
-            <span>Created By</span>
-            <strong>{{ quotation.created_by.full_name if quotation.created_by else "System" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Created Date</span>
-            <strong>{{ quotation.created_at.strftime("%d %b %Y %H:%M") if quotation.created_at else "N/A" }}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Approved By</span>
-            <strong>{% if quotation.approved_by %}{{ quotation.approved_by.full_name }}{% else %}N/A{% endif %}</strong>
-        </div>
-        <div class="detail-item">
-            <span>Approved Date</span>
-            <strong>{% if quotation.approved_at %}{{ quotation.approved_at.strftime("%d %b %Y %H:%M") }}{% else %}N/A{% endif %}</strong>
-        </div>
-        {% if quotation.status == "rejected" %}
-        <div class="detail-item full-width">
-            <span>Rejection Reason</span>
-            <strong class="rejection-reason-text">{{ quotation.rejection_reason or "No reason recorded." }}</strong>
-        </div>
-        {% endif %}
-    </div>
-</div>
+# =========================================================
+# POSTGRESQL SEQUENCE SYNCHRONIZATION FIX
+# =========================================================
 
-{% block extra_css %}
-<style>
-/* ==================== CLEAN, MODERN ENTERPRISE CSS SYSTEM ==================== */
+def fix_postgres_sequences():
+    """
+    Render లేదా Local లో PostgreSQL వాడేటప్పుడు ID సీక్వెన్సులు 
+    అవుట్-ఆఫ్-సింక్ కాకుండా మాక్సిమమ్ ID కి ఆటోమేటిక్‌గా సెట్ చేస్తుంది.
+    """
+    try:
+        tables = [
+            'users', 
+            'clients', 
+            'client_pipeline_history', 
+            'client_status_history', 
+            'client_attachments', 
+            'client_activities', 
+            'client_notes', 
+            'client_tasks', 
+            'client_audit_logs', 
+            'enquiries', 
+            'quotations', 
+            'shipment_party_details', 
+            'shipments', 
+            'shipment_milestones', 
+            'shipment_documents', 
+            'shipment_customs_clearances', 
+            'shipment_closures', 
+            'client_portal_users', 
+            'support_tickets', 
+            'support_messages', 
+            'backup_logs', 
+            'shipment_tasks', 
+            'settings'
+        ]
+        
+        with db.engine.begin() as conn:
+            for table in tables:
+                try:
+                    conn.execute(text(f"""
+                        SELECT setval(pg_get_serial_sequence('{table}', 'id'), 
+                        COALESCE((SELECT MAX(id) FROM {table}), 1), true);
+                    """))
+                except Exception:
+                    pass # టేబుల్ లేదా సీక్వెన్స్ లేకపోతే సైలెంట్‌గా స్కిప్ అవుతుంది
+        print("✅ PostgreSQL sequences synchronized successfully!")
+    except Exception as e:
+        print(f"Sequence sync note: {e}")
 
-:root {
-    --primary-color: #2563eb;
-    --primary-light: #eff6ff;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --border-hover: #cbd5e1;
-    --bg-card: #ffffff;
-    --bg-page: #f8fafc;
-    --bg-hover: #f1f5f9;
-    --success-bg: #ecfdf5;
-    --success-text: #166534;
-    --danger-bg: #fef2f2;
-    --danger-text: #b91c1c;
-    --radius-lg: 12px;
-    --radius-md: 8px;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
-    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-/* Base Wrapper & Card Styles */
-.detail-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition);
-}
+# =========================================================
+# APPLICATION FACTORY
+# =========================================================
 
-.detail-card + .detail-card {
-    margin-top: 0; /* Handled by standard margin-bottom */
-}
+def create_app():
 
-.detail-card:hover {
-    border-color: var(--border-hover);
-    box-shadow: var(--shadow-md);
-}
+    app = Flask(__name__)
 
-/* Card Heading Layout */
-.detail-card-heading {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 16px;
-}
+    app.config.from_object(Config)
 
-.heading-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: var(--primary-light);
-    color: var(--primary-color);
-    border-radius: var(--radius-md);
-    flex-shrink: 0;
-    transition: var(--transition);
-}
 
-.detail-card:hover .heading-icon {
-    transform: scale(1.05);
-}
+    # ==========================================
+    # INITIALIZE EXTENSIONS
+    # ==========================================
 
-.heading-icon i {
-    font-size: 18px;
-}
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
 
-.detail-card-heading h3 {
-    margin: 0 0 2px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-main);
-    letter-spacing: -0.01em;
-}
+    # --- ఇక్కడ ఆటోమేటిక్‌గా సీక్వెన్స్ సింక్ అవుతుంది ---
+    with app.app_context():
+        fix_postgres_sequences()
 
-.detail-card-heading p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--text-muted);
-}
 
-/* Grid System Layout */
-.detail-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    align-items: stretch;
-}
+    # ==========================================
+    # LOGIN CONFIGURATION
+    # ==========================================
 
-/* Detail Items */
-.detail-item {
-    background: var(--bg-page);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 72px;
-    transition: var(--transition);
-}
+    login_manager.login_view = "auth.login"
 
-.detail-item:hover {
-    background: var(--bg-hover);
-    border-color: var(--border-hover);
-}
+    login_manager.login_message = (
+        "Please log in to access the CRM."
+    )
 
-.detail-item span {
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-}
+    login_manager.login_message_category = "warning"
 
-.detail-item strong {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-main);
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    display: block;
-}
 
-/* Utility / Full Width Spans */
-.detail-item.full-width {
-    grid-column: 1 / -1;
-}
+    # ==========================================
+    # BLUEPRINTS
+    # ==========================================
 
-/* Special Styling for Grand Total & Rejections */
-.quotation-amount-box {
-    position: relative;
-    overflow: hidden;
-    background: var(--success-bg) !important;
-    border-color: #a7f3d0 !important;
-}
+    from app.auth import auth_bp
+    app.register_blueprint(auth_bp)
 
-.quotation-amount-box::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3));
-    pointer-events: none;
-}
+    from app.clients import clients_bp
+    app.register_blueprint(clients_bp)
 
-.grand-total-amount {
-    color: var(--success-text) !important;
-    font-size: 18px !important;
-}
+    from app.enquiries import enquiries_bp
+    app.register_blueprint(enquiries_bp)
 
-.remarks-text {
-    font-weight: 600;
-    line-height: 1.6;
-}
+    from app.quotations import quotations_bp
+    app.register_blueprint(quotations_bp)
 
-.rejection-reason-text {
-    font-weight: 600;
-    color: var(--danger-text);
-    background: var(--danger-bg);
-    padding: 10px;
-    border-radius: var(--radius-md);
-    border: 1px solid #fecaca;
-    display: block;
-}
+    from app.shipments import shipments_bp
+    app.register_blueprint(shipments_bp)
 
-/* Responsive Media Queries */
-@media (max-width: 900px) {
-    .detail-card-heading {
-        align-items: center;
-    }
-    
-    .heading-icon {
-        width: 36px;
-        height: 36px;
-    }
-}
+    from app.tasks import tasks_bp
+    app.register_blueprint(tasks_bp)
 
-@media (max-width: 640px) {
-    .detail-card {
-        padding: 16px;
-    }
+    from app.users import users_bp
+    app.register_blueprint(users_bp)
 
-    .detail-info-grid {
-        grid-template-columns: 1fr;
-    }
+    from app.portal import portal_bp
+    app.register_blueprint(portal_bp)
 
-    .detail-item {
-        min-height: auto;
-    }
+    from app.support import support_bp
+    app.register_blueprint(support_bp)
 
-    .detail-item.full-width {
-        grid-column: auto;
-    }
+    from app.backup import backup_bp
+    app.register_blueprint(backup_bp)
 
-    .grand-total-amount {
-        font-size: 18px !important;
-    }
-}
-</style>
-{% endblock %}
+    from app.reports import reports_bp
+    app.register_blueprint(reports_bp)
+
+    from app.settings import settings_bp
+    app.register_blueprint(settings_bp)
+
+
+    # ==========================================
+    # IMPORT MODELS
+    # ==========================================
+
+    from app import models
+
+
+    # ==========================================
+    # GLOBAL SIDEBAR COUNTS
+    # ==========================================
+
+    @app.context_processor
+    def inject_sidebar_counts():
+
+        from app.models import (
+            Client,
+            Enquiry,
+            SupportTicket,
+        )
+        from flask_login import current_user
+
+        client_count_query = Client.query.filter(
+            Client.is_archived.is_(False)
+        )
+
+        enquiry_count_query = (
+            Enquiry.query.join(
+                Client,
+                Enquiry.client_id == Client.id
+            )
+            .filter(
+                Enquiry.status.notin_(["closed", "cancelled", "converted"])
+            )
+        )
+
+        if getattr(current_user, "role", None) in {"sales", "sales_executive"}:
+            client_count_query = client_count_query.filter(
+                Client.assigned_to_id == current_user.id
+            )
+            enquiry_count_query = enquiry_count_query.filter(
+                Client.assigned_to_id == current_user.id
+            )
+
+        try:
+            sidebar_clients_count = client_count_query.count()
+            sidebar_enquiries_count = enquiry_count_query.count()
+
+            sidebar_support_count = SupportTicket.query.filter(
+                SupportTicket.status.in_(["waiting_admin", "open"])
+            ).count()
+
+        except Exception:
+            sidebar_clients_count = 0
+            sidebar_enquiries_count = 0
+            sidebar_support_count = 0
+
+        return {
+            "sidebar_clients_count": sidebar_clients_count,
+            "sidebar_enquiries_count": sidebar_enquiries_count,
+            "sidebar_support_count": sidebar_support_count,
+        }
+
+
+    # ==========================================
+    # HOME
+    # ==========================================
+
+    @app.route("/")
+    def home():
+        return redirect(url_for("dashboard"))
+
+
+    # ==========================================
+    # DASHBOARD WITH GLOBAL SEARCH (TASK 1)
+    # ==========================================
+
+    @app.route("/dashboard")
+    @login_required
+    def dashboard():
+
+        from app.models import (
+            Client,
+            Enquiry,
+            Quotation,
+            Shipment,
+            ClientTask,
+            ClientActivity,
+        )
+        from flask import request
+
+        # Global Search Query Parameter
+        search_q = request.args.get("global_q", "").strip()
+
+        is_sales_dashboard = getattr(current_user, "role", None) in {"sales", "sales_executive"}
+
+        # Scopes Initialization
+        client_scope = Client.query.filter(Client.is_archived.is_(False))
+        enquiry_scope = Enquiry.query.join(Client, Enquiry.client_id == Client.id)
+        quotation_scope = Quotation.query.join(Enquiry, Quotation.enquiry_id == Enquiry.id).join(Client, Enquiry.client_id == Client.id)
+        task_scope = ClientTask.query.join(Client, ClientTask.client_id == Client.id)
+        activity_scope = ClientActivity.query.join(Client, ClientActivity.client_id == Client.id)
+        shipment_scope = Shipment.query.join(Client, Shipment.client_id == Client.id)
+
+        # Apply Sales Executive Restrictions if true
+        if is_sales_dashboard:
+            client_scope = client_scope.filter(Client.assigned_to_id == current_user.id)
+            enquiry_scope = enquiry_scope.filter(Client.assigned_to_id == current_user.id)
+            quotation_scope = quotation_scope.filter(Client.assigned_to_id == current_user.id)
+            task_scope = task_scope.filter(Client.assigned_to_id == current_user.id)
+            activity_scope = activity_scope.filter(Client.assigned_to_id == current_user.id)
+            shipment_scope = shipment_scope.filter(Client.assigned_to_id == current_user.id)
+
+        # EXECUTE SEARCH IF QUERY EXISTS
+        search_results = None
+        if search_q:
+            try:
+                search_results = {
+                    "clients": client_scope.filter(
+                        (Client.company_name.ilike(f"%{search_q}%")) |
+                        (Client.contact_person_name.ilike(f"%{search_q}%")) |
+                        (Client.email.ilike(f"%{search_q}%")) |
+                        (Client.client_reference.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
+
+                    "enquiries": enquiry_scope.filter(
+                        (Enquiry.enquiry_reference.ilike(f"%{search_q}%")) |
+                        (Enquiry.cargo_description.ilike(f"%{search_q}%")) |
+                        (Client.company_name.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
+
+                    "quotations": quotation_scope.filter(
+                        (Quotation.quotation_number.ilike(f"%{search_q}%")) |
+                        (Client.company_name.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
+
+                    
+                    "shipments": shipment_scope.filter(
+                        (Shipment.shipment_reference.ilike(f"%{search_q}%")) |
+                        (Client.company_name.ilike(f"%{search_q}%"))
+                    ).limit(5).all(),
+                }
+            except Exception:
+                search_results = {"clients": [], "enquiries": [], "quotations": [], "shipments": []}
+
+        # Top Cards Counts
+        total_clients = client_scope.count()
+        total_enquiries = enquiry_scope.filter(Enquiry.status.notin_(["closed", "cancelled", "converted"])).count()
+        total_quotations = quotation_scope.filter(Quotation.status == "pending").count()
+        total_shipments = shipment_scope.filter(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"])).count()
+
+        # Quotation & Enquiry Status Counts
+        quotation_status_counts = {
+            "pending": quotation_scope.filter(Quotation.status == "pending").count(),
+            "approved": quotation_scope.filter(Quotation.status == "approved").count(),
+            "rejected": quotation_scope.filter(Quotation.status == "rejected").count(),
+        }
+
+        enquiry_status_counts = {
+            "open": total_enquiries,
+            "converted": enquiry_scope.filter(Enquiry.status == "converted").count(),
+            "closed": enquiry_scope.filter(Enquiry.status.in_(["closed", "cancelled"])).count(),
+        }
+
+        closed_shipments_count = shipment_scope.filter(
+            Shipment.shipment_status.in_(["delivered", "closed", "completed", "closed_completed"])
+        ).count()
+
+        # Client Categories
+        client_category_counts = {}
+        category_query = db.session.query(Client.category, db.func.count(Client.id)).filter(Client.is_archived.is_(False))
+        if is_sales_dashboard:
+            category_query = category_query.filter(Client.assigned_to_id == current_user.id)
+        for category_name, count in category_query.group_by(Client.category).all():
+            label = str(category_name).strip() if category_name else "Uncategorized"
+            client_category_counts[label] = count
+
+        # Shipment Stages
+        shipment_stage_counts = {
+            "booked": shipment_scope.filter(Shipment.current_stage == "booked").count(),
+            "cargo_picked_up": shipment_scope.filter(Shipment.current_stage == "cargo_picked_up").count(),
+            "in_transit": shipment_scope.filter(Shipment.current_stage == "in_transit").count(),
+            "arrived_destination": shipment_scope.filter(Shipment.current_stage == "arrived_destination").count(),
+            "customs_clearance": shipment_scope.filter(Shipment.current_stage == "customs_clearance").count(),
+            "out_for_delivery": shipment_scope.filter(Shipment.current_stage == "out_for_delivery").count(),
+            "delivered": shipment_scope.filter(Shipment.current_stage == "delivered").count(),
+            "closed_completed": shipment_scope.filter(Shipment.current_stage == "closed_completed").count(),
+        }
+
+        # Follow-ups & Activities
+        follow_up_tasks = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).order_by(ClientTask.due_date.asc()).limit(5).all()
+        pending_followups_count = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).count()
+
+        def client_status_count(*statuses):
+            return client_scope.filter(Client.status.in_(statuses)).count()
+
+        lifecycle_counts = {
+            "lead": client_status_count("lead", "prospect"),
+            "new": client_status_count("new"),
+            "active": client_status_count("active", "existing"),
+            "key": client_status_count("key", "strategic"),
+            "at_risk": client_status_count("at_risk"),
+            "dormant": client_status_count("dormant", "inactive"),
+            "churned": client_status_count("churned", "lost"),
+            "reactivated": client_status_count("reactivated", "win_back"),
+            "referral": client_status_count("referral"),
+        }
+
+        recent_activities = activity_scope.order_by(ClientActivity.activity_date.desc(), ClientActivity.id.desc()).limit(6).all()
+
+        return render_template(
+            "dashboard/index.html",
+            total_clients=total_clients,
+            total_enquiries=total_enquiries,
+            total_quotations=total_quotations,
+            total_shipments=total_shipments,
+            shipment_stage_counts=shipment_stage_counts,
+            follow_up_tasks=follow_up_tasks,
+            pending_followups_count=pending_followups_count,
+            lifecycle_counts=lifecycle_counts,
+            recent_activities=recent_activities,
+            quotation_status_counts=quotation_status_counts,
+            enquiry_status_counts=enquiry_status_counts,
+            closed_shipments_count=closed_shipments_count,
+            client_category_counts=client_category_counts,
+            search_results=search_results,
+            search_q=search_q
+        )
+
+    # ==========================================
+    # PERMISSIONS
+    # ==========================================
+
+    @app.context_processor
+    def inject_permissions():
+        return {
+            "permissions": permissions
+        }
+
+    # ==========================================
+    # BACKUP SCHEDULER (00:00 IST)
+    # ==========================================
+    from app.backup import init_backup_scheduler
+    init_backup_scheduler(app)
+
+    @app.route("/service-worker.js")
+    def service_worker():
+        return send_from_directory(
+        app.root_path,
+        "service-worker.js",
+        mimetype="application/javascript"
+    )
+
+    return app
