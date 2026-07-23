@@ -914,13 +914,26 @@ def add_client():
 
         try:
             db.session.commit()
-            flash(f"{client.company_name} saved with system designation ID {client.client_reference}.", "success")
+            flash(
+                f"{client.company_name} saved with system designation ID {client.client_reference}.",
+                "success"
+            )
             return redirect(url_for("clients.client_list"))
-        except Exception:
-            db.session.rollback()
-            flash("Database validation transaction dropped out.", "danger")
 
-    return render_template("clients/add.html", **options)
+        except Exception as e:
+            db.session.rollback()
+
+            import traceback
+            traceback.print_exc()
+
+            print("=" * 80)
+            print("CLIENT SAVE ERROR")
+            print(e)
+            print("=" * 80)
+
+            raise
+
+        return render_template("clients/add.html", **options)
 
 
 # =========================================================
