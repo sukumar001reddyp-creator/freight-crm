@@ -933,7 +933,7 @@ def add_client():
 
             raise
 
-        return render_template("clients/add.html", **options)
+    return render_template("clients/add.html", **options)
 
 
 # =========================================================
