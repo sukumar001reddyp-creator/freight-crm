@@ -80,7 +80,7 @@
 
     <div class="shipment-header-actions">
 
-    {% if shipment.shipment_status == "active" %}
+    {% if shipment.shipment_status != "closed" or current_user.role == "admin" %}
     <a href="{{ url_for('shipments.edit_shipment', shipment_id=shipment.id) }}"
        class="edit-shipment-btn">
         <i class="bi bi-pencil-square"></i>

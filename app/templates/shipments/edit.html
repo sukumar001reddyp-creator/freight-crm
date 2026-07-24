@@ -288,7 +288,128 @@
 
             </div>
 
+<!-- CARGO DETAILS (ఇది మీ కోడ్‌లో ఆల్రెడీ ఉంటుంది) -->
 
+                <div class="edit-card">
+                    <div class="card-heading">
+                        <span class="heading-icon cargo-icon">
+                            <i class="bi bi-box2-fill"></i>
+                        </span>
+                        <div>
+                            <h3>Cargo Details</h3>
+                            <p>Update cargo description and weight or volume information.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cargo_description">
+                            Cargo Description
+                            <span class="required">*</span>
+                        </label>
+                        <textarea
+                            id="cargo_description"
+                            name="cargo_description"
+                            rows="6"
+                            placeholder="Describe the cargo"
+                            required
+                        >{{ shipment.cargo_description }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cargo_weight_volume">
+                            Weight / Volume
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="bi bi-box-seam-fill"></i>
+                            <input
+                                type="text"
+                                id="cargo_weight_volume"
+                                name="cargo_weight_volume"
+                                value="{{ shipment.cargo_weight_volume or '' }}"
+                                placeholder="Example: 2500 kg, 18 CBM"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- ========================================== -->
+                <!-- ఇక్కడ కొత్తగా ETD / ETA కోడ్ యాడ్ చేయాలి 👇 -->
+                <!-- ========================================== -->
+
+                <div class="edit-card">
+
+                    <div class="card-heading">
+
+                        <span class="heading-icon" style="background: #e0f2fe; color: #0284c7;">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </span>
+
+                        <div>
+                            <h3>Schedule Details (ETD / ETA)</h3>
+
+                            <p>
+                                Update estimated time of departure and arrival.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label for="etd">
+                                Estimated Time of Departure (ETD)
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <i class="bi bi-clock"></i>
+
+                                <input
+                                    type="datetime-local"
+                                    id="etd"
+                                    name="etd"
+                                    value="{{ shipment.etd.strftime('%Y-%m-%dT%H:%M') if shipment.etd else '' }}"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="eta">
+                                Estimated Time of Arrival (ETA)
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <i class="bi bi-clock-fill"></i>
+
+                                <input
+                                    type="datetime-local"
+                                    id="eta"
+                                    name="eta"
+                                    value="{{ shipment.eta.strftime('%Y-%m-%dT%H:%M') if shipment.eta else '' }}"
+                                >
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ========================================== -->
+                <!-- ETD / ETA కోడ్ ముగింపు 👆 -->
+                <!-- ========================================== -->
+
+            </div> <!-- ఇది left column (edit-main-column) యొక్క closing tag అవుతుంది -->
             <!-- ==================================
                  RIGHT COLUMN
                  ================================== -->
