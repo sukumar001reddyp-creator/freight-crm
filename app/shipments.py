@@ -1777,6 +1777,10 @@ def complete_stage(
 # EDIT SHIPMENT
 # =========================================================
 
+# =========================================================
+# EDIT SHIPMENT
+# =========================================================
+
 @shipments_bp.route(
     "/<int:shipment_id>/edit",
     methods=["GET", "POST"]
@@ -1790,163 +1794,79 @@ def edit_shipment(shipment_id):
         shipment_id
     )
 
-    # -----------------------------------------
-    # CLOSED SHIPMENT LOCK
-    # Admin is the only exception.
-    # -----------------------------------------
-
     if (
         shipment_is_closed(shipment.id)
         and current_user.role != "admin"
     ):
+        flash("Closed shipments can be edited only by an Admin.", "warning")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
-        flash(
-            "Closed shipments can be edited only by an Admin.",
-            "warning"
-        )
-
-        return redirect(
-            url_for(
-                "shipments.view_shipment",
-                shipment_id=shipment.id
-            )
-        )
-
-    # -----------------------------------------
-    # LOCK AFTER MOVEMENT STARTS
-    # Existing operational rule retained for non-Admins.
-    # -----------------------------------------
-
-    if (
-        current_user.role != "admin"
-        and shipment.shipment_status in (
-            "in_transit",
-            "delivered",
-            "closed",
-        )
-    ):
-
-        flash(
-            (
-                "This shipment can no longer be edited "
-                "because operational movement has started."
-            ),
-            "warning"
-        )
-
-        return redirect(
-            url_for(
-                "shipments.view_shipment",
-                shipment_id=shipment.id
-            )
-        )
 
     if request.method == "POST":
 
-        origin = request.form.get(
-            "origin",
-            ""
-        ).strip()
-
-        destination = request.form.get(
-            "destination",
-            ""
-        ).strip()
-
-        cargo_description = request.form.get(
-            "cargo_description",
-            ""
-        ).strip()
-
-        cargo_weight_volume = request.form.get(
-            "cargo_weight_volume",
-            ""
-        ).strip()
+        origin = request.form.get("origin", "").strip()
+        destination = request.form.get("destination", "").strip()
+        cargo_description = request.form.get("cargo_description", "").strip()
+        cargo_weight_volume = request.form.get("cargo_weight_volume", "").strip()
+        
+        # ఇక్కడ ETD మరియు ETA ఫీల్డ్స్‌ని రిసీవ్ చేసుకుంటున్నాము
+        etd_value = request.form.get("etd", "").strip()
+        eta_value = request.form.get("eta", "").strip()
 
         if not origin:
-
-            flash(
-                "Origin is required.",
-                "danger"
-            )
-
-            return render_template(
-                "shipments/edit.html",
-                shipment=shipment
-            )
+            flash("Origin is required.", "danger")
+            return render_template("shipments/edit.html", shipment=shipment)
 
         if not destination:
-
-            flash(
-                "Destination is required.",
-                "danger"
-            )
-
-            return render_template(
-                "shipments/edit.html",
-                shipment=shipment
-            )
+            flash("Destination is required.", "danger")
+            return render_template("shipments/edit.html", shipment=shipment)
 
         if not cargo_description:
+            flash("Cargo description is required.", "danger")
+            return render_template("shipments/edit.html", shipment=shipment)
 
-            flash(
-                "Cargo description is required.",
-                "danger"
-            )
+        # డేట్ మరియు టైమ్ పార్సింగ్ లాజిక్
+        etd = None
+        eta = None
+        
+        try:
+            if etd_value:
+                etd = datetime.strptime(etd_value, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            try:
+                etd = datetime.strptime(etd_value, "%Y-%m-%d")
+            except ValueError:
+                pass
 
-            return render_template(
-                "shipments/edit.html",
-                shipment=shipment
-            )
+        try:
+            if eta_value:
+                eta = datetime.strptime(eta_value, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            try:
+                eta = datetime.strptime(eta_value, "%Y-%m-%d")
+            except ValueError:
+                pass
 
         shipment.origin = origin
         shipment.destination = destination
-        shipment.cargo_description = (
-            cargo_description
-        )
-        shipment.cargo_weight_volume = (
-            cargo_weight_volume or None
-        )
+        shipment.cargo_description = cargo_description
+        shipment.cargo_weight_volume = cargo_weight_volume or None
+        
+        # షిప్‌మెంట్ ఆబ్జెక్ట్‌కు ETD, ETA అసైన్ చేయడం
+        shipment.etd = etd
+        shipment.eta = eta
 
         try:
-
             db.session.commit()
-
         except Exception:
-
             db.session.rollback()
+            flash("Unable to update shipment.", "danger")
+            return render_template("shipments/edit.html", shipment=shipment)
 
-            flash(
-                "Unable to update shipment.",
-                "danger"
-            )
+        flash(f"Shipment {shipment.shipment_reference} updated successfully.", "success")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
-            return render_template(
-                "shipments/edit.html",
-                shipment=shipment
-            )
-
-        flash(
-            (
-                f"Shipment "
-                f"{shipment.shipment_reference} "
-                f"updated successfully."
-            ),
-            "success"
-        )
-
-        return redirect(
-            url_for(
-                "shipments.view_shipment",
-                shipment_id=shipment.id
-            )
-        )
-
-    return render_template(
-        "shipments/edit.html",
-        shipment=shipment
-    )
-
+    return render_template("shipments/edit.html", shipment=shipment)
 
 # =========================================================
 # UNDO LAST SHIPMENT STAGE
