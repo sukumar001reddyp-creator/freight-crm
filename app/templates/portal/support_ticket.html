@@ -11,17 +11,16 @@
 .ticket-container {
     max-width: 1000px;
     margin: 0 auto;
-    font-family: "Plus Jakarta Sans", sans-serif;
 }
 
-/* Premium Header Card - Soft Light Cream Background */
+/* Premium Header Card */
 .ticket-header-card {
-    background: #fdfbf7; /* Swapped pure white with premium light cream */
+    background: #ffffff;
     border-radius: 16px;
-    padding: 28px 32px;
-    box-shadow: 0 4px 20px rgba(127, 29, 29, 0.02);
-    border: 1px solid #f3efe8;
-    margin-bottom: 25px;
+    padding: 24px 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -30,42 +29,43 @@
 }
 
 .ticket-title-area h3 {
-    font-size: 22px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: 700;
     color: #0f172a;
-    margin: 0 0 6px 0;
-    letter-spacing: -0.5px;
+    margin: 0;
+    letter-spacing: -0.2px;
 }
 
 .ticket-id-badge {
     color: #64748b;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     margin-right: 6px;
 }
 
 /* Status Badges Overhaul */
 .badge-premium {
-    padding: 8px 16px;
-    border-radius: 30px;
-    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.3px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    text-transform: uppercase;
 }
 
 .badge-waiting-admin {
     background: #fef2f2;
-    color: #b91c1c;
+    color: #dc2626;
     border: 1px solid #fee2e2;
 }
 
 .badge-waiting-client {
-    background: #fffbeb;
+    background: #fef3c7;
     color: #d97706;
-    border: 1px solid #fef3c7;
+    border: 1px solid #fde68a;
 }
 
 .badge-closed {
@@ -78,8 +78,8 @@
 .chat-stream {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-bottom: 30px;
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
 .message-wrapper {
@@ -88,19 +88,19 @@
     max-width: 75%;
 }
 
-/* Admin Message - Aligned Left (Soft Cream Blend Style) */
+/* Admin Message - Aligned Left */
 .msg-admin {
     align-self: flex-start;
 }
 
 .msg-admin .bubble {
-    background: #fdfbf7; /* Swapped pure white with premium light cream */
-    border: 1px solid #eaddcb; /* Warm neutral border to match cream */
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     color: #1e293b;
-    border-radius: 4px 16px 16px 16px;
+    border-radius: 6px 16px 16px 16px;
 }
 
-/* Client/User Message - Aligned Right (Brand Red Gradient Style retained) */
+/* Client/User Message - Aligned Right */
 .msg-client {
     align-self: flex-end;
 }
@@ -108,23 +108,23 @@
 .msg-client .bubble {
     background: linear-gradient(135deg, #7f1d1d 0%, #641616 100%);
     color: #ffffff;
-    border-radius: 16px 4px 16px 16px;
+    border-radius: 16px 6px 16px 16px;
     box-shadow: 0 4px 12px rgba(127, 29, 29, 0.1);
 }
 
 /* Core Bubble Box Styling */
 .bubble {
-    padding: 18px 22px;
-    font-size: 15px;
+    padding: 14px 18px;
+    font-size: 13.5px;
     font-weight: 500;
     line-height: 1.5;
     word-break: break-word;
 }
 
 .msg-meta {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    margin-top: 6px;
+    margin-top: 4px;
     color: #94a3b8;
     display: flex;
     align-items: center;
@@ -136,38 +136,38 @@
 }
 
 .sender-tag {
-    color: #475569;
+    color: #64748b;
 }
 
 .msg-client .sender-tag {
     color: #7f1d1d;
 }
 
-/* Input Reply Card Block - Soft Cream Background */
+/* Input Reply Card Block */
 .reply-card {
-    background: #fdfbf7; /* Swapped pure white with premium light cream */
+    background: #ffffff;
     border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 4px 20px rgba(127, 29, 29, 0.02);
-    border: 1px solid #f3efe8;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
 }
 
 .reply-card h4 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 16px;
+    color: #0f172a;
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .reply-textarea {
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid #cbd5e1;
-    background: #fdfdfd; /* Keeping slightly off-white inside cream card for contrast */
-    padding: 16px;
-    font-size: 15px;
+    background: #f8fafc;
+    padding: 12px 14px;
+    font-size: 13.5px;
     font-weight: 500;
     color: #0f172a;
     transition: all 0.2s ease;
@@ -177,20 +177,42 @@
 .reply-textarea:focus {
     background: #ffffff;
     border-color: #7f1d1d;
-    box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
+    box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.08);
     outline: none;
+}
+
+/* Custom Button Styling */
+.btn-main {
+    background: #7f1d1d;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s ease;
+    box-shadow: 0 4px 12px rgba(127, 29, 29, 0.15);
+}
+
+.btn-main:hover {
+    background: #641616;
+    color: #ffffff;
 }
 
 /* Ticket Info Message Footer when Closed */
 .closed-info-banner {
-    background: #fdfbf7;
+    background: #ffffff;
     border: 1px dashed #cbd5e1;
     border-radius: 12px;
-    padding: 20px;
+    padding: 18px;
     text-align: center;
     color: #64748b;
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 500;
+    font-size: 13px;
 }
 
 @media(max-width: 768px) {
@@ -270,12 +292,12 @@
                     <textarea 
                         class="form-control reply-textarea" 
                         name="message" 
-                        rows="5" 
+                        rows="4" 
                         placeholder="Type your detailed response here..." 
                         required></textarea>
                 </div>
-                <button class="btn btn-main">
-                    <i class="bi bi-send-fill me-1"></i> Send Reply
+                <button type="submit" class="btn-main">
+                    <i class="bi bi-send-fill"></i> Send Reply
                 </button>
             </form>
         </div>

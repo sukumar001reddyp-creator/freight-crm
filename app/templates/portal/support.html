@@ -12,23 +12,35 @@ Support Center
 
 <style>
 :root {
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary: #7f1d1d;
+    --primary-hover: #641616;
     --card-bg: #ffffff;
     --text-main: #0f172a;
     --text-muted: #64748b;
-    --border-color: #f1f5f9;
+    --border-color: #e2e8f0;
 }
 
 /* Header Area */
 .support-header {
-    margin-bottom: 25px;
+    background: #ffffff;
+    padding: 24px 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border-color);
 }
 .support-header h2 {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--text-main);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.2px;
+    margin-bottom: 2px;
+}
+.support-header p {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
 }
 
 /* 1. TOP LAYOUT: Contact & Info horizontal row */
@@ -36,39 +48,40 @@ Support Center
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 .mini-info-card {
     background: var(--card-bg);
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 16px;
     display: flex;
     align-items: center;
     gap: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .mini-info-card .icon-wrapper {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
-    background: #f8fafc;
+    border-radius: 10px;
+    background: #fef2f2;
     color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px;
     flex-shrink: 0;
 }
 .mini-info-card .card-label {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.5px;
     color: var(--text-muted);
     margin-bottom: 2px;
     font-weight: 600;
 }
 .mini-info-card .card-value {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-main);
     margin: 0;
@@ -78,60 +91,68 @@ Support Center
 .main-workspace-grid {
     display: grid;
     grid-template-columns: 1.1fr 1.3fr;
-    gap: 30px;
+    gap: 24px;
     align-items: start;
 }
 
 .workspace-card {
     background: var(--card-bg);
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .workspace-card h3 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     color: var(--text-main);
+    letter-spacing: -0.2px;
 }
 
 /* Forms styling */
 .form-label {
-    font-weight: 500;
-    font-size: 13.5px;
-    color: var(--text-main);
+    font-weight: 600;
+    font-size: 12px;
+    color: #334155;
     margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 .form-control {
     border-radius: 10px;
     padding: 10px 14px;
     border: 1px solid #cbd5e1;
-    font-size: 14px;
+    font-size: 13px;
+    color: var(--text-main);
+    background: #f8fafc;
 }
 .form-control:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.08);
+    background: #ffffff;
 }
 
 /* Buttons */
 .btn-send {
     background: var(--primary);
     color: #fff;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border: none;
     border-radius: 10px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     width: 100%;
     justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.15s ease;
+    box-shadow: 0 4px 12px rgba(127, 29, 29, 0.15);
 }
 .btn-send:hover {
     background: var(--primary-hover);
+    color: #fff;
 }
 .btn-action {
     background: #f1f5f9;
@@ -139,39 +160,45 @@ Support Center
     padding: 6px 12px;
     border-radius: 8px;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
     text-decoration: none;
+    transition: background 0.15s;
 }
 .btn-action:hover {
     background: #e2e8f0;
+    color: var(--text-main);
 }
 
 /* Premium Table View */
 .table th {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     color: var(--text-muted);
     font-weight: 600;
-    padding: 12px 8px;
+    padding: 10px 8px;
     border-bottom: 2px solid #f1f5f9;
+    letter-spacing: 0.3px;
 }
 .table td {
-    padding: 14px 8px;
-    font-size: 14px;
+    padding: 12px 8px;
+    font-size: 13px;
     border-bottom: 1px solid #f1f5f9;
+    color: #334155;
 }
 
 /* Status Tags */
 .status-tag {
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
-.tag-open { background: #fee2e2; color: #ef4444; }
-.tag-progress { background: #fef3c7; color: #d97706; }
-.tag-closed { background: #dcfce7; color: #15803d; }
+.tag-open { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+.tag-progress { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+.tag-closed { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
 
 /* Responsive Media Queries */
 @media(max-width: 1200px) {
@@ -195,7 +222,7 @@ Support Center
 <!-- Header -->
 <div class="support-header">
     <h2>Support Center</h2>
-    <p class="text-muted m-0">Submit a ticket or track your ongoing support requests.</p>
+    <p>Submit a ticket or track your ongoing support requests.</p>
 </div>
 
 <!-- 1. Top Layout Row: Info Widgets -->
@@ -222,7 +249,7 @@ Support Center
         </div>
     </div>
     <div class="mini-info-card" style="border-left: 3px solid var(--primary);">
-        <div class="icon-wrapper" style="background: rgba(79, 70, 229, 0.05);"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div class="icon-wrapper" style="background: #fef2f2;"><i class="bi bi-lightning-charge-fill"></i></div>
         <div>
             <div class="card-label">Avg Response</div>
             <p class="card-value" style="color: var(--primary);">Under 24 Hours</p>
@@ -303,7 +330,7 @@ Support Center
         {% else %}
         <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
             <i class="bi bi-folder2-open" style="font-size: 32px; color: #cbd5e1; display: block; margin-bottom: 10px;"></i>
-            <span style="font-size: 14px;">No active support tickets found.</span>
+            <span style="font-size: 13px;">No active support tickets found.</span>
         </div>
         {% endif %}
     </div>

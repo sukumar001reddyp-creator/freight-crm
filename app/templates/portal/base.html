@@ -325,6 +325,10 @@
                     <i class="bi bi-truck"></i>
                     <span>Shipments</span>
                 </a>
+                <a href="{{ url_for('portal.tracking') }}" class="{% if request.endpoint=='portal.tracking' %}active{% endif %}">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>Tracking</span>
+                </a>
                 <a href="{{ url_for('portal.documents') }}" class="{% if request.endpoint=='portal.documents' %}active{% endif %}">
                     <i class="bi bi-folder2-open"></i>
                     <span>Documents</span>

@@ -1,0 +1,233 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Shipment Tracking{% endblock %}
+
+{% block page_title %}Shipment Tracking{% endblock %}
+
+{% block content %}
+
+<style>
+.page-header {
+    background: #ffffff;
+    padding: 24px 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+}
+.page-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+.page-header p {
+    color: #64748b;
+    margin: 2px 0 0 0;
+    font-size: 13px;
+}
+.tracking-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+}
+.shipment-ref {
+    font-size: 15px;
+    font-weight: 700;
+    color: #7f1d1d;
+    background: #fef2f2;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #fee2e2;
+}
+.status {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+}
+.status-transit { background: #d97706; }
+.status-delivered { background: #16a34a; }
+.status-booked { background: #0284c7; }
+.status-closed { background: #64748b; }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+.info {
+    background: #f8fafc;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+}
+.info small {
+    display: block;
+    color: #64748b;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.info strong {
+    color: #0f172a;
+    font-size: 13px;
+}
+
+/* Admin Style Milestones Timeline */
+.admin-timeline {
+    position: relative;
+    padding-left: 24px;
+    margin-top: 20px;
+    border-left: 2px solid #e2e8f0;
+}
+.timeline-step {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-step:last-child {
+    margin-bottom: 0;
+}
+.timeline-step::before {
+    content: "";
+    position: absolute;
+    left: -31px;
+    top: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px #e2e8f0;
+}
+.timeline-step.completed::before {
+    background: #16a34a;
+    box-shadow: 0 0 0 2px #dcfce7;
+}
+.timeline-step.active::before {
+    background: #7f1d1d;
+    box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.15);
+}
+.timeline-step strong {
+    font-size: 13px;
+    color: #0f172a;
+    font-weight: 600;
+    display: block;
+}
+.timeline-step small {
+    font-size: 12px;
+    color: #64748b;
+}
+</style>
+
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2>Live Shipment Tracking & Milestones</h2>
+        <p>Enter your shipment reference number to monitor cargo transit stages.</p>
+    </div>
+    
+    <!-- Shipment Number Input & Track Button Form -->
+    <form method="GET" action="{{ url_for('portal.tracking') }}" class="d-flex align-items-center gap-2" style="min-width: 300px; flex: 1; max-width: 380px;">
+        <div class="input-group input-group-sm">
+            <input type="text" name="ref" value="{{ search_ref or '' }}" class="form-control" placeholder="Enter Shipment Reference..." required>
+            <button type="submit" class="btn btn-danger fw-semibold px-3">
+                <i class="bi bi-geo-alt-fill me-1"></i> Track
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if shipment_data %}
+    {% for item in shipment_data %}
+        {% set s = item.shipment %}
+        {% set completed = item.completed_stages %}
+    <div class="tracking-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="shipment-ref">{{ s.shipment_reference }}</span>
+            {% set current_status = s.shipment_status|lower %}
+            <span class="status {% if 'deliver' in current_status %}status-delivered{% elif 'transit' in current_status %}status-transit{% elif 'closed' in current_status %}status-closed{% else %}status-booked{% endif %}">
+                {{ s.shipment_status|replace("_"," ")|title }}
+            </span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info">
+                <small>Origin</small>
+                <strong>{{ s.origin }}</strong>
+            </div>
+            <div class="info">
+                <small>Destination</small>
+                <strong>{{ s.destination }}</strong>
+            </div>
+            <div class="info">
+                <small>Cargo Description</small>
+                <strong>{{ s.cargo_description or "-" }}</strong>
+            </div>
+            <div class="info">
+                <small>Estimated ETA</small>
+                <strong>{{ s.eta.strftime('%d %b %Y') if s.eta else "-" }}</strong>
+            </div>
+        </div>
+
+        <!-- Database-Driven Milestones Timeline -->
+        <div class="mt-4 pt-3 border-top">
+            <h6 class="fw-bold mb-3" style="font-size: 13px; color: #334155; text-transform: uppercase; letter-spacing: 0.3px;">
+                <i class="bi bi-diagram-3-fill text-danger me-1"></i> Transit Milestones
+            </h6>
+            
+            <div class="admin-timeline">
+                <div class="timeline-step {% if 'booked' in completed %}completed{% endif %}">
+                    <strong>Shipment Booked</strong>
+                    <small>Booking confirmed successfully.</small>
+                </div>
+                
+                <div class="timeline-step {% if 'cargo_picked_up' in completed %}completed{% elif 'booked' in completed and 'cargo_picked_up' not in completed %}active{% endif %}">
+                    <strong>Cargo Picked Up</strong>
+                    <small>Shipment collected from origin warehouse.</small>
+                </div>
+                
+                <div class="timeline-step {% if 'in_transit' in completed %}completed{% elif 'cargo_picked_up' in completed and 'in_transit' not in completed %}active{% endif %}">
+                    <strong>In Transit</strong>
+                    <small>Cargo currently moving towards destination.</small>
+                </div>
+                
+                <div class="timeline-step {% if 'arrived_destination' in completed %}completed{% elif 'in_transit' in completed and 'arrived_destination' not in completed %}active{% endif %}">
+                    <strong>Arrived at Destination</strong>
+                    <small>Shipment reached destination port/hub.</small>
+                </div>
+
+                <div class="timeline-step {% if 'customs_clearance' in completed %}completed{% elif 'arrived_destination' in completed and 'customs_clearance' not in completed %}active{% endif %}">
+                    <strong>Customs Clearance</strong>
+                    <small>Customs inspection and clearance processing.</small>
+                </div>
+
+                <div class="timeline-step {% if 'out_for_delivery' in completed %}completed{% elif 'customs_clearance' in completed and 'out_for_delivery' not in completed %}active{% endif %}">
+                    <strong>Out for Delivery</strong>
+                    <small>Shipment dispatched for final drop-off.</small>
+                </div>
+                
+                <div class="timeline-step {% if 'delivered' in completed %}completed{% elif 'out_for_delivery' in completed and 'delivered' not in completed %}active{% endif %}">
+                    <strong>Delivered</strong>
+                    <small>Successfully delivered to final recipient.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="text-center bg-white p-5 rounded-4 border">
+    <i class="bi bi-search text-muted" style="font-size: 48px;"></i>
+    <h3 class="mt-3 fs-6 fw-bold text-dark">{% if search_ref %}No Shipment Found for "{{ search_ref }}"{% else %}Enter Reference Number to Track{% endif %}</h3>
+    <p class="text-muted small">Please type your valid shipment reference number above and click Track.</p>
+</div>
+{% endif %}
+
+{% endblock %}
