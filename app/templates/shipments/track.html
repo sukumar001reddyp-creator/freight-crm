@@ -47,9 +47,18 @@
                 <span class="route-dot origin"></span>
                 <div><small>Origin</small><strong>{{ shipment.origin }}</strong></div>
             </div>
+
+            {% set total_stages = shipment_stages | length %}
+            {% set current_index = shipment_stages.index(shipment.current_stage) if shipment.current_stage in shipment_stages else 0 %}
+            {% set progress_percent = ((current_index / (total_stages - 1)) * 100) if total_stages > 1 else 0 %}
+
             <div class="route-progress">
-                <span class="route-plane"><i class="bi {% if shipment.mode_of_shipment == 'air_freight' %}bi-airplane{% elif shipment.mode_of_shipment == 'sea_freight' %}bi-water{% else %}bi-truck{% endif %}"></i></span>
+                <div class="route-progress-fill" style="width: {{ progress_percent }}%;"></div>
+                <span class="route-plane" style="left: {{ progress_percent }}%;">
+                    <i class="bi {% if shipment.mode_of_shipment == 'air_freight' %}bi-airplane{% elif shipment.mode_of_shipment == 'sea_freight' %}bi-water{% else %}bi-truck{% endif %}"></i>
+                </span>
             </div>
+
             <div class="route-stop end">
                 <span class="route-dot destination"></span>
                 <div><small>Destination</small><strong>{{ shipment.destination }}</strong></div>
@@ -135,17 +144,17 @@
 {% block extra_css %}
 <style>
 .live-tracking{max-width:1160px;margin:0 auto;padding:28px;font-family:system-ui,sans-serif;color:#152238}
-.tracking-hero{position:relative;overflow:hidden;padding:38px;border-radius:24px;background:linear-gradient(125deg,#10223d 0%,#173d72 55%,#147b8b 100%);color:#fff;box-shadow:0 18px 40px rgba(16,34,61,.2)}
+.tracking-hero{position:relative;overflow:hidden;padding:20px 28px;border-radius:24px;background:linear-gradient(125deg,#10223d 0%,#173d72 55%,#147b8b 100%);color:#fff;box-shadow:0 12px 30px rgba(16,34,61,.2)}
 .hero-copy{position:relative;z-index:1;max-width:600px}
 .hero-kicker,.panel-label{display:inline-flex;align-items:center;gap:7px;color:#a5f3fc;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.tracking-hero h1{margin:11px 0 8px;font-size:34px;letter-spacing:-.04em}
-.tracking-hero p{margin:0;color:#dbeafe;font-size:14px}
-.tracking-search{position:relative;z-index:1;display:flex;gap:9px;margin-top:28px}
-.search-input{display:flex;align-items:center;flex:1;min-height:48px;padding:0 14px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(4,18,39,.34);color:#93c5fd}
+.tracking-hero h1{margin:6px 0 4px;font-size:26px;letter-spacing:-.04em}
+.tracking-hero p{margin:0;color:#dbeafe;font-size:13px}
+.tracking-search{position:relative;z-index:1;display:flex;gap:9px;margin-top:16px}
+.search-input{display:flex;align-items:center;flex:1;min-height:46px;padding:0 14px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(4,18,39,.34);color:#93c5fd}
 .search-input input{width:100%;border:0;outline:0;background:transparent;color:#fff;font:inherit}
 .search-input input::placeholder{color:#bfdbfe}
-.tracking-search select,.tracking-search button{min-height:48px;border-radius:12px;font:inherit;border:0}
-.tracking-search select{padding:0 12px;border:1px solid rgba(255,255,255,.28);background:#fff;color:#152238}
+.tracking-search select,.tracking-search button{min-height:46px;border-radius:12px;font:inherit;border:0}
+.tracking-search select{padding:0 12px;border:1px solid rgba(255,255,258,.28);background:#fff;color:#152238}
 .tracking-search button{padding:0 18px;background:#fbbf24;color:#172033;font-weight:900;cursor:pointer}
 .hero-orb{position:absolute;border-radius:50%;background:rgba(125,211,252,.14)}
 .orb-one{right:-55px;top:-70px;width:250px;height:250px}
@@ -166,9 +175,9 @@
 .route-dot{width:12px;height:12px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #1d4ed8}
 .route-dot.destination{box-shadow:0 0 0 2px #0f766e}
 .route-stop strong,.route-date strong{display:block;margin-top:4px;color:#172033;font-size:14px}
-.route-progress{position:relative;height:4px;border-radius:99px;background:#bfdbfe}
-.route-progress:after{position:absolute;right:0;content:'';width:45%;height:4px;border-radius:99px;background:#0ea5a6}
-.route-plane{position:absolute;top:50%;left:56%;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#0f766e;color:#fff;transform:translate(-50%,-50%);font-size:12px}
+.route-progress{position:relative;height:6px;border-radius:99px;background:#bfdbfe;width:100%}
+.route-progress-fill{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:#0ea5a6;transition:width 0.4s ease;}
+.route-plane{position:absolute;top:50%;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#0f766e;color:#fff;transform:translate(-50%,-50%);font-size:12px;box-shadow:0 3px 8px rgba(15,118,110,.3);transition:left 0.4s ease;}
 .tracking-tabs{display:flex;gap:7px;margin-top:22px;padding:6px;border-radius:13px;background:#eef3f8}
 .tab-button{display:inline-flex;align-items:center;gap:7px;padding:11px 16px;border:0;border-radius:9px;background:transparent;color:#64748b;font-weight:800;cursor:pointer}
 .tab-button span{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:50%;background:#dbe3ee;font-size:9px}
