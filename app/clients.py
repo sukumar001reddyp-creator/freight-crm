@@ -1464,11 +1464,25 @@ def view_client(client_id):
 @login_required
 def create_portal_account(client_id):
     client = get_accessible_client_or_404(client_id)
-    account = ClientPortalUser(client_id=client.id, email=request.form.get("email").strip().lower())
-    account.set_password(request.form.get("password").strip())
-    db.session.add(account)
+    email = request.form.get("email").strip().lower()
+    password = request.form.get("password").strip()
+
+    # ఈ క్లయింట్‌కు ఇప్పటికే పోర్టల్ అకౌంట్ ఉందా అని చెక్ చేయండి
+    account = ClientPortalUser.query.filter_by(client_id=client.id).first()
+
+    if account:
+        # అకౌంట్ ఉంటే ఈమెయిల్ మరియు పాస్‌వర్డ్‌ను అప్‌డేట్ చేయండి
+        account.email = email
+        account.set_password(password)
+        flash("Portal user account updated successfully.", "success")
+    else:
+        # లేకపోతే కొత్త అకౌంట్‌ను క్రియేట్ చేయండి
+        account = ClientPortalUser(client_id=client.id, email=email)
+        account.set_password(password)
+        db.session.add(account)
+        flash("Portal user assigned successfully.", "success")
+
     db.session.commit()
-    flash("Portal user assigned successfully.", "success")
     return redirect(url_for("clients.view_client", client_id=client.id))
 
 

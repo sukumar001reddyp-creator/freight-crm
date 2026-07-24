@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7f1d1d">
+    <title>Login | Freight CRM - Al Qabandi & Partners Co.</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --primary-red: #dc2626;
+            --dark-red: #991b1b;
+            --deep-red: #7f1d1d;
+            --text-dark: #0f172a;
+            --text-medium: #334155;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --surface: #ffffff;
+            --transition-smooth: all 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Inter", Arial, sans-serif;
+            background: #f8fafc;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        /* Left Brand Panel with background.png */
+        .brand-panel {
+            position: relative;
+            padding: 45px 55px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.35) 0%, rgba(127, 29, 29, 0.45) 100%),
+                        url("{{ url_for('static', filename='images/background.png') }}") center/cover no-repeat;
+        }
+
+        /* Logo + Company Name Header Styling */
+        .brand-header-custom {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            z-index: 2;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 12px;
+            width: fit-content;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+
+        .brand-logo-img {
+            height: 42px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .brand-title-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title-text strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .brand-title-text span {
+            font-size: 9.5px;
+            font-weight: 600;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Center Main Content */
+        .brand-main {
+            z-index: 2;
+            margin: auto 0;
+            max-width: 560px;
+        }
+
+        .secure-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 99px;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            backdrop-filter: blur(6px);
+        }
+
+        .brand-main h1 {
+            font-size: clamp(30px, 3.2vw, 44px);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-bottom: 14px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .brand-main h1 span {
+            color: #fca5a5;
+        }
+
+        .brand-main p {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 25px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Bottom Feature Icons Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            z-index: 2;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .feature-box {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 6px;
+            border-radius: 12px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+        }
+
+        .feature-box i {
+            font-size: 16px;
+            color: #fca5a5;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .feature-box span {
+            font-size: 8.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #ffffff;
+            display: block;
+            line-height: 1.2;
+        }
+
+        /* Right Form Panel */
+        .form-panel {
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+            max-width: 520px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .form-card {
+            background: #ffffff;
+            padding: 20px 10px;
+        }
+
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #fef2f2;
+            color: var(--deep-red);
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .form-panel h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .form-panel .subtitle {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 24px;
+        }
+
+        /* Flash Messages */
+        .flash {
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+        }
+        .flash-danger { color: #b91c1c; background: #fef2f2; border-left-color: #ef4444; }
+        .flash-success { color: #15803d; background: #f0fdf4; border-left-color: #22c55e; }
+        .flash-info { color: #0369a1; background: #f0f9ff; border-left-color: #0ea5e9; }
+        .flash-warning { color: #b45309; background: #fffbeb; border-left-color: #f59e0b; }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-medium);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-dark);
+            background: #f8fafc;
+            font-size: 13px;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        input:focus {
+            border-color: var(--primary-red);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-medium);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .remember-label input {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--primary-red);
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            font-size: 12px;
+            color: var(--primary-red);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            width: 100%;
+            min-height: 46px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 0;
+            border-radius: 10px;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--dark-red) 0%, var(--primary-red) 100%);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+            transition: var(--transition-smooth);
+            margin-bottom: 16px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+        }
+
+        .divider {
+            text-align: center;
+            position: relative;
+            margin: 16px 0;
+            color: var(--text-light);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .divider::before, .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 38%;
+            height: 1px;
+            background: var(--border);
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .portal-btn {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-dark);
+            background: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+
+        .portal-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .security-note {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--text-light);
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .security-shield {
+            color: #10b981;
+        }
+
+        .form-footer-copy {
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 960px) {
+            .login-wrapper { grid-template-columns: 1fr; }
+            .brand-panel { display: none; }
+            .form-panel { padding: 40px 24px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <!-- Left Brand Panel with background.png -->
+    <section class="brand-panel">
+        <div class="brand-header-custom">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Al Qabandi & Partners Co." class="brand-logo-img">
+            <div class="brand-title-text">
+                <strong>AL QABANDI & PARTNERS CO.</strong>
+                <span>(Shipping & Forwarding)</span>
+            </div>
+        </div>
+
+        <div class="brand-main">
+            <div class="secure-badge-pill">
+                <i class="bi bi-shield-lock-fill"></i> Unified Freight Workspace
+            </div>
+            <h1>Move Freight.<br>Manage Clients.<br>Track <span>Everything.</span></h1>
+            <p>A single, secure workspace to manage clients, enquiries, quotations, shipments and milestones — all in one powerful Freight CRM.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-box">
+                <i class="bi bi-people-fill"></i>
+                <span>Client Mgmt</span>
+            </div>
+            <div class="feature-box">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>Tracking</span>
+            </div>
+            <div class="feature-box">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                <span>Documents</span>
+            </div>
+            <div class="feature-box">
+                <i class="bi bi-bar-chart-fill"></i>
+                <span>Reports</span>
+            </div>
+            <div class="feature-box">
+                <i class="bi bi-shield-check"></i>
+                <span>Secure</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Right Form Panel -->
+    <section class="form-panel">
+        <div class="form-card">
+            <div class="welcome-badge">
+                <i class="bi bi-heart-fill"></i> Welcome Back!
+            </div>
+            <h2>Sign in to your account</h2>
+            <p class="subtitle">Access your Freight CRM dashboard.</p>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Form -->
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrap">
+                        <span class="input-icon"><i class="bi bi-envelope"></i></span>
+                        <input type="email" id="email" name="email" placeholder="admin@freightcrm.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <span class="input-icon"><i class="bi bi-lock"></i></span>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div class="remember-row">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember">
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-button">
+                    <span>Sign In to CRM</span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="divider">or continue with</div>
+
+            <a href="{{ url_for('portal.login') }}" class="portal-btn">
+                <i class="bi bi-box-arrow-in-right"></i> Client Portal Login
+            </a>
+
+            <p class="security-note">
+                <i class="bi bi-patch-check-fill security-shield"></i>
+                Protected internal system. Access restricted to authorized staff.
+            </p>
+
+            <div class="form-footer-copy">
+                <span>Secure • Reliable • Efficient</span>
+                <span>© 2026 Al Qabandi & Partners Co. All rights reserved.</span>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>

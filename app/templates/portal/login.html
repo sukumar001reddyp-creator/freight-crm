@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Login | Freight CRM</title>
-
-    <!-- Base Libraries -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Premium Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+    <title>Client Login | Al Qabandi Freight CRM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
+        :root {
+            --red: #e11d48;
+            --red-dark: #be123c;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -22,261 +19,619 @@
         }
 
         body {
-            font-family: "Plus Jakarta Sans", sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            display: flex;
+            background: #0a0f1c;
+            color: white;
+            overflow-x: hidden;
         }
 
-        /* Split Layout Container */
-        .login-split-container {
-            display: flex;
-            width: 100%;
+        .page {
             min-height: 100vh;
-        }
-
-        /* Left Side: Premium Brand Visual Panel */
-        .brand-visual-panel {
-            flex: 1.2;
-            background: linear-gradient(135deg, #7f1d1d 0%, #3b0a0a 100%);
+            position: relative;
+            background: url("{{ url_for('static', filename='images/background.png') }}") center/cover no-repeat;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 60px;
-            position: relative;
-            color: #ffffff;
-            overflow: hidden;
         }
 
-        /* Decorative background element for premium feel */
-        .brand-visual-panel::before {
+        .page::before {
             content: '';
             position: absolute;
-            top: -20%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(185, 28, 28, 0.15) 0%, transparent 70%);
+            inset: 0;
+            background: rgba(10, 15, 28, 0.55);
             pointer-events: none;
         }
 
-        .brand-logo h2 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(120deg, #ffffff, #fca5a5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* TOP BAR */
+        .topbar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 48px;
         }
 
-        .brand-logo small {
-            opacity: 0.6;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo-img {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+            background: #ffffff;
+            padding: 6px 12px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .brand-text h1 {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .brand-text p {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .lang-select {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 10px;
             font-size: 13px;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            display: block;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .brand-hero-text h1 {
-            font-size: 42px;
+        /* MAIN */
+        .main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 40px;
+            padding: 10px 48px 30px;
+            position: relative;
+            z-index: 5;
+            align-items: center;
+        }
+
+        /* LEFT */
+        .left-content {
+            max-width: 640px;
+        }
+
+        .left-content h2 {
+            font-size: 46px;
             font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -1px;
-            margin-bottom: 20px;
+            line-height: 1.1;
+            letter-spacing: -1.2px;
+            margin-bottom: 14px;
         }
 
-        .brand-hero-text p {
-            color: #fca5a5;
-            font-size: 18px;
-            font-weight: 500;
+        .left-content h2 span {
+            color: #e11d48;
+        }
+
+        .left-content .tagline {
+            font-size: 16px;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 28px;
             max-width: 480px;
         }
 
-        .brand-footer {
-            font-size: 14px;
-            opacity: 0.5;
-            font-weight: 500;
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
-        /* Right Side: Clean Form Panel */
-        .form-panel {
-            flex: 1;
-            background: #ffffff;
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 14px 10px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(225,29,72,0.4);
+        }
+
+        .stat-card .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 60px;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-size: 15px;
         }
 
-        .form-box {
-            width: 100%;
-            max-width: 420px;
-        }
+        .stat-card:nth-child(1) .icon { background: rgba(225,29,72,0.2); color: #e11d48; }
+        .stat-card:nth-child(2) .icon { background: rgba(234,179,8,0.2); color: #eab308; }
+        .stat-card:nth-child(3) .icon { background: rgba(34,197,94,0.2); color: #22c55e; }
+        .stat-card:nth-child(4) .icon { background: rgba(59,130,246,0.2); color: #3b82f6; }
 
-        .form-box h3 {
-            font-size: 28px;
+        .stat-card .number {
+            font-size: 18px;
             font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
+            margin-bottom: 2px;
         }
 
-        .form-box p {
-            color: #64748b;
-            font-size: 15px;
+        .stat-card .label {
+            font-size: 10px;
+            color: #94a3b8;
             font-weight: 500;
-            margin-bottom: 35px;
         }
 
-        /* Premium Input Elements */
-        .form-label {
-            font-weight: 600;
-            color: #334155;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .form-control {
-            height: 52px;
+        .trust {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 18px;
             border-radius: 12px;
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            padding: 12px 16px;
-            font-size: 15px;
-            font-weight: 500;
-            color: #0f172a;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 12px;
+            color: #cbd5e1;
+            backdrop-filter: blur(10px);
         }
 
-        .form-control:focus {
-            background: #ffffff;
-            border-color: #7f1d1d;
-            box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
-            outline: none;
-        }
-
-        /* CTA Login Button */
-        .btn-login {
-            width: 100%;
-            height: 52px;
-            border: none;
-            border-radius: 12px;
-            background: #7f1d1d;
-            color: #ffffff;
+        .trust i {
+            color: #22c55e;
             font-size: 16px;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(127, 29, 29, 0.15);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-top: 10px;
         }
 
-        .btn-login:hover {
-            background: #641616;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(127, 29, 29, 0.25);
+        /* ========== BEAUTIFUL LOGIN CARD ========== */
+        .login-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.7));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            padding: 40px 36px;
+            backdrop-filter: blur(28px);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.55),
+                0 0 0 1px rgba(225, 29, 72, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            position: relative;
+            overflow: hidden;
+            max-width: 440px;
+            width: 100%;
+            margin-left: auto;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
         }
 
-        .secure-badge {
+        .login-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 50px 90px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(225, 29, 72, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        /* Soft red glow orbs */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(225, 29, 72, 0.35), transparent 70%);
+            pointer-events: none;
+        }
+
+        .login-card::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            left: -60px;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, rgba(225, 29, 72, 0.18), transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Back link */
+        .back-link {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #f8fafc;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            color: #64748b;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 12.5px;
             font-weight: 600;
-            margin-top: 40px;
-            border: 1px solid #f1f5f9;
+            margin-bottom: 22px;
+            transition: 0.25s;
+            position: relative;
+            z-index: 2;
+        }
+        .back-link:hover {
+            color: #e11d48;
+            gap: 9px;
         }
 
-        .secure-badge i {
-            color: #16a34a;
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 2;
         }
 
-        /* Responsive Breakdowns */
-        @media (max-width: 992px) {
-            .brand-visual-panel {
-                display: none;
+        .login-header .lock {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(225, 29, 72, 0.25), rgba(225, 29, 72, 0.1));
+            border: 1px solid rgba(225, 29, 72, 0.4);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            color: #e11d48;
+            font-size: 22px;
+            box-shadow: 0 8px 24px rgba(225, 29, 72, 0.25);
+        }
+
+        .login-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+
+        .login-header p {
+            font-size: 13.5px;
+            color: #94a3b8;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 7px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap > i:first-child {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 15px;
+            z-index: 2;
+            transition: color 0.25s;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 50px;
+            padding: 10px 14px 10px 44px;
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 13.5px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .form-control::placeholder {
+            color: #64748b;
+        }
+
+        .form-control:focus {
+            border-color: #e11d48;
+            box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.2);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .form-control:focus + i,
+        .input-wrap:focus-within > i:first-child {
+            color: #e11d48;
+        }
+
+        /* Password */
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap .form-control {
+            padding-right: 48px;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 5;
+            transition: color 0.2s;
+        }
+
+        .password-toggle-btn:hover {
+            color: #e11d48;
+        }
+
+        /* CTA Button */
+        .btn-login {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(135deg, #e11d48, #be123c);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 10px 28px rgba(225, 29, 72, 0.45);
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 36px rgba(225, 29, 72, 0.55);
+            background: linear-gradient(135deg, #f43f5e, #e11d48);
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+
+        /* BOTTOM BAR */
+        .bottom-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 48px;
+            background: rgba(10,15,28,0.85);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .security-items {
+            display: flex;
+            gap: 24px;
+        }
+
+        .security-items span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .security-items i {
+            color: #22c55e;
+            font-size: 13px;
+        }
+
+        .version {
+            color: #64748b;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
+            .main {
+                grid-template-columns: 1fr;
+                gap: 30px;
             }
-            .form-panel {
-                padding: 40px 20px;
+            .left-content h2 {
+                font-size: 36px;
+            }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .login-card {
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar, .main, .bottom-bar {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .login-card {
+                padding: 28px 22px;
             }
         }
     </style>
 </head>
 <body>
-
-    <div class="login-split-container">
-        
-        <!-- Left Banner View Group -->
-        <div class="brand-visual-panel">
-            <div class="brand-logo">
-                <h2>Freight CRM</h2>
-                <small>Client Portal</small>
+    <div class="page">
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="brand">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Al Qabandi & Partners Co." class="brand-logo-img">
+                <div class="brand-text">
+                    <h1>AL QABANDI & PARTNERS CO.</h1>
+                    <p>Freight Forwarding & Logistics</p>
+                </div>
             </div>
-            
-            <div class="brand-hero-text">
-                <h1>Modern Logistics,<br>Simplified Tracking.</h1>
-                <p>Access your digital dashboard, manage documents, and stream seamless real-time fleet operations updates instantly.</p>
-            </div>
-            
-            <div class="brand-footer">
-                © {{ current_year if current_year else "2026" }} Freight CRM. Global Supply Chain Solutions.
+            <div class="lang-select">
+                <i class="bi bi-globe2"></i> English
             </div>
         </div>
 
-        <!-- Right Core Action Form Block -->
-        <div class="form-panel">
-            <div class="form-box">
-                
-                <!-- Display Flash Error/Success Messages Directly Inside Form Box -->
+        <!-- MAIN -->
+        <div class="main">
+            <!-- LEFT -->
+            <div class="left-content">
+                <h2>GLOBAL FREIGHT<br><span>INTELLIGENCE</span></h2>
+                <p class="tagline">Smarter Logistics. Stronger Connections.<br>Delivering value across every mile.</p>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="icon"><i class="bi bi-box-seam"></i></div>
+                        <div class="number">12,458+</div>
+                        <div class="label">Shipments Managed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon"><i class="bi bi-globe2"></i></div>
+                        <div class="number">64+</div>
+                        <div class="label">Countries Connected</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon"><i class="bi bi-check-circle"></i></div>
+                        <div class="number">98.7%</div>
+                        <div class="label">On-Time Delivery</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon"><i class="bi bi-clock-history"></i></div>
+                        <div class="number">24×7</div>
+                        <div class="label">Real-Time Tracking</div>
+                    </div>
+                </div>
+
+                <div class="trust">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Trusted by Businesses Worldwide • Your cargo. Our responsibility.</span>
+                </div>
+            </div>
+
+            <!-- RIGHT LOGIN CARD -->
+            <div class="login-card">
+                <a href="{{ url_for('auth.login') }}" class="back-link">
+                    <i class="bi bi-arrow-left"></i> Back to Main Login
+                </a>
+
+                <div class="login-header">
+                    <div class="lock"><i class="bi bi-shield-lock-fill"></i></div>
+                    <h3>Welcome Back</h3>
+                    <p>Login to your Freight CRM account</p>
+                </div>
+
+                <!-- Display Flash Messages -->
                 {% with messages=get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category,message in messages %}
-                            <div class="alert alert-{{category}} mb-4 rounded-3 py-3 border-0">
+                            <div class="alert alert-{{category}} mb-3 rounded-3 py-2 border-0 text-white bg-danger bg-opacity-75" style="font-size: 13px;">
                                 {{message}}
                             </div>
                         {% endfor %}
                     {% endif %}
                 {% endwith %}
 
-                <h3>Welcome Back</h3>
-                <p>Please enter your account details to continue.</p>
-
                 <form method="POST">
                     {{ form.hidden_tag() }}
 
-                    <div class="mb-3">
+                    <div class="form-group">
                         {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control", placeholder="Username or Email") }}
+                        <div class="input-wrap">
+                            <i class="bi bi-envelope"></i>
+                            {{ form.username(class="form-control", placeholder="Enter your email or username") }}
+                        </div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="form-group">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control", placeholder="••••••••") }}
+                        <div class="input-wrap password-wrap">
+                            <i class="bi bi-lock"></i>
+                            {{ form.password(class="form-control", placeholder="••••••••", id="passwordField") }}
+                            <button type="button" class="password-toggle-btn" id="togglePassword" title="Click to peek password for 1 second">
+                                <i class="bi bi-eye-slash" id="eyeIcon"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="d-grid">
+                    <div class="d-grid mt-4">
                         {{ form.submit(class="btn-login") }}
                     </div>
                 </form>
-
-                <div class="text-center">
-                    <div class="secure-badge">
-                        <i class="bi bi-shield-check"></i> End-to-End Encrypted Session
-                    </div>
-                </div>
-
             </div>
         </div>
 
+        <!-- BOTTOM BAR -->
+        <div class="bottom-bar">
+            <div class="security-items">
+                <span><i class="bi bi-shield-check"></i> 256-bit SSL Encryption</span>
+                <span><i class="bi bi-cloud-check"></i> ISO 27001 Certified</span>
+                <span><i class="bi bi-database-check"></i> Secure Data Infrastructure</span>
+                <span><i class="bi bi-headset"></i> 24/7 Support Always Here</span>
+            </div>
+            <div class="version">
+                © 2026 Al Qabandi & Partners Co. • Freight CRM v2.0.0
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script for Password 1-Second Active Peek Toggle -->
+    <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordField = document.getElementById('passwordField');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        if (togglePassword && passwordField && eyeIcon) {
+            let peekTimeout = null;
+
+            togglePassword.addEventListener('click', function () {
+                if (passwordField.getAttribute('type') === 'text') return;
+
+                passwordField.setAttribute('type', 'text');
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
+
+                if (peekTimeout) clearTimeout(peekTimeout);
+
+                peekTimeout = setTimeout(() => {
+                    passwordField.setAttribute('type', 'password');
+                    eyeIcon.classList.remove('bi-eye');
+                    eyeIcon.classList.add('bi-eye-slash');
+                }, 1000);
+            });
+        }
+    </script>
 </body>
 </html>
