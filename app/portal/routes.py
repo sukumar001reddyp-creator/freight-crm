@@ -20,6 +20,7 @@ from app.models import (
     Client,
     ClientPortalUser,
     Shipment,
+    ShipmentMilestone,
     ClientAttachment,
     SupportTicket,
     SupportMessage,
@@ -60,9 +61,9 @@ def shipment():
         return redirect(url_for("portal.login"))
 
     shipment_id = request.args.get("id", type=int)
+    search_query = request.args.get("q", "").strip()
 
     if shipment_id:
-
         shipment = Shipment.query.filter_by(
             id=shipment_id,
             client_id=session["portal_client_id"]
@@ -73,16 +74,22 @@ def shipment():
             shipment=shipment
         )
 
-    shipments = (
-        Shipment.query
-        .filter_by(client_id=session["portal_client_id"])
-        .order_by(Shipment.created_at.desc())
-        .all()
-    )
+    # డేటాబేస్ లెవెల్ సర్చ్ క్వెరీ
+    query = Shipment.query.filter_by(client_id=session["portal_client_id"])
+    
+    if search_query:
+        query = query.filter(
+            (Shipment.shipment_reference.ilike(f"%{search_query}%")) |
+            (Shipment.origin.ilike(f"%{search_query}%")) |
+            (Shipment.destination.ilike(f"%{search_query}%"))
+        )
+
+    shipments = query.order_by(Shipment.created_at.desc()).all()
 
     return render_template(
         "portal/shipment.html",
-        shipments=shipments
+        shipments=shipments,
+        search_query=search_query
     )
 
 @portal_bp.route("/documents")
@@ -326,3 +333,47 @@ def change_password():
     flash("Password changed successfully.", "success")
 
     return redirect(url_for("portal.profile"))
+
+@portal_bp.route("/tracking")
+def tracking():
+    if "portal_user_id" not in session:
+        return redirect(url_for("portal.login"))
+
+    portal_client_id = session["portal_client_id"]
+    shipment_id = request.args.get("id", type=int)
+    ref_query = request.args.get("ref", "").strip()
+
+    shipment = None
+    shipment_data = []
+
+    if shipment_id:
+        shipment = Shipment.query.filter_by(
+            id=shipment_id,
+            client_id=portal_client_id
+        ).first()
+    elif ref_query:
+        # షిప్‌మెంట్ నెంబర్ టైప్ చేసి సెర్చ్ చేసినప్పుడు
+        shipment = Shipment.query.filter(
+            Shipment.client_id == portal_client_id,
+            Shipment.shipment_reference.ilike(f"%{ref_query}%")
+        ).first()
+
+    if shipment:
+        milestones = ShipmentMilestone.query.filter_by(shipment_id=shipment.id).all()
+        completed_stages = {m.stage for m in milestones}
+        shipment_data = [{
+            "shipment": shipment,
+            "completed_stages": completed_stages
+        }]
+
+    return render_template(
+        "portal/tracking.html",
+        shipment_data=shipment_data,
+        search_ref=ref_query
+    )
+    return render_template(
+        "portal/tracking.html",
+        shipment_data=shipment_data,
+        all_shipments=all_shipments,
+        selected_id=shipment_id or (all_shipments[0].id if all_shipments else None)
+    )
