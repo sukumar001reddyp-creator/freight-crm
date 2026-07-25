@@ -49,9 +49,19 @@ def dashboard():
         .all()
     )
 
+    # స్టేటస్ వారీగా కౌంట్స్ లెక్కించడం
+    total_shipments = len(shipments)
+    
+    # మీ డేటాబేస్‌లో షిప్‌మెంట్ స్టేటస్ కాలమ్ పేరు 'shipment_status' కాబట్టి దాన్ని బట్టి ఫిల్టర్ చేయండి
+    active_shipments = sum(1 for s in shipments if s.shipment_status != 'delivered') # ఒకవేళ డెలివరీ కానివి లేదా ఆక్టివ్ గా ఉన్నవి
+    delivered_shipments = sum(1 for s in shipments if s.shipment_status == 'delivered')
+
     return render_template(
         "portal/dashboard.html",
-        shipments=shipments
+        shipments=shipments,
+        total_shipments=total_shipments,
+        active_shipments=active_shipments,
+        delivered_shipments=delivered_shipments
     )
 
 @portal_bp.route("/shipment")
