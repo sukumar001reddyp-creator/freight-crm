@@ -264,7 +264,7 @@ body {
 <div class="stats">
     <div class="stat-card">
         <div class="stat-main">
-            <h3>{{ shipments|length }}</h3>
+            <h3>{{ total_shipments }}</h3>
             <span>Total Shipments</span>
         </div>
         <div class="stat-icon bg-red">
@@ -274,7 +274,7 @@ body {
     
     <div class="stat-card">
         <div class="stat-main">
-            <h3>{{ shipments|length }}</h3>
+            <h3>{{ active_shipments }}</h3>
             <span>Active Shipments</span>
         </div>
         <div class="stat-icon bg-blue">
@@ -284,7 +284,7 @@ body {
     
     <div class="stat-card">
         <div class="stat-main">
-            <h3>{{ shipments|length }}</h3>
+            <h3>{{ delivered_shipments }}</h3>
             <span>Delivered</span>
         </div>
         <div class="stat-icon bg-green">
