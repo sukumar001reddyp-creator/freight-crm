@@ -352,7 +352,102 @@
 
 </div>
 
-<div class="detail-card">
+
+<!-- ======================================
+     CUSTOMS CLEARANCE (CLOSING కి పైకి సెట్ చేయబడింది)
+     ====================================== -->
+<div class="detail-card customs-clearance-card" style="margin-top: 20px;">
+    <div class="card-heading">
+        <span class="heading-icon customs-heading-icon"><i class="bi bi-shield-check"></i></span>
+        <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
+    </div>
+    {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
+    {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
+    {% if customs_clearance %}
+    <div id="customsSummaryView" class="customs-summary-view">
+        <div class="customs-summary-grid">
+            <div class="customs-summary-item">
+                <span>Clearance Required</span>
+                <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
+            </div>
+            <div class="customs-summary-item">
+                <span>Status</span>
+                <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
+            </div>
+            <div class="customs-summary-item">
+                <span>Clearing Agent</span>
+                <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
+            </div>
+            <div class="customs-summary-item">
+                <span>Clearance Date</span>
+                <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
+            </div>
+        </div>
+
+        {% if customs_clearance.remarks %}
+        <div class="customs-summary-remarks">
+            <span>Remarks</span>
+            <p>{{ customs_clearance.remarks }}</p>
+        </div>
+        {% endif %}
+
+        <div class="customs-summary-footer">
+            <div class="customs-saved-meta">
+                <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
+                {% if customs_clearance.updated_by %}
+                <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
+                {% endif %}
+            </div>
+            <button type="button" id="editCustomsBtn" class="edit-customs-btn">
+                <i class="bi bi-pencil-square"></i> Edit Customs Clearance
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
+        <div class="customs-required-panel">
+            <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
+            <div class="customs-choice-group">
+                <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
+                <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
+            </div>
+        </div>
+        <div id="customsConditionalFields" class="customs-conditional-fields">
+            <div class="customs-form-grid">
+                <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
+                    <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
+                    <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
+                    <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
+                    <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
+                </select></div>
+                <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
+                <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
+            </div>
+        </div>
+        <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
+        <div class="customs-form-actions">
+            {% if customs_clearance %}
+            <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            {% endif %}
+            <button type="submit" class="save-customs-btn">
+                {% if customs_clearance %}
+                <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
+                {% else %}
+                <i class="bi bi-check2-circle"></i> Save Customs Clearance
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+
+<!-- ======================================
+     SHIPMENT CLOSING SECTION
+     ====================================== -->
+<div class="detail-card" style="margin-top: 20px;">
 {% set delivered_complete = "delivered" in completed_stages %}
 
                 {% if shipment_closure %}
@@ -716,7 +811,7 @@
 
             </div>
 
-        </div>
+</div>
 
 <div id="details" class="tracking-tab">
 
@@ -1166,104 +1261,11 @@
 
             </div>
 
-
-            <!-- CUSTOMS CLEARANCE -->
-            <div class="detail-card customs-clearance-card">
-                <div class="card-heading">
-                    <span class="heading-icon customs-heading-icon"><i class="bi bi-shield-check"></i></span>
-                    <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
-                </div>
-                {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
-                {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
-                {% if customs_clearance %}
-                <div id="customsSummaryView" class="customs-summary-view">
-                    <div class="customs-summary-grid">
-                        <div class="customs-summary-item">
-                            <span>Clearance Required</span>
-                            <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
-                        </div>
-                        <div class="customs-summary-item">
-                            <span>Status</span>
-                            <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
-                        </div>
-                        <div class="customs-summary-item">
-                            <span>Clearing Agent</span>
-                            <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
-                        </div>
-                        <div class="customs-summary-item">
-                            <span>Clearance Date</span>
-                            <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
-                        </div>
-                    </div>
-
-                    {% if customs_clearance.remarks %}
-                    <div class="customs-summary-remarks">
-                        <span>Remarks</span>
-                        <p>{{ customs_clearance.remarks }}</p>
-                    </div>
-                    {% endif %}
-
-                    <div class="customs-summary-footer">
-                        <div class="customs-saved-meta">
-                            <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
-                            {% if customs_clearance.updated_by %}
-                            <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
-                            {% endif %}
-                        </div>
-                        <button type="button" id="editCustomsBtn" class="edit-customs-btn">
-                            <i class="bi bi-pencil-square"></i> Edit Customs Clearance
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-
-                <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
-                    <div class="customs-required-panel">
-                        <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
-                        <div class="customs-choice-group">
-                            <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
-                            <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
-                        </div>
-                    </div>
-                    <div id="customsConditionalFields" class="customs-conditional-fields">
-                        <div class="customs-form-grid">
-                            <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
-                                <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
-                                <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
-                                <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
-                                <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
-                            </select></div>
-                            <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
-                            <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
-                        </div>
-                    </div>
-                    <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
-                    <div class="customs-form-actions">
-                        {% if customs_clearance %}
-                        <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </button>
-                        {% endif %}
-                        <button type="submit" class="save-customs-btn">
-                            {% if customs_clearance %}
-                            <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
-                            {% else %}
-                            <i class="bi bi-check2-circle"></i> Save Customs Clearance
-                            {% endif %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-
-            
-
-                
-
+</div>
 
             <!-- SOURCE RECORDS -->
 
-            <div class="detail-card">
+            <div class="detail-card" style="margin-top: 20px;">
 
                 <div class="card-heading">
 
@@ -1381,7 +1383,6 @@
 
             </div>
 
-        </div>
         </div>
 
         <!-- ======================================
