@@ -10,7 +10,7 @@
         <div>
             <span class="header-eyebrow" style="display: inline-block; margin-bottom: 7px; color: #1d4ed8; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;">OPERATIONS</span>
             <h1>Create Direct Shipment</h1>
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">Manually create a new shipment without quotation conversion.</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">Manually create a new shipment with complete client, operational and cost details.</p>
         </div>
         <a href="{{ url_for('shipments.shipment_list') }}" class="back-btn" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; color: #374151; text-decoration: none; font-weight: 700;">
             <i class="bi bi-arrow-left"></i> Back
@@ -19,36 +19,53 @@
 
     <form method="POST" class="quotation-form-card" style="padding: 26px; border: 1px solid #e5e7eb; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);">
         
-        <!-- CLIENT DETAILS -->
+        <!-- SECTION 1: Client Information with Toggle (As per Screenshot) -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3>Client Details</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">1. Client Information</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
-                <div class="form-field form-field-full" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Client <span style="color: #b91c1c;">*</span></label>
-                    <select name="client_id" id="clientSelect" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
-                        <option value="">Select Client</option>
+                
+                <!-- Client Type Toggle Box -->
+                <div class="form-field form-field-full" style="grid-column: 1 / -1; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 8px;">Client Selection Type *</label>
+                    <div style="display: flex; gap: 20px;">
+                        <label style="font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="client_type" value="existing" checked onclick="toggleClientType('existing')"> Existing Client
+                        </label>
+                        <label style="font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="client_type" value="new" onclick="toggleClientType('new')"> New / Walk-in Client
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Existing Client Dropdown -->
+                <div class="form-field form-field-full" id="existingClientDiv" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 7px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Select Client <span style="color: #b91c1c;">*</span></label>
+                    <select name="client_id" id="clientSelect" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                        <option value="">Search or select existing client...</option>
                         {% for client in clients_list %}
                         <option value="{{ client.id }}">{{ client.company_name }}</option>
                         {% endfor %}
-                        <option value="others">Others</option>
                     </select>
-                    <div id="otherClientBox" style="display:none; margin-top:12px;">
-                        <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter Client Name" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
-                    </div>
+                </div>
+
+                <!-- New Client Input Box -->
+                <div class="form-field form-field-full" id="newClientDiv" style="grid-column: 1 / -1; display: none; flex-direction: column; gap: 7px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">New Client Name <span style="color: #b91c1c;">*</span></label>
+                    <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter new client name" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
             </div>
         </div>
 
-        <!-- SHIPMENT DETAILS -->
+        <!-- SECTION 2: Route & Carrier Details -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3>Shipment Details</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">2. Route & Carrier Details</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Origin <span style="color: #b91c1c;">*</span></label>
                     <input type="text" name="origin" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Origin Port</label>
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Origin Port / POL</label>
                     <input type="text" name="origin_port" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
@@ -56,33 +73,44 @@
                     <input type="text" name="destination" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Destination Port</label>
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Destination Port / POD</label>
                     <input type="text" name="destination_port" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Mode of Shipment <span style="color: #b91c1c;">*</span></label>
-                    <select name="mode_of_shipment" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
-                        <option value="">Select</option>
-                        <option value="Sea">Sea</option>
-                        <option value="Air">Air</option>
-                        <option value="Road">Road</option>
-                    </select>
-                </div>
+    <label style="color: #374151; font-size: 13px; font-weight: 700;">Mode of Shipment <span style="color: #b91c1c;">*</span></label>
+    <select name="mode_of_shipment" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+        <option value="">Select Mode</option>
+        <option value="air_freight">Air Freight</option>
+        <option value="sea_freight">Sea Freight</option>
+        <option value="land_freight">Land / Road Freight</option>
+    </select>
+</div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">HBL / Tracking No.</label>
                     <input type="text" name="hbl_no" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
+                <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Shipping Line / Airline</label>
+                    <input type="text" name="shipping_line" placeholder="e.g. Maersk / Emirates" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                </div>
+                <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Vessel / Flight</label>
+                    <input type="text" name="vessel" placeholder="Vessel or flight number" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: Cargo Specifications -->
+        <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">3. Cargo Specifications</h3>
+            <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field form-field-full" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Cargo Description</label>
-                    <textarea name="cargo_description" rows="3" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;"></textarea>
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Cargo Description <span style="color: #b91c1c;">*</span></label>
+                    <textarea name="cargo_description" rows="3" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;"></textarea>
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Weight / Volume</label>
-                    <input type="text" name="cargo_weight_volume" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
-                </div>
-                <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Shipping Line / Airline</label>
-                    <input type="text" name="shipping_line" placeholder="e.g. Maersk/Emirates" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="text" name="cargo_weight_volume" placeholder="e.g. 500 kg / 2 CBM" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">No. of Containers</label>
@@ -93,19 +121,30 @@
                     <input type="text" name="container_type" value="40HC" placeholder="e.g. 40HC" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">ETD</label>
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Container No.</label>
+                    <input type="text" name="container_no" placeholder="Container Number" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: Schedule & Timeline -->
+        <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">4. Schedule & Timeline</h3>
+            <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
+                <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">ETD (Estimated Departure)</label>
                     <input type="datetime-local" name="etd" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">ETA</label>
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">ETA (Estimated Arrival)</label>
                     <input type="datetime-local" name="eta" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
             </div>
         </div>
 
-        <!-- COST BREAKDOWN -->
+        <!-- SECTION 5: Cost Breakdown & Pricing -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3>Cost Breakdown</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">5. Cost Breakdown & Pricing</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Ocean / Air Freight</label>
@@ -127,13 +166,6 @@
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Other Surcharges</label>
                     <input type="number" name="other_surcharges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
-            </div>
-        </div>
-
-        <!-- PRICING & DETAILS -->
-        <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3>Pricing Details</h3>
-            <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Selling Price / Amount <span style="color: #b91c1c;">*</span> <small style="color: #6b7280; font-weight: normal;">(Auto-calculated)</small></label>
                     <input type="number" name="quotation_amount" step="0.01" value="0.00" readonly required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background-color: #f3f4f6; cursor: not-allowed; font-weight: 800; color: #7f1d1d;">
@@ -181,21 +213,29 @@
         }
     });
 
-    const clientSelect = document.getElementById("clientSelect");
-    const otherClientBox = document.getElementById("otherClientBox");
-    const otherClientName = document.getElementById("otherClientName");
+    function toggleClientType(type) {
+        const existingDiv = document.getElementById("existingClientDiv");
+        const newDiv = document.getElementById("newClientDiv");
+        const clientSelect = document.getElementById("clientSelect");
+        const otherName = document.getElementById("otherClientName");
 
-    if (clientSelect) {
-        clientSelect.addEventListener("change", function () {
-            if (this.value === "others") {
-                otherClientBox.style.display = "block";
-                otherClientName.required = true;
-            } else {
-                otherClientBox.style.display = "none";
-                otherClientName.required = false;
-                otherClientName.value = "";
+        if (type === "existing") {
+            existingDiv.style.display = "flex";
+            newDiv.style.display = "none";
+            if (clientSelect) clientSelect.required = true;
+            if (otherName) {
+                otherName.required = false;
+                otherName.value = "";
             }
-        });
+        } else {
+            existingDiv.style.display = "none";
+            newDiv.style.display = "flex";
+            if (clientSelect) {
+                clientSelect.required = false;
+                clientSelect.value = "";
+            }
+            if (otherName) otherName.required = true;
+        }
     }
 
     calculateTotal();
