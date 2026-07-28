@@ -2183,6 +2183,7 @@ def create_direct_shipment():
         origin = request.form.get("origin", "").strip()
         destination = request.form.get("destination", "").strip()
         mode_of_shipment = request.form.get("mode_of_shipment", "").strip()
+        currency = request.form.get("currency", "USD").strip()
         cargo_description = request.form.get("cargo_description", "").strip()
         cargo_weight_volume = request.form.get("cargo_weight_volume", "").strip()
         hbl_no = request.form.get("hbl_no", "").strip()
@@ -2192,7 +2193,17 @@ def create_direct_shipment():
         container_type = request.form.get("container_type", "").strip()
         volume = request.form.get("volume", "").strip()
         handled_by_id = request.form.get("handled_by_id")
+
+        # Cost Breakdown fields catch chestunnamu
+        ocean_air_freight = Decimal(request.form.get("ocean_air_freight") or "0.00")
+        origin_charges = Decimal(request.form.get("origin_charges") or "0.00")
+        destination_charges = Decimal(request.form.get("destination_charges") or "0.00")
+        insurance_charges = Decimal(request.form.get("insurance_charges") or "0.00")
+        other_surcharges = Decimal(request.form.get("other_surcharges") or "0.00")
         
+        # Total amount calculate avtundi
+        quotation_amount = ocean_air_freight + origin_charges + destination_charges + insurance_charges + other_surcharges
+
         etd_value = request.form.get("etd", "").strip()
         eta_value = request.form.get("eta", "").strip()
 
@@ -2217,10 +2228,10 @@ def create_direct_shipment():
         from app.models import Quotation
         direct_quotation = Quotation(
             quotation_number=f"DIR-QUO-{int(datetime.now().timestamp())}",
-            client_id=int(client_id) if client_id and client_id != "other" else None,
-            other_client_name=other_client_name if client_id == "other" else None,
-            quotation_amount=Decimal("0.00"),
-            currency="USD",
+            client_id=int(client_id) if client_id and client_id != "other" and client_id != "others" else None,
+            other_client_name=other_client_name if client_id == "other" or client_id == "others" else None,
+            quotation_amount=quotation_amount, # <-- Ikkada calculated amount save avtundi
+            currency=currency,
             validity_date=date.today(),
             status="approved",
             origin=origin,
@@ -2236,8 +2247,8 @@ def create_direct_shipment():
         shipment = Shipment(
             shipment_reference=generate_shipment_reference(),
             quotation_id=direct_quotation.id,
-            client_id=int(client_id) if client_id and client_id != "other" else None,
-            other_client_name=other_client_name if client_id == "other" else None,
+            client_id=int(client_id) if client_id and client_id != "other" and client_id != "others" else None,
+            other_client_name=other_client_name if client_id == "other" or client_id == "others" else None,
             origin=origin,
             destination=destination,
             mode_of_shipment=mode_of_shipment,
