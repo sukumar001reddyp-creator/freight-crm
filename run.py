@@ -5,8 +5,17 @@ from app.models import User
 
 app = create_app()
 
-# Create default admin if it doesn't exist
+# Create default admin if it doesn't exist and synchronize database columns
 with app.app_context():
+    try:
+        with db.engine.connect() as connection:
+            connection.execute(db.text('ALTER TABLE shipment_documents ADD COLUMN IF NOT EXISTS file_path VARCHAR(500);'))
+            connection.execute(db.text('ALTER TABLE shipment_documents ADD COLUMN IF NOT EXISTS original_filename VARCHAR(255);'))
+            connection.commit()
+            print("✅ PostgreSQL columns synchronized successfully!")
+    except Exception as e:
+        print("Database sync note:", e)
+
     admin = User.query.filter_by(email="admin@freightcrm.com").first()
 
     if not admin:
@@ -32,5 +41,3 @@ if __name__ == "__main__":
         port=port,
         debug=False
     )
-
-    #run
