@@ -325,7 +325,7 @@ def shipment_list():
         .all()
     )
 
-    clients_list = db.session.execute(db.select(Client).order_by(Client.company_name)).scalars().all()
+    clients_list = db.session.execute(db.select(Client).where(Client.is_archived == False).order_by(Client.company_name)).scalars().all()
     
     from app.models import User
     users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
