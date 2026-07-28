@@ -16,58 +16,84 @@
         </div>
     </div>
 
-    <div class="detail-card" style="background: #fff; padding: 24px; border-radius: 14px; border: 1px solid #e5e7eb;">
+    <div class="detail-card" style="background: #fff; padding: 28px; border-radius: 14px; border: 1px solid #e5e7eb;">
         <form method="POST">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                
-                <div class="crm-field">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Client</label>
-                    <select name="client_id" id="clientSelect" onchange="toggleOtherClient(this)" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                        <option value="">Select Registered Client</option>
+            
+            <!-- SECTION 1: Client Selection -->
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: #7f1d1d; margin-bottom: 12px; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                1. Client Information
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div class="crm-field" style="grid-column: span 2; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 8px;">Client Selection Type *</label>
+                    <div style="display: flex; gap: 20px;">
+                        <label style="font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="client_type" value="existing" checked onclick="toggleClientType('existing')"> Existing Client
+                        </label>
+                        <label style="font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="client_type" value="new" onclick="toggleClientType('new')"> New / Walk-in Client
+                        </label>
+                    </div>
+                </div>
+
+                <div class="crm-field" id="existingClientDiv" style="grid-column: span 2;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Select Client *</label>
+                    <select name="client_id" id="clientSelect" style="width: 100%; height: 40px;">
+                        <option value="">Search or select existing client...</option>
                         {% for client in clients_list %}
                         <option value="{{ client.id }}">{{ client.company_name }}</option>
                         {% endfor %}
-                        <option value="other">Other / Walk-in Client</option>
                     </select>
                 </div>
 
-                <div class="crm-field" id="otherClientField" style="display: none;">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Other Client Name</label>
-                    <input type="text" name="other_client_name" placeholder="Enter client name" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                <div class="crm-field" id="newClientDiv" style="grid-column: span 2; display: none;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">New Client Name *</label>
+                    <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter new client name" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
+            </div>
 
+            <!-- SECTION 2: Route & Mode -->
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: #7f1d1d; margin-bottom: 12px; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                2. Route & Carrier Details
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
                 <div class="crm-field">
                     <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Mode of Shipment *</label>
                     <select name="mode_of_shipment" required style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                        <option value="air_freight">Air Freight</option>
-                        <option value="sea_freight">Sea Freight</option>
-                        <option value="land_freight">Land Freight</option>
+                        <option value="">Select Mode</option>
+                        <option value="Air">Air Freight</option>
+                        <option value="Sea">Sea Freight</option>
+                        <option value="Road">Land / Road Freight</option>
+                    </select>
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Currency *</label>
+                    <select name="currency" required style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        <option value="USD">USD</option>
+                        <option value="AED">AED</option>
+                        <option value="KWD">KWD</option>
                     </select>
                 </div>
 
                 <div class="crm-field">
                     <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Origin *</label>
-                    <input type="text" name="origin" required placeholder="Origin city or port" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                    <input type="text" name="origin" required placeholder="Origin city" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Origin Port / POL</label>
+                    <input type="text" name="origin_port" placeholder="Origin port or airport" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
 
                 <div class="crm-field">
                     <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Destination *</label>
-                    <input type="text" name="destination" required placeholder="Destination city or port" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                </div>
-
-                <div class="crm-field" style="grid-column: span 2;">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Cargo Description *</label>
-                    <textarea name="cargo_description" required rows="3" placeholder="Describe the cargo items" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;"></textarea>
+                    <input type="text" name="destination" required placeholder="Destination city" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
 
                 <div class="crm-field">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Weight / Volume</label>
-                    <input type="text" name="cargo_weight_volume" placeholder="e.g. 500 kg / 2 CBM" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                </div>
-
-                <div class="crm-field">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">HBL / Tracking No.</label>
-                    <input type="text" name="hbl_no" placeholder="Tracking or House Bill of Lading" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Destination Port / POD</label>
+                    <input type="text" name="destination_port" placeholder="Destination port or airport" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
 
                 <div class="crm-field">
@@ -79,17 +105,54 @@
                     <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Vessel / Flight</label>
                     <input type="text" name="vessel" placeholder="Vessel or flight number" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
+            </div>
+
+            <!-- SECTION 3: Cargo Details -->
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: #7f1d1d; margin-bottom: 12px; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                3. Cargo Specifications
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div class="crm-field" style="grid-column: span 2;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Cargo Description *</label>
+                    <textarea name="cargo_description" required rows="3" placeholder="Describe cargo items..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;"></textarea>
+                </div>
 
                 <div class="crm-field">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Container No.</label>
-                    <input type="text" name="container_no" placeholder="Container number" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Weight / Volume</label>
+                    <input type="text" name="cargo_weight_volume" placeholder="e.g. 500 kg / 2 CBM" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">HBL / Tracking No.</label>
+                    <input type="text" name="hbl_no" placeholder="Tracking Number" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">No. of Containers</label>
+                    <input type="number" name="no_of_containers" placeholder="0" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
 
                 <div class="crm-field">
                     <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Container Type</label>
-                    <input type="text" name="container_type" value="40HC" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                    <input type="text" name="container_type" value="40HC" placeholder="e.g. 40HC" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
 
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Incoterms</label>
+                    <input type="text" name="incoterms" placeholder="e.g. FOB, CIF" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">HS Code</label>
+                    <input type="text" name="hs_code" placeholder="HS Code" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+            </div>
+
+            <!-- SECTION 4: Schedule & Dates -->
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: #7f1d1d; margin-bottom: 12px; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                4. Schedule & Timeline
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
                 <div class="crm-field">
                     <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">ETD (Estimated Departure)</label>
                     <input type="datetime-local" name="etd" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
@@ -101,17 +164,48 @@
                 </div>
 
                 <div class="crm-field">
-                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Handled By</label>
-                    <select name="handled_by_id" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-                        {% for user in users_list %}
-                        <option value="{{ user.id }}" {% if user.id == current_user.id %}selected{% endif %}>{{ user.full_name }}</option>
-                        {% endfor %}
-                    </select>
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Cut-off Date (Doc)</label>
+                    <input type="datetime-local" name="cutoff_date_documentation" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
                 </div>
 
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Cut-off Date (Cargo)</label>
+                    <input type="datetime-local" name="cutoff_date_cargo" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Free Time (Days)</label>
+                    <input type="number" name="free_time_days" placeholder="0" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Transit Time (Days)</label>
+                    <input type="number" name="transit_time_days" placeholder="0" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
             </div>
 
-            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <!-- SECTION 5: Pricing & Remarks -->
+            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: #7f1d1d; margin-bottom: 12px; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                5. Pricing & Additional Info
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Cost Price</label>
+                    <input type="number" step="0.01" name="cost_price" placeholder="0.00" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Selling Price *</label>
+                    <input type="number" step="0.01" name="selling_price" required placeholder="0.00" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field" style="grid-column: span 2;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Additional Information</label>
+                    <textarea name="additional_information" rows="3" placeholder="Extra notes or remarks..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;"></textarea>
+                </div>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
                 <a href="{{ url_for('shipments.shipment_list') }}" class="btn" style="padding: 10px 16px; background: #f3f4f6; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; text-decoration: none; color: #374151; font-size: 12px;">Cancel</a>
                 <button type="submit" class="btn" style="padding: 10px 20px; background: #7f1d1d; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">
                     <i class="bi bi-check2-circle"></i> Create Shipment
@@ -122,12 +216,30 @@
 </div>
 
 <script>
-function toggleOtherClient(select) {
-    const otherField = document.getElementById("otherClientField");
-    if (select.value === "other") {
-        otherField.style.display = "block";
+$(document).ready(function() {
+    $('#clientSelect').select2({
+        placeholder: "Search or select existing client...",
+        width: '100%'
+    });
+});
+
+function toggleClientType(type) {
+    const existingDiv = document.getElementById("existingClientDiv");
+    const newDiv = document.getElementById("newClientDiv");
+    const clientSelect = document.getElementById("clientSelect");
+    const otherName = document.getElementById("otherClientName");
+
+    if (type === "existing") {
+        existingDiv.style.display = "block";
+        newDiv.style.display = "none";
+        $(clientSelect).prop('required', true);
+        otherName.required = false;
+        otherName.value = "";
     } else {
-        otherField.style.display = "none";
+        existingDiv.style.display = "none";
+        newDiv.style.display = "block";
+        $(clientSelect).prop('required', false);
+        otherName.required = true;
     }
 }
 </script>
