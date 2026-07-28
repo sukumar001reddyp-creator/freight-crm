@@ -515,6 +515,11 @@ class ShipmentDocument(db.Model):
     shipment_id = db.Column(db.Integer, db.ForeignKey("shipments.id", ondelete="CASCADE"), nullable=False, index=True)
     document_type = db.Column(db.String(100), nullable=False, index=True)
     document_name = db.Column(db.String(150), nullable=False)
+    
+    # కొత్తగా ఈ రెండు కాలమ్స్ ఇక్కడ యాడ్ చేయాలి
+    file_path = db.Column(db.String(500), nullable=True)
+    original_filename = db.Column(db.String(255), nullable=True)
+    
     status = db.Column(db.String(30), nullable=False, default="pending", index=True)
     remarks = db.Column(db.Text, nullable=True)
     received_at = db.Column(db.DateTime(timezone=True), nullable=True)

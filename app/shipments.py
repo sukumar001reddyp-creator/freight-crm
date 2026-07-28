@@ -8,6 +8,7 @@
 from datetime import datetime, date
 
 from app.pdf_generator import generate_shipment_pdf
+from decimal import Decimal
 
 from flask import (
     Blueprint,
@@ -271,6 +272,11 @@ def generate_shipment_reference():
 @shipments_bp.route("/")
 @login_required
 def shipment_list():
+    selected_search = request.args.get("search", "").strip()
+    selected_status = request.args.get("status", "").strip()
+    selected_mode = request.args.get("mode", "").strip()
+    selected_client_id = request.args.get("client_id", "").strip()
+    selected_handled_by_id = request.args.get("handled_by_id", "").strip()
 
     query = db.select(Shipment)
 
@@ -290,6 +296,25 @@ def shipment_list():
         from flask import abort
         abort(403)
 
+    if selected_search:
+        query = query.where(
+            (Shipment.shipment_reference.ilike(f"%{selected_search}%")) |
+            (Shipment.origin.ilike(f"%{selected_search}%")) |
+            (Shipment.destination.ilike(f"%{selected_search}%"))
+        )
+
+    if selected_status:
+        query = query.where(Shipment.shipment_status == selected_status)
+
+    if selected_mode:
+        query = query.where(Shipment.mode_of_shipment == selected_mode)
+
+    if selected_client_id:
+        query = query.where(Shipment.client_id == int(selected_client_id))
+
+    if selected_handled_by_id:
+        query = query.where(Shipment.handled_by_id == int(selected_handled_by_id))
+
     shipments = (
         db.session.execute(
             query.order_by(
@@ -300,9 +325,21 @@ def shipment_list():
         .all()
     )
 
+    clients_list = db.session.execute(db.select(Client).order_by(Client.company_name)).scalars().all()
+    
+    from app.models import User
+    users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
+
     return render_template(
         "shipments/list.html",
-        shipments=shipments
+        shipments=shipments,
+        clients_list=clients_list,
+        users_list=users_list,
+        selected_search=selected_search,
+        selected_status=selected_status,
+        selected_mode=selected_mode,
+        selected_client_id=selected_client_id,
+        selected_handled_by_id=selected_handled_by_id
     )
 
 
@@ -326,12 +363,7 @@ def convert_from_quotation(quotation_id):
     quotation_id
 )
 
-# Enquiry-based quotation or Direct quotation
     enquiry = quotation.enquiry if quotation.enquiry_id else None
-
-    # -----------------------------------------
-    # ONLY APPROVED QUOTATION CAN CONVERT
-    # -----------------------------------------
 
     if quotation.status != "approved":
 
@@ -350,10 +382,6 @@ def convert_from_quotation(quotation_id):
                 quotation_id=quotation.id
             )
         )
-
-    # -----------------------------------------
-    # PARTY DETAILS MUST EXIST
-    # -----------------------------------------
 
     from app.models import ShipmentPartyDetails
 
@@ -386,10 +414,6 @@ def convert_from_quotation(quotation_id):
             )
         )
 
-    # -----------------------------------------
-    # QUOTATION ALREADY CONVERTED?
-    # -----------------------------------------
-
     existing_by_quotation = (
         db.session.execute(
             db.select(Shipment)
@@ -421,10 +445,6 @@ def convert_from_quotation(quotation_id):
 
         )
 
-    # -----------------------------------------
-    # ENQUIRY ALREADY CONVERTED?
-    # (Only for enquiry-based quotations)
-    # -----------------------------------------
     if enquiry:
 
         existing_by_enquiry = (
@@ -456,96 +476,48 @@ def convert_from_quotation(quotation_id):
                 )
             )
 
-    # -----------------------------------------
-    # CREATE SHIPMENT OBJECT
-    # -----------------------------------------
-
     shipment = Shipment(
         shipment_reference=generate_shipment_reference(),
-
         enquiry_id=enquiry.id if enquiry else None,
-
         quotation_id=quotation.id,
-
         client_id=(
             enquiry.client_id
             if enquiry
             else quotation.client_id
         ),
-
         other_client_name=(
             None
             if enquiry
             else quotation.other_client_name
         ),
-
         origin=enquiry.origin if enquiry else quotation.origin,
-
         destination=enquiry.destination if enquiry else quotation.destination,
-
         mode_of_shipment=enquiry.mode_of_shipment if enquiry else quotation.mode_of_shipment,
-
         cargo_description=enquiry.cargo_description if enquiry else quotation.cargo_description,
-
         cargo_weight_volume=enquiry.cargo_weight_volume if enquiry else quotation.cargo_weight_volume,
-
         shipment_status="active",
         current_stage="booked",
-
         handled_by_id=(
             enquiry.handled_by_id
             if enquiry
             else quotation.created_by_id
         ),
-
         created_by_id=current_user.id,
     )
 
     if enquiry:
         enquiry.status = "converted"
 
-    # -----------------------------------------
-    # DEFAULT DOCUMENT CHECKLIST
-    # -----------------------------------------
-
     default_documents = [
-        (
-            "booking_confirmation",
-            "Booking Confirmation"
-        ),
-        (
-            "bill_of_lading_airway_bill",
-            "Bill of Lading / Airway Bill"
-        ),
-        (
-            "commercial_invoice",
-            "Commercial Invoice"
-        ),
-        (
-            "packing_list",
-            "Packing List"
-        ),
-        (
-            "certificate_of_origin",
-            "Certificate of Origin"
-        ),
-        (
-            "insurance_certificate",
-            "Insurance Certificate"
-        ),
-        (
-            "customs_declaration",
-            "Customs Declaration"
-        ),
-        (
-            "other_supporting_document",
-            "Other Supporting Documents"
-        ),
+        ("booking_confirmation", "Booking Confirmation"),
+        ("bill_of_lading_airway_bill", "Bill of Lading / Airway Bill"),
+        ("commercial_invoice", "Commercial Invoice"),
+        ("packing_list", "Packing List"),
+        ("certificate_of_origin", "Certificate of Origin"),
+        ("insurance_certificate", "Insurance Certificate"),
+        ("customs_declaration", "Customs Declaration"),
+        ("other_supporting_document", "Other Supporting Documents"),
     ]
-
-    # -----------------------------------------
-    # SAVE EVERYTHING IN ONE TRANSACTION
-    # -----------------------------------------
 
     try:
 
@@ -553,7 +525,6 @@ def convert_from_quotation(quotation_id):
             shipment
         )
 
-        # Generate shipment.id before documents
         db.session.flush()
 
         for document_type, document_name in default_documents:
@@ -708,9 +679,12 @@ def view_shipment(shipment_id):
         shipment_closure=shipment_closure,
     )
 
+
+
+
 # =========================================================
 # DOWNLOAD SHIPMENT PDF
-# URL:/shipments/<shipment_id>/download-pdf
+# URL: /shipments/<shipment_id>/download-pdf
 # =========================================================
 
 @shipments_bp.route(
@@ -788,6 +762,7 @@ def download_shipment_pdf(shipment_id):
         mimetype="application/pdf",
     )
 
+
 # =========================================================
 # UPDATE SHIPMENT DOCUMENT STATUS
 # URL: /shipments/<shipment_id>/documents/<document_id>/status
@@ -841,7 +816,6 @@ def update_document_status(
         document_id
     )
 
-    # Prevent updating a document through another shipment URL.
     if document.shipment_id != shipment.id:
 
         flash(
@@ -893,8 +867,6 @@ def update_document_status(
             remarks or None
         )
 
-        # Received metadata applies only when the
-        # document status is explicitly Received.
         if status == "received":
 
             if document.received_at is None:
@@ -1155,9 +1127,6 @@ def update_customs_clearance(shipment_id):
             current_user.id
         )
 
-        # If clearance is explicitly not required,
-        # remove any existing conditional customs milestone
-        # so the visible workflow remains consistent.
         if not clearance_required:
 
             existing_customs_milestone = (
@@ -1213,7 +1182,6 @@ def update_customs_clearance(shipment_id):
 
 # =========================================================
 # CLOSE SHIPMENT
-# Requirements Report Section 4.8
 # URL: /shipments/<shipment_id>/close
 # POST only
 # =========================================================
@@ -1224,8 +1192,6 @@ def update_customs_clearance(shipment_id):
 )
 @login_required
 def close_shipment(shipment_id):
-    print(">>> CLOSE SHIPMENT ROUTE CALLED")
-
     require_shipment_write_access()
 
     shipment = get_visible_shipment_or_404(
@@ -1236,7 +1202,6 @@ def close_shipment(shipment_id):
         shipment.id
     )
 
-    # Once closed, only Admin may update closure details.
     if (
         existing_closure is not None
         and current_user.role != "admin"
@@ -1267,7 +1232,6 @@ def close_shipment(shipment_id):
         .all()
     }
 
-    # Closure is allowed only after Delivered.
     if "delivered" not in completed_stages:
 
         flash(
@@ -1454,15 +1418,8 @@ def close_shipment(shipment_id):
 
         shipment.shipment_status = "closed"
         shipment.current_stage = "closed_completed"
-        print("Before Commit")
-        print("Stage:", shipment.current_stage)
-        print("Status:", shipment.shipment_status)
         db.session.commit()
         db.session.refresh(shipment)
-
-        print("After Commit")
-        print("Stage:", shipment.current_stage)
-        print("Status:", shipment.shipment_status)
 
     except Exception:
 
@@ -1541,10 +1498,6 @@ def complete_stage(
             )
         )
 
-    # -----------------------------------------
-    # VALID STAGE CHECK
-    # -----------------------------------------
-
     effective_stages = (
         get_effective_workflow_stages(
             shipment.id
@@ -1564,10 +1517,6 @@ def complete_stage(
                 shipment_id=shipment.id
             )
         )
-
-    # -----------------------------------------
-    # LOAD COMPLETED MILESTONES
-    # -----------------------------------------
 
     completed_milestones = (
         db.session.execute(
@@ -1589,10 +1538,6 @@ def complete_stage(
         for milestone in completed_milestones
     }
 
-    # -----------------------------------------
-    # DUPLICATE CHECK
-    # -----------------------------------------
-
     if stage in completed_stages:
 
         flash(
@@ -1606,10 +1551,6 @@ def complete_stage(
                 shipment_id=shipment.id
             )
         )
-
-    # -----------------------------------------
-    # STRICT ORDER CHECK
-    # -----------------------------------------
 
     next_stage = None
 
@@ -1635,10 +1576,6 @@ def complete_stage(
                 shipment_id=shipment.id
             )
         )
-
-    # -----------------------------------------
-    # CONDITIONAL CUSTOMS GATE
-    # -----------------------------------------
 
     if stage == "customs_clearance":
 
@@ -1697,19 +1634,11 @@ def complete_stage(
                 )
             )
 
-    # -----------------------------------------
-    # CREATE MILESTONE
-    # -----------------------------------------
-
     milestone = ShipmentMilestone(
         shipment_id=shipment.id,
         stage=stage,
         completed_by_id=current_user.id,
     )
-
-    # -----------------------------------------
-    # UPDATE SHIPMENT SUMMARY STATUS
-    # -----------------------------------------
 
     prospective_completed_stages = (
         completed_stages | {stage}
@@ -1721,9 +1650,6 @@ def complete_stage(
         )
     )
     shipment.current_stage = stage
-    # -----------------------------------------
-    # SAVE
-    # -----------------------------------------
 
     try:
 
@@ -1733,12 +1659,6 @@ def complete_stage(
 
         db.session.commit()
         db.session.refresh(shipment)
-
-        print("========== COMPLETE STAGE ==========")
-        print("Shipment ID:", shipment.id)
-        print("Current Stage:", shipment.current_stage)
-        print("Shipment Status:", shipment.shipment_status)
-        print("====================================")
 
     except Exception:
 
@@ -1777,10 +1697,6 @@ def complete_stage(
 # EDIT SHIPMENT
 # =========================================================
 
-# =========================================================
-# EDIT SHIPMENT
-# =========================================================
-
 @shipments_bp.route(
     "/<int:shipment_id>/edit",
     methods=["GET", "POST"]
@@ -1809,7 +1725,6 @@ def edit_shipment(shipment_id):
         cargo_description = request.form.get("cargo_description", "").strip()
         cargo_weight_volume = request.form.get("cargo_weight_volume", "").strip()
         
-        # ఇక్కడ ETD మరియు ETA ఫీల్డ్స్‌ని రిసీవ్ చేసుకుంటున్నాము
         etd_value = request.form.get("etd", "").strip()
         eta_value = request.form.get("eta", "").strip()
 
@@ -1825,7 +1740,6 @@ def edit_shipment(shipment_id):
             flash("Cargo description is required.", "danger")
             return render_template("shipments/edit.html", shipment=shipment)
 
-        # డేట్ మరియు టైమ్ పార్సింగ్ లాజిక్
         etd = None
         eta = None
         
@@ -1851,8 +1765,6 @@ def edit_shipment(shipment_id):
         shipment.destination = destination
         shipment.cargo_description = cargo_description
         shipment.cargo_weight_volume = cargo_weight_volume or None
-        
-        # షిప్‌మెంట్ ఆబ్జెక్ట్‌కు ETD, ETA అసైన్ చేయడం
         shipment.etd = etd
         shipment.eta = eta
 
@@ -1867,6 +1779,7 @@ def edit_shipment(shipment_id):
         return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
     return render_template("shipments/edit.html", shipment=shipment)
+
 
 # =========================================================
 # UNDO LAST SHIPMENT STAGE
@@ -1905,10 +1818,6 @@ def undo_last_stage(shipment_id):
                 shipment_id=shipment.id
             )
         )
-
-    # -----------------------------------------
-    # FIND LAST COMPLETED MILESTONE
-    # -----------------------------------------
 
     last_milestone = (
         db.session.execute(
@@ -1950,8 +1859,6 @@ def undo_last_stage(shipment_id):
             last_milestone
         )
 
-        # Admin undo of the final stage reopens the shipment
-        # and removes the closure record to keep both records aligned.
         if (
             undone_stage == "closed_completed"
             and existing_closure is not None
@@ -2050,7 +1957,6 @@ def track_shipment():
     milestones = []
     
     if search_query:
-        # Ikkada 'shipment_reference' thoti patu 'hbl_no' ni kuda check chesthunnam
         res = db.session.execute(
             db.select(Shipment)
             .where(
@@ -2088,3 +1994,296 @@ def track_shipment():
         ,milestones=milestones
         ,shipment_stages=SHIPMENT_STAGES
     )
+
+
+# =========================================================
+# DOWNLOAD INDIVIDUAL SHIPMENT DOCUMENT ROUTE
+# URL: /shipments/<shipment_id>/documents/<int:document_id>/download
+# =========================================================
+
+@shipments_bp.route(
+    "/<int:shipment_id>/documents/<int:document_id>/download"
+)
+@login_required
+def download_shipment_document(shipment_id, document_id):
+    shipment = get_visible_shipment_or_404(shipment_id)
+    document = db.get_or_404(ShipmentDocument, document_id)
+
+    if document.shipment_id != shipment.id:
+        flash("Document not found in this shipment.", "danger")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    if not document.file_path:
+        flash("No physical file attached to this document record.", "warning")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    import os
+    from flask import current_app
+    full_path = os.path.join(current_app.root_path, document.file_path.lstrip("/"))
+
+    if not os.path.exists(full_path):
+        flash("File missing from server storage.", "danger")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    return send_file(
+        full_path,
+        as_attachment=True,
+        download_name=document.original_filename or f"document_{document.id}"
+    )
+
+# =========================================================
+# DELETE INDIVIDUAL SHIPMENT DOCUMENT FILE
+# URL: /shipments/<shipment_id>/documents/<int:document_id>/delete-file
+# POST only
+# =========================================================
+
+@shipments_bp.route(
+    "/<int:shipment_id>/documents/<int:document_id>/delete-file",
+    methods=["POST"]
+)
+@login_required
+def delete_shipment_document_file(shipment_id, document_id):
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(shipment_id)
+
+    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+        flash("Closed shipments can be modified only by an Admin.", "warning")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    document = db.get_or_404(ShipmentDocument, document_id)
+
+    if document.shipment_id != shipment.id:
+        flash("Shipment document does not belong to this shipment.", "danger")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    import os
+    from flask import current_app
+
+    try:
+        if document.file_path:
+            full_path = os.path.join(current_app.root_path, document.file_path.lstrip("/"))
+            if os.path.exists(full_path):
+                os.remove(full_path)
+
+        document.file_path = None
+        document.original_filename = None
+        document.status = "pending"
+        document.received_at = None
+        document.received_by_id = None
+
+        db.session.commit()
+        flash(f"{document.document_name} file removed successfully.", "success")
+
+    except Exception:
+        db.session.rollback()
+        flash("Unable to delete document file.", "danger")
+
+    return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+
+# =========================================================
+# UPLOAD INDIVIDUAL SHIPMENT DOCUMENT
+# URL: /shipments/<shipment_id>/documents/<int:document_id>/upload-individual
+# POST only
+# =========================================================
+
+@shipments_bp.route(
+    "/<int:shipment_id>/documents/<int:document_id>/upload-individual",
+    methods=["POST"]
+)
+@login_required
+def upload_individual_shipment_document(shipment_id, document_id):
+
+    require_shipment_write_access()
+
+    shipment = get_visible_shipment_or_404(shipment_id)
+
+    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+        flash("Closed shipments can be modified only by an Admin.", "warning")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    document = db.get_or_404(ShipmentDocument, document_id)
+
+    if document.shipment_id != shipment.id:
+        flash("Shipment document does not belong to this shipment.", "danger")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    file = request.files.get("document_file")
+
+    if not file or file.filename == "":
+        flash("Please select a valid document file to upload.", "warning")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    import os
+    from werkzeug.utils import secure_filename
+    from flask import current_app
+
+    upload_folder = os.path.join(
+        current_app.root_path,
+        "static",
+        "uploads",
+        "shipments",
+        str(shipment.id)
+    )
+    os.makedirs(upload_folder, exist_ok=True)
+
+    allowed_extensions = {".pdf", ".jpg", ".jpeg", ".docx"}
+    ext = os.path.splitext(file.filename)[1].lower()
+
+    if ext not in allowed_extensions:
+        flash("Invalid file format. Only PDF, JPG, JPEG, and DOCX are allowed.", "danger")
+        return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+    try:
+        original_filename = secure_filename(file.filename)
+        unique_filename = f"{int(datetime.now().timestamp())}_{original_filename}"
+        file_path = os.path.join(upload_folder, unique_filename)
+        file.save(file_path)
+
+        # ఇక్కడ ఫైల్ పాత్ మరియు ఒరిజినల్ నేమ్ క్లియర్‌గా సేవ్ అవుతాయి
+        document.file_path = f"static/uploads/shipments/{shipment.id}/{unique_filename}"
+        document.original_filename = original_filename
+        document.status = "received"
+        document.received_at = datetime.now()
+        document.received_by_id = current_user.id
+
+        db.session.commit()
+        flash(f"{document.document_name} uploaded successfully.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash("Unable to upload document file.", "danger")
+
+    return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+
+# =========================================================
+# CREATE DIRECT SHIPMENT
+# URL: /shipments/create-direct
+# =========================================================
+
+@shipments_bp.route("/create-direct", methods=["GET", "POST"])
+@login_required
+def create_direct_shipment():
+    require_shipment_write_access()
+
+    clients_list = db.session.execute(db.select(Client).order_by(Client.company_name)).scalars().all()
+    
+    from app.models import User
+    users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
+
+    if request.method == "POST":
+        client_id = request.form.get("client_id")
+        other_client_name = request.form.get("other_client_name", "").strip()
+        origin = request.form.get("origin", "").strip()
+        destination = request.form.get("destination", "").strip()
+        mode_of_shipment = request.form.get("mode_of_shipment", "").strip()
+        cargo_description = request.form.get("cargo_description", "").strip()
+        cargo_weight_volume = request.form.get("cargo_weight_volume", "").strip()
+        hbl_no = request.form.get("hbl_no", "").strip()
+        shipping_line = request.form.get("shipping_line", "").strip()
+        vessel = request.form.get("vessel", "").strip()
+        container_no = request.form.get("container_no", "").strip()
+        container_type = request.form.get("container_type", "").strip()
+        volume = request.form.get("volume", "").strip()
+        handled_by_id = request.form.get("handled_by_id")
+        
+        etd_value = request.form.get("etd", "").strip()
+        eta_value = request.form.get("eta", "").strip()
+
+        if not origin or not destination or not cargo_description:
+            flash("Origin, Destination, and Cargo Description are required.", "danger")
+            return render_template("shipments/create_direct.html", clients_list=clients_list, users_list=users_list)
+
+        etd = None
+        eta = None
+        try:
+            if etd_value:
+                etd = datetime.strptime(etd_value, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            pass
+
+        try:
+            if eta_value:
+                eta = datetime.strptime(eta_value, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            pass
+
+        from app.models import Quotation
+        direct_quotation = Quotation(
+            quotation_number=f"DIR-QUO-{int(datetime.now().timestamp())}",
+            client_id=int(client_id) if client_id and client_id != "other" else None,
+            other_client_name=other_client_name if client_id == "other" else None,
+            quotation_amount=Decimal("0.00"),
+            currency="USD",
+            validity_date=date.today(),
+            status="approved",
+            origin=origin,
+            destination=destination,
+            mode_of_shipment=mode_of_shipment,
+            cargo_description=cargo_description,
+            cargo_weight_volume=cargo_weight_volume,
+            created_by_id=current_user.id
+        )
+        db.session.add(direct_quotation)
+        db.session.flush()
+
+        shipment = Shipment(
+            shipment_reference=generate_shipment_reference(),
+            quotation_id=direct_quotation.id,
+            client_id=int(client_id) if client_id and client_id != "other" else None,
+            other_client_name=other_client_name if client_id == "other" else None,
+            origin=origin,
+            destination=destination,
+            mode_of_shipment=mode_of_shipment,
+            cargo_description=cargo_description,
+            cargo_weight_volume=cargo_weight_volume or None,
+            shipment_status="active",
+            current_stage="booked",
+            hbl_no=hbl_no or None,
+            shipping_line=shipping_line or None,
+            vessel=vessel or None,
+            container_no=container_no or None,
+            container_type=container_type or "40HC",
+            volume=volume or None,
+            etd=etd,
+            eta=eta,
+            handled_by_id=int(handled_by_id) if handled_by_id else current_user.id,
+            created_by_id=current_user.id,
+        )
+
+        default_documents = [
+            ("booking_confirmation", "Booking Confirmation"),
+            ("bill_of_lading_airway_bill", "Bill of Lading / Airway Bill"),
+            ("commercial_invoice", "Commercial Invoice"),
+            ("packing_list", "Packing List"),
+            ("certificate_of_origin", "Certificate of Origin"),
+            ("insurance_certificate", "Insurance Certificate"),
+            ("customs_declaration", "Customs Declaration"),
+            ("other_supporting_document", "Other Supporting Documents"),
+        ]
+
+        try:
+            db.session.add(shipment)
+            db.session.flush()
+
+            for document_type, document_name in default_documents:
+                shipment_document = ShipmentDocument(
+                    shipment_id=shipment.id,
+                    document_type=document_type,
+                    document_name=document_name,
+                    status="pending",
+                    created_by_id=current_user.id,
+                )
+                db.session.add(shipment_document)
+
+            db.session.commit()
+            flash(f"Direct Shipment {shipment.shipment_reference} created successfully.", "success")
+            return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash("Unable to create direct shipment.", "danger")
+
+    return render_template("shipments/create_direct.html", clients_list=clients_list, users_list=users_list)

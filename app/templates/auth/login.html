@@ -307,10 +307,30 @@
             pointer-events: none;
         }
 
+        /* Password toggle icon style */
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 16px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover {
+            color: var(--text-dark);
+        }
+
         input[type="email"],
-        input[type="password"] {
+        input[type="password"],
+        input[type="text"] {
             width: 100%;
-            padding: 14px 16px 14px 46px;
+            padding: 14px 46px 14px 46px; /* Adjusted right padding for eye icon */
             border: 1px solid var(--border);
             border-radius: 10px;
             color: var(--text-dark);
@@ -319,6 +339,11 @@
             outline: none;
             font-family: inherit;
             transition: var(--transition);
+        }
+
+        /* Specific padding for email since it has no right icon */
+        input[type="email"] {
+            padding-right: 16px;
         }
 
         input::placeholder {
@@ -516,6 +541,10 @@
                 <div class="input-wrap">
                     <span class="input-icon"><i class="bi bi-lock"></i></span>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                    <!-- Eye Icon Button Added Here -->
+                    <button type="button" id="togglePassword" class="password-toggle">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
                 </div>
             </div>
 
@@ -539,6 +568,27 @@
     </section>
 
 </div>
+
+<!-- JavaScript for 1-Second Password Visibility -->
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    togglePassword.addEventListener('click', function () {
+        // Password type ni text ki change chesi eye icon ni open eye ga marchali
+        passwordInput.type = 'text';
+        eyeIcon.classList.remove('bi-eye');
+        eyeIcon.classList.add('bi-eye-slash');
+
+        // Exactly 1 second (1000 milliseconds) taruvatha malli normal (password) ga marali
+        setTimeout(function () {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('bi-eye-slash');
+            eyeIcon.classList.add('bi-eye');
+        }, 1000);
+    });
+</script>
 
 </body>
 </html>
