@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#7f1d1d">
-    <title>Login | Freight CRM</title>
+    <title>Login | AL QABANDI & PARTNERS CO.</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,13 +13,11 @@
 
     <style>
         :root {
-            --red-950: #450a0a;
             --red-900: #7f1d1d;
             --red-800: #991b1b;
             --red-700: #b91c1c;
             --red-600: #dc2626;
             --red-50: #fef2f2;
-
             --text-dark: #0f172a;
             --text-medium: #334155;
             --text-light: #64748b;
@@ -35,244 +33,234 @@
 
         body {
             min-height: 100vh;
-            padding: 40px 24px;
+            padding: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: "Inter", system-ui, sans-serif;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(239, 68, 68, 0.12), transparent 30%),
-                radial-gradient(circle at 90% 80%, rgba(185, 28, 28, 0.15), transparent 35%),
-                linear-gradient(135deg, #1e0505 0%, #3b0707 40%, #7f1d1d 100%);
+            background: #120202;
             -webkit-font-smoothing: antialiased;
         }
 
-        .login-wrapper {
+        /* MAIN CARD CONTAINER MATCHING back.png */
+        .login-card-container {
+            position: relative;
             width: 100%;
-            max-width: 1160px;
-            min-height: 680px;
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
+            max-width: 1280px;
+            height: 720px;
+            background: url("{{ url_for('static', filename='images/back.png') }}") no-repeat center center / cover;
+            border-radius: 28px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
-            background: #ffffff;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
         }
 
-        /* ===== LEFT BRAND PANEL ===== */
-        .brand-panel {
-            position: relative;
-            padding: 64px;
-            overflow: hidden;
-            color: #ffffff;
-            background: 
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.12), transparent 25%),
-                linear-gradient(145deg, #450a0a 0%, #7f1d1d 55%, #991b1b 100%);
-        }
-
-        .brand-panel::before {
-            content: "";
+        .login-grid-overlay {
             position: absolute;
-            top: -120px;
-            right: -120px;
-            width: 320px;
-            height: 320px;
-            border: 50px solid rgba(255, 255, 255, 0.03);
-            border-radius: 50%;
+            inset: 0;
+            display: grid;
+            grid-template-columns: 52% 48%;
         }
 
-        .brand-content {
-            position: relative;
-            z-index: 2;
-            height: 100%;
+        /* ===== LEFT SIDE CONTENT OVER IMAGE ===== */
+        .left-image-content {
+            padding: 50px 48px;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            color: #ffffff;
         }
 
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .brand-logo {
-            width: 48px;
-            height: 48px;
-            display: grid;
-            place-items: center;
-            border-radius: 14px;
-            color: var(--red-900);
-            background: #ffffff;
-            font-size: 22px;
-            font-weight: 800;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .brand-name strong {
-            display: block;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
-
-        .brand-name span {
-            color: rgba(255, 255, 255, 0.55);
-            font-size: 11px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-
-        .brand-main {
-            margin-top: 72px;
-        }
-
-        .brand-badge {
+        .secure-hub-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(6px);
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(127, 29, 29, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 99px;
             font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
+            width: fit-content;
+            backdrop-filter: blur(4px);
         }
 
-        .badge-dot {
+        .dot-indicator {
             width: 6px;
             height: 6px;
+            background: #34d399;
             border-radius: 50%;
-            background: #10b981;
-            box-shadow: 0 0 12px #10b981;
+            box-shadow: 0 0 8px #34d399;
         }
 
-        .brand-panel h1 {
-            max-width: 480px;
-            margin-top: 28px;
-            font-size: clamp(32px, 3.6vw, 46px);
+        /* EMBOSS & SHADOW STYLING FOR LEFT TEXT */
+        .brand-hero {
+            margin-top: 40px;
+        }
+
+        .brand-hero h1 {
+            font-size: clamp(34px, 3.8vw, 46px);
             font-weight: 800;
             line-height: 1.15;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+            /* Premium Emboss & Strong Shadow Effect */
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 
+                         0 4px 12px rgba(0, 0, 0, 0.7), 
+                         0 -1px 1px rgba(255, 255, 255, 0.3);
         }
 
-        .brand-panel p {
+        .brand-hero p {
+            font-size: 14.5px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.95);
             max-width: 440px;
-            margin-top: 18px;
-            color: rgba(255, 255, 255, 0.72);
-            font-size: 15px;
-            line-height: 1.65;
+            font-weight: 500;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8),
+                         0 1px 2px rgba(0, 0, 0, 0.9);
         }
 
+        /* Feature List Styling */
         .feature-list {
-            margin-top: 42px;
+            margin-top: 28px;
             display: grid;
-            gap: 14px;
+            gap: 12px;
         }
 
         .feature-item {
             display: flex;
             align-items: center;
-            gap: 14px;
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.92);
+            gap: 12px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
         }
 
         .feature-icon {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             display: grid;
             place-items: center;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.12);
-            font-size: 13px;
+            border-radius: 6px;
+            background: rgba(127, 29, 29, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+            color: #fca5a5;
         }
 
-        .brand-footer {
-            margin-top: auto;
-            padding-top: 40px;
-            color: rgba(255, 255, 255, 0.35);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
+        .brand-footer-text {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.75);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+            text-transform: uppercase;
         }
 
-        /* ===== RIGHT FORM PANEL ===== */
-        .form-panel {
-            padding: 64px 56px;
+        /* ===== RIGHT SIDE FORM PANEL ===== */
+        .right-form-section {
+            background: transparent;
+            padding: 32px 52px 32px 75px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: #ffffff;
+            overflow-y: auto;
         }
 
-        .form-top-badge {
+        .form-brand-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .company-logo-img {
+            height: 46px;
+            max-width: 150px;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+
+        .company-name-text strong {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.01em;
+        }
+
+        .company-name-text span {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--red-900);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .auth-badge-pill {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 999px;
-            color: var(--red-900);
+            gap: 5px;
+            padding: 4px 10px;
             background: var(--red-50);
-            font-size: 11px;
+            color: var(--red-900);
+            border-radius: 99px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 0.02em;
-            width: fit-content;
+            border: 1px solid rgba(127, 29, 29, 0.1);
+            margin: 6px auto 10px;
         }
 
-        .form-panel h2 {
-            margin-top: 22px;
+        .form-title-group h2 {
+            font-size: 23px;
+            font-weight: 800;
             color: var(--text-dark);
-            font-size: 30px;
-            font-weight: 700;
             letter-spacing: -0.03em;
+            margin-bottom: 2px;
         }
 
-        .subtitle {
-            margin-top: 8px;
-            margin-bottom: 22px;
+        .form-title-group p {
+            font-size: 12px;
             color: var(--text-light);
-            font-size: 14px;
-            line-height: 1.5;
+            margin-bottom: 12px;
         }
 
-        .portal-link-wrapper {
-            text-align: right;
-            margin-bottom: 22px;
+        .portal-link-box {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
         }
 
         .portal-link {
-            color: var(--red-900);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            background: #fafafa;
-            border: 1px solid var(--border);
-            transition: var(--transition);
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--red-900);
+            text-decoration: none;
+            padding: 5px 10px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: var(--transition);
         }
 
         .portal-link:hover {
             background: var(--red-50);
-            border-color: rgba(127, 29, 29, 0.25);
-            color: var(--red-800);
+            border-color: rgba(127, 29, 29, 0.3);
         }
 
         /* Flash Messages */
         .flash {
-            padding: 13px 16px;
-            margin-bottom: 18px;
-            border-radius: 12px;
-            font-size: 13px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            font-size: 12px;
             font-weight: 500;
             border-left: 4px solid transparent;
         }
@@ -282,15 +270,15 @@
         .flash-warning { color: #b45309; background: #fffbeb; border-left-color: #f59e0b; }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 12px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
             color: var(--text-medium);
-            font-size: 13px;
-            font-weight: 600;
         }
 
         .input-wrap {
@@ -300,24 +288,23 @@
         .input-icon {
             position: absolute;
             top: 50%;
-            left: 16px;
+            left: 12px;
             transform: translateY(-50%);
             color: #94a3b8;
-            font-size: 16px;
+            font-size: 14px;
             pointer-events: none;
         }
 
-        /* Password toggle icon style */
         .password-toggle {
             position: absolute;
             top: 50%;
-            right: 16px;
+            right: 12px;
             transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 16px;
-            cursor: pointer;
             background: none;
             border: none;
+            color: #94a3b8;
+            font-size: 14px;
+            cursor: pointer;
             padding: 0;
             transition: color 0.2s;
         }
@@ -330,20 +317,19 @@
         input[type="password"],
         input[type="text"] {
             width: 100%;
-            padding: 14px 46px 14px 46px; /* Adjusted right padding for eye icon */
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text-dark);
+            padding: 10px 38px 10px 38px;
             background: #f8fafc;
-            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12.5px;
+            color: var(--text-dark);
             outline: none;
             font-family: inherit;
             transition: var(--transition);
         }
 
-        /* Specific padding for email since it has no right icon */
         input[type="email"] {
-            padding-right: 16px;
+            padding-right: 12px;
         }
 
         input::placeholder {
@@ -353,52 +339,65 @@
         input:focus {
             border-color: var(--red-700);
             background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.1);
+            box-shadow: 0 0 0 3px rgba(127, 29, 29, 0.1);
         }
 
-        .remember-row {
-            margin: 6px 0 24px;
+        .remember-forgot-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 4px 0 14px;
         }
 
         .remember-label {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 7px;
+            font-size: 11.5px;
             color: var(--text-medium);
-            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
         }
 
         .remember-label input {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             accent-color: var(--red-700);
             cursor: pointer;
         }
 
+        .forgot-password-link {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--red-900);
+            text-decoration: none;
+        }
+
+        .forgot-password-link:hover {
+            text-decoration: underline;
+        }
+
         .login-button {
             width: 100%;
-            min-height: 50px;
-            padding: 12px 24px;
+            min-height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            border: 0;
-            border-radius: 10px;
-            color: #ffffff;
+            gap: 8px;
             background: linear-gradient(135deg, var(--red-800) 0%, var(--red-600) 100%);
-            font-size: 14px;
-            font-weight: 600;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(127, 29, 29, 0.25);
+            box-shadow: 0 4px 12px rgba(127, 29, 29, 0.25);
             transition: var(--transition);
         }
 
         .login-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(127, 29, 29, 0.35);
+            box-shadow: 0 8px 18px rgba(127, 29, 29, 0.35);
         }
 
         .login-button i {
@@ -409,14 +408,14 @@
             transform: translateX(4px);
         }
 
-        .security-note {
-            margin-top: 28px;
+        .security-footer-note {
+            margin-top: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
+            font-size: 11px;
             color: var(--text-light);
-            font-size: 12px;
             text-align: center;
         }
 
@@ -426,58 +425,33 @@
 
         /* Responsive */
         @media (max-width: 960px) {
-            body { padding: 20px; }
-            .login-wrapper { 
-                max-width: 480px; 
-                grid-template-columns: 1fr; 
-            }
-            .brand-panel { display: none; }
-            .form-panel { padding: 48px 32px; }
-        }
-
-        @media (max-width: 480px) {
-            body { 
-                padding: 0; 
-                align-items: stretch; 
-                background: #ffffff; 
-            }
-            .login-wrapper { 
-                min-height: 100vh; 
-                border: 0; 
-                border-radius: 0; 
-                box-shadow: none; 
-            }
-            .form-panel { 
-                min-height: 100vh; 
-                padding: 40px 20px; 
-            }
-            .form-panel h2 { font-size: 26px; }
+            body { padding: 12px; }
+            .login-card-container { max-width: 460px; height: auto; background: #ffffff; }
+            .login-grid-overlay { grid-template-columns: 1fr; position: relative; }
+            .left-image-content { display: none; }
+            .right-form-section { padding: 40px 24px; background: #ffffff; }
         }
     </style>
 </head>
 <body>
 
-<div class="login-wrapper">
+<div class="login-card-container">
 
-    <!-- LEFT BRAND PANEL -->
-    <section class="brand-panel">
-        <div class="brand-content">
-            <div class="brand-header">
-                <div class="brand-logo">F</div>
-                <div class="brand-name">
-                    <strong>FreightCRM</strong>
-                    <span>Client & Shipment Hub</span>
+    <div class="login-grid-overlay">
+        
+        <!-- LEFT SIDE CONTENT OVER back.png -->
+        <section class="left-image-content">
+            <div>
+                <div class="secure-hub-badge">
+                    <span class="dot-indicator"></span>
+                    Secure Logistics Hub
                 </div>
             </div>
 
-            <div class="brand-main">
-                <div class="brand-badge">
-                    <span class="badge-dot"></span>
-                    Unified Freight Workspace
-                </div>
+            <div class="brand-hero">
                 <h1>Move freight.<br>Manage clients.<br>Track everything.</h1>
                 <p>One secure workspace for client relationships, enquiries, quotations, shipment operations, and delivery visibility.</p>
-
+                
                 <div class="feature-list">
                     <div class="feature-item">
                         <span class="feature-icon"><i class="bi bi-check2"></i></span>
@@ -494,78 +468,90 @@
                 </div>
             </div>
 
-            <div class="brand-footer">
+            <div class="brand-footer-text">
                 FREIGHT FORWARDING CRM • SECURE INTERNAL ACCESS
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- RIGHT FORM PANEL -->
-    <section class="form-panel">
-        <div class="form-top-badge">
-            <i class="bi bi-shield-lock-fill"></i>
-            Secure Workspace
-        </div>
+        <!-- RIGHT SIDE FORM PANEL OVER THE WHITE AREA OF back.png -->
+        <section class="right-form-section">
+            <div class="form-brand-header">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="company-logo-img" onerror="this.style.display='none';">
+                <div class="company-name-text">
+                    <strong>AL QABANDI & PARTNERS CO.</strong>
+                    <span>Freight Forwarding & Logistics</span>
+                </div>
+            </div>
 
-        <h2>Welcome back</h2>
-        <p class="subtitle">Sign in with your authorized account to access the Freight CRM dashboard.</p>
-        
-        <div class="portal-link-wrapper">
-            <a href="{{ url_for('portal.login') }}" class="portal-link">
-                Client Portal Login <i class="bi bi-arrow-right-short"></i>
-            </a>
-        </div>
+            <div style="text-align: center;">
+                <div class="auth-badge-pill">
+                    <i class="bi bi-shield-lock-fill"></i> Authorized Access Only
+                </div>
+            </div>
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash flash-{{ category }}">
-                        {{ message }}
+            <div class="form-title-group">
+                <h2>Welcome Back</h2>
+                <p>Please enter your credentials to access your dashboard.</p>
+            </div>
+            
+            <div class="portal-link-box">
+                <a href="{{ url_for('portal.login') }}" class="portal-link">
+                    Client Portal Login <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrap">
+                        <span class="input-icon"><i class="bi bi-envelope"></i></span>
+                        <input type="email" id="email" name="email" placeholder="admin@alqabandi.com" required autocomplete="email">
                     </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <div class="input-wrap">
-                    <span class="input-icon"><i class="bi bi-envelope"></i></span>
-                    <input type="email" id="email" name="email" placeholder="admin@freightcrm.com" required autocomplete="email">
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div class="input-wrap">
-                    <span class="input-icon"><i class="bi bi-lock"></i></span>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-                    <!-- Eye Icon Button Added Here -->
-                    <button type="button" id="togglePassword" class="password-toggle">
-                        <i class="bi bi-eye" id="eyeIcon"></i>
-                    </button>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <span class="input-icon"><i class="bi bi-lock"></i></span>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                        <button type="button" id="togglePassword" class="password-toggle">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="remember-row">
-                <label class="remember-label">
-                    <input type="checkbox" name="remember">
-                    Remember me
-                </label>
-            </div>
+                <div class="remember-forgot-row">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember">
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-password-link">Forgot Password?</a>
+                </div>
 
-            <button type="submit" class="login-button">
-                <span>Sign In to CRM</span>
-                <i class="bi bi-arrow-right"></i>
-            </button>
-        </form>
+                <button type="submit" class="login-button">
+                    <span>Sign In to Dashboard</span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
 
-        <p class="security-note">
-            <i class="bi bi-patch-check-fill security-shield"></i>
-            Protected internal system. Access restricted to authorized staff.
-        </p>
-    </section>
+            <p class="security-footer-note">
+                <i class="bi bi-patch-check-fill security-shield"></i>
+                Secured internal corporate network.
+            </p>
+        </section>
+
+    </div>
 
 </div>
 
@@ -576,12 +562,10 @@
     const eyeIcon = document.getElementById('eyeIcon');
 
     togglePassword.addEventListener('click', function () {
-        // Password type ni text ki change chesi eye icon ni open eye ga marchali
         passwordInput.type = 'text';
         eyeIcon.classList.remove('bi-eye');
         eyeIcon.classList.add('bi-eye-slash');
 
-        // Exactly 1 second (1000 milliseconds) taruvatha malli normal (password) ga marali
         setTimeout(function () {
             passwordInput.type = 'password';
             eyeIcon.classList.remove('bi-eye-slash');
