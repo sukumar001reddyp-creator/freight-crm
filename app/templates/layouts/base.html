@@ -15,6 +15,9 @@
     <!-- Base CRM Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/crm.css', v='20260706-2') }}">
 
+    <!-- Select2 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     {% block extra_css %}{% endblock %}
 
 <style>
@@ -41,10 +44,10 @@
 
 /* Header Topbar Refresh with Light Green Touch */
 .topbar {
-    background: rgba(236, 253, 245, 0.85) !important; /* Soft light green tint */
+    background: rgba(236, 253, 245, 0.85) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid #d1fae5; /* Light green subtle border */
+    border-bottom: 1px solid #d1fae5;
     padding: 14px 24px;
 }
 
@@ -61,12 +64,10 @@
     margin-top: 2px;
 }
 
-/* Actions Restyling */
 .topbar-actions {
     gap: 12px;
 }
 
-/* Action Icon Buttons */
 .top-action-btn {
     width: 40px;
     height: 40px;
@@ -105,7 +106,6 @@
     border-radius: 50%;
 }
 
-/* User Profile Trigger Button Refresh */
 .top-user-trigger {
     border: 1px solid var(--border-subtle);
     background: var(--bg-card);
@@ -171,7 +171,6 @@
     transition: transform 0.2s ease;
 }
 
-/* Dropdown Menu Restyling */
 .top-user-dropdown {
     position: absolute;
     top: calc(100% + 10px);
@@ -265,7 +264,6 @@
     background: #f1f5f9;
 }
 
-/* Dashboard Content Grid Area Enhancements */
 .app-alert {
     border: 0;
     border-left: 4px solid #ef4444;
@@ -489,7 +487,9 @@
     </main>
 </div>
 
-<!-- Main Scripts -->
+<!-- Main Scripts & jQuery / Select2 JS CDN -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{{ url_for('static', filename='js/crm.js') }}"></script>
 
 <script>
@@ -537,7 +537,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register(
             "/service-worker.js"
-)
+        )
             .then(registration => {
                 console.log('✅ Service Worker Registered:', registration.scope);
             })

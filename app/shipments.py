@@ -2168,7 +2168,11 @@ def upload_individual_shipment_document(shipment_id, document_id):
 def create_direct_shipment():
     require_shipment_write_access()
 
-    clients_list = db.session.execute(db.select(Client).order_by(Client.company_name)).scalars().all()
+    clients_list = db.session.execute(
+        db.select(Client)
+        .where(Client.is_archived == False)
+        .order_by(Client.company_name)
+    ).scalars().all()
     
     from app.models import User
     users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
