@@ -42,6 +42,9 @@ def dashboard():
 
     portal_client_id = session["portal_client_id"]
 
+    # Client details query చేయడం కోసం ఇది అడ్ చేయండి
+    client = Client.query.get(portal_client_id)
+
     shipments = (
         Shipment.query
         .filter_by(client_id=portal_client_id)
@@ -49,15 +52,13 @@ def dashboard():
         .all()
     )
 
-    # స్టేటస్ వారీగా కౌంట్స్ లెక్కించడం
     total_shipments = len(shipments)
-    
-    # మీ డేటాబేస్‌లో షిప్‌మెంట్ స్టేటస్ కాలమ్ పేరు 'shipment_status' కాబట్టి దాన్ని బట్టి ఫిల్టర్ చేయండి
-    active_shipments = sum(1 for s in shipments if s.shipment_status != 'delivered') # ఒకవేళ డెలివరీ కానివి లేదా ఆక్టివ్ గా ఉన్నవి
+    active_shipments = sum(1 for s in shipments if s.shipment_status != 'delivered')
     delivered_shipments = sum(1 for s in shipments if s.shipment_status == 'delivered')
 
     return render_template(
         "portal/dashboard.html",
+        client=client,  # <--- ఇక్కడ client ని template కి పంపాలి
         shipments=shipments,
         total_shipments=total_shipments,
         active_shipments=active_shipments,
