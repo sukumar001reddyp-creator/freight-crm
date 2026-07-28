@@ -19,7 +19,7 @@
 
     <form method="POST" class="quotation-form-card" style="padding: 26px; border: 1px solid #e5e7eb; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);">
         
-        <!-- SECTION 1: Client Information with Toggle (As per Screenshot) -->
+        <!-- SECTION 1: Client Information with Toggle -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
             <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">1. Client Information</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
@@ -77,14 +77,14 @@
                     <input type="text" name="destination_port" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-    <label style="color: #374151; font-size: 13px; font-weight: 700;">Mode of Shipment <span style="color: #b91c1c;">*</span></label>
-    <select name="mode_of_shipment" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
-        <option value="">Select Mode</option>
-        <option value="air_freight">Air Freight</option>
-        <option value="sea_freight">Sea Freight</option>
-        <option value="land_freight">Land / Road Freight</option>
-    </select>
-</div>
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Mode of Shipment <span style="color: #b91c1c;">*</span></label>
+                    <select name="mode_of_shipment" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                        <option value="">Select Mode</option>
+                        <option value="air_freight">Air Freight</option>
+                        <option value="sea_freight">Sea Freight</option>
+                        <option value="land_freight">Land / Road Freight</option>
+                    </select>
+                </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">HBL / Tracking No.</label>
                     <input type="text" name="hbl_no" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
@@ -146,10 +146,13 @@
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
             <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">5. Cost Breakdown & Pricing</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
+                
+                <!-- Ocean / Air Freight (Mandatory Required Field) -->
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
-                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Ocean / Air Freight</label>
-                    <input type="number" name="ocean_air_freight" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Ocean / Air Freight <span style="color: #b91c1c;">*</span></label>
+                    <input type="number" name="ocean_air_freight" step="0.01" value="0.00" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
+
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Origin Charges</label>
                     <input type="number" name="origin_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
