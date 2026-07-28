@@ -354,7 +354,7 @@
 
 
 <!-- ======================================
-     CUSTOMS CLEARANCE (CLOSING కి పైకి సెట్ చేయబడింది)
+     CUSTOMS CLEARANCE
      ====================================== -->
 <div class="detail-card customs-clearance-card" style="margin-top: 20px;">
     <div class="card-heading">
@@ -1055,20 +1055,13 @@
             <div class="detail-card document-tracking-card">
 
                 <div class="card-heading">
-
                     <span class="heading-icon document-heading-icon">
                         <i class="bi bi-folder-check"></i>
                     </span>
-
                     <div>
                         <h3>Shipment Document Status Tracking</h3>
-
-                        <p>
-                            Track required shipment documents,
-                            review status and retain operational remarks.
-                        </p>
+                        <p>Track required shipment documents, review status and retain operational remarks.</p>
                     </div>
-
                 </div>
 
                 {% if documents %}
@@ -1107,9 +1100,9 @@
 
                             <div class="document-track-item">
 
-                                <div class="document-track-top">
+                                <div class="document-track-top" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
 
-                                    <div class="document-track-identity">
+                                    <div class="document-track-identity" style="display: flex; align-items: center; gap: 10px; min-width: 0;">
 
                                         <span class="document-file-icon">
                                             <i class="bi bi-file-earmark-text-fill"></i>
@@ -1117,19 +1110,39 @@
 
                                         <div>
                                             <strong>{{ document.document_name }}</strong>
-
-                                            <small>
-                                                {{ document.document_type | replace("_", " ") | title }}
-                                            </small>
+                                            <small>{{ document.document_type | replace("_", " ") | title }}</small>
                                         </div>
 
                                     </div>
 
-                                    <span class="document-status-badge document-status-{{ document.status }}">
-                                        {{ document.status | replace("_", " ") | title }}
-                                    </span>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="document-status-badge document-status-{{ document.status }}">
+                                            {{ document.status | replace("_", " ") | title }}
+                                        </span>
 
+                                        {% if document.file_path and document.file_path != '' %}
+                                            <a href="{{ url_for('shipments.download_shipment_document', shipment_id=shipment.id, document_id=document.id) }}" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #047857; color: #fff; border-radius: 6px; font-size: 11px; font-weight: 700; text-decoration: none;">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                            <form method="POST" action="{{ url_for('shipments.delete_shipment_document_file', shipment_id=shipment.id, document_id=document.id) }}" onsubmit="return confirm('Delete this uploaded file?');" style="display: inline;">
+                                                <button type="submit" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #dc2626; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm" onclick="openIndividualUploadModal('{{ document.id }}', '{{ document.document_name }}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #7f1d1d; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                                <i class="bi bi-cloud-arrow-up"></i> Upload
+                                            </button>
+                                        {% endif %}
+                                    </div>
                                 </div>
+                                
+
+                                {% if document.file_path %}
+                                    <div style="margin-top: 8px; font-size: 11px; color: #047857; font-weight: 600;">
+                                        <i class="bi bi-file-earmark-check"></i> Attached File: {{ document.original_filename or 'Uploaded File' }}
+                                    </div>
+                                {% endif %}
 
                                 {% if document.received_at or document.remarks %}
 
@@ -1246,14 +1259,9 @@
 
                     <div class="document-tracking-empty">
                         <i class="bi bi-folder-x"></i>
-
                         <div>
                             <strong>No document checklist found</strong>
-
-                            <span>
-                                This shipment does not currently have
-                                document tracking records.
-                            </span>
+                            <span>This shipment does not currently have document tracking records.</span>
                         </div>
                     </div>
 
@@ -1615,6 +1623,56 @@
 
     </div>
 
+</div>
+
+<!-- =====================================================
+     INDIVIDUAL UPLOAD SHIPMENT DOCUMENT MODAL
+     ===================================================== -->
+<div class="crm-modal-backdrop" id="individualDocumentModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center;">
+    <div class="crm-modal-card" style="background: #fff; width: 100%; max-width: 500px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+
+        <div class="crm-modal-header" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
+            <div>
+                <span class="panel-eyebrow" style="font-size: 10px; font-weight: 800; color: #7f1d1d; text-transform: uppercase;">UPLOAD DOCUMENT</span>
+                <h3 id="modalDocTitle" style="margin: 2px 0 0; font-size: 18px; color: #0f172a;">Upload File</h3>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeIndividualUploadModal()" style="background: none; border: none; font-size: 20px; color: #64748b; cursor: pointer;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <form id="individualUploadForm" method="POST" enctype="multipart/form-data">
+            <div class="crm-modal-body" style="padding: 24px;">
+                <div class="document-upload-zone" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background: #f8fafc;">
+                    <span class="document-upload-icon" style="font-size: 32px; color: #7f1d1d; display: block; margin-bottom: 10px;">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                    </span>
+                    <h4 style="margin: 0 0 5px; font-size: 14px; color: #0f172a;">Select File</h4>
+                    <p style="margin: 0 0 15px; color: #64748b; font-size: 11px;">PDF, JPG, JPEG and DOCX files are supported.</p>
+
+                    <input type="file" id="individualFileField" name="document_file" accept=".pdf,.jpg,.jpeg,.docx" required style="display: none;">
+                    
+                    <label for="individualFileField" class="document-file-picker" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px; font-weight: 700; color: #334155; cursor: pointer;">
+                        <i class="bi bi-folder2-open"></i> Choose File
+                    </label>
+
+                    <div id="selectedIndividualFileName" style="margin-top: 12px; font-size: 11px; color: #64748b; font-weight: 600;">
+                        No file selected
+                    </div>
+                </div>
+            </div>
+
+            <div class="crm-modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                <button type="button" class="btn btn-secondary-soft" onclick="closeIndividualUploadModal()" style="padding: 9px 16px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: 12px; color: #475569; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary-red" style="padding: 9px 16px; background: #7f1d1d; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; color: #fff; cursor: pointer;">
+                    <i class="bi bi-cloud-arrow-up"></i> Upload File
+                </button>
+            </div>
+        </form>
+
+    </div>
 </div>
 
 {% endblock %}
@@ -3410,14 +3468,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const tabButtons = document.querySelectorAll(".tab-btn");
     const tabs = document.querySelectorAll(".tracking-tab");
 
+    const savedTab = sessionStorage.getItem("shipment_active_tab");
+    if (savedTab) {
+        tabButtons.forEach((btn) => {
+            if (btn.dataset.tab === savedTab) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+        tabs.forEach((tab) => {
+            if (tab.id === savedTab) {
+                tab.classList.add("active");
+            } else {
+                tab.classList.remove("active");
+            }
+        });
+    }
+
     tabButtons.forEach((button) => {
         button.addEventListener("click", () => {
-            const targetTab = document.getElementById(button.dataset.tab);
-            if (!targetTab) return;
+            const targetTabId = button.dataset.tab;
+            sessionStorage.setItem("shipment_active_tab", targetTabId);
+
             tabButtons.forEach((item) => item.classList.remove("active"));
             tabs.forEach((tab) => tab.classList.remove("active"));
+
             button.classList.add("active");
-            targetTab.classList.add("active");
+            const targetTab = document.getElementById(targetTabId);
+            if (targetTab) targetTab.classList.add("active");
         });
     });
 
@@ -3457,6 +3536,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     updateCustomsFields();
+});
+
+function openIndividualUploadModal(docId, docName) {
+    const modal = document.getElementById("individualDocumentModal");
+    const title = document.getElementById("modalDocTitle");
+    const form = document.getElementById("individualUploadForm");
+    
+    if (modal && title && form) {
+        title.textContent = "Upload: " + docName;
+        form.action = "/shipments/{{ shipment.id }}/documents/" + docId + "/upload-individual";
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    }
+}
+
+function closeIndividualUploadModal() {
+    const modal = document.getElementById("individualDocumentModal");
+    if (modal) {
+        modal.style.display = "none";
+        document.body.style.overflow = "";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("individualFileField");
+    const selectedFileDiv = document.getElementById("selectedIndividualFileName");
+
+    if (fileInput && selectedFileDiv) {
+        fileInput.addEventListener("change", function () {
+            if (!this.files.length) {
+                selectedFileDiv.textContent = "No file selected";
+                return;
+            }
+            selectedFileDiv.textContent = this.files[0].name;
+        });
+    }
+
+    const modal = document.getElementById("individualDocumentModal");
+    if (modal) {
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                closeIndividualUploadModal();
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

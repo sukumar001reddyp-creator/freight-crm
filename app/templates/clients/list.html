@@ -128,7 +128,8 @@ Search, filter and manage complete client lifecycle records.
             action="{{ url_for('clients.client_list') }}"
             class="client-filter-form"
         >
-            <div class="client-search-box">
+            <!-- Search Bar పైకి పంపబడింది -->
+            <div class="client-search-box-top">
                 <i class="bi bi-search"></i>
                 <input
                     type="search"
@@ -138,67 +139,66 @@ Search, filter and manage complete client lifecycle records.
                 >
             </div>
 
-            <div class="client-filter-grid">
-                <!-- ===================================== -->
-                <!-- UPDATED CLIENT CATEGORY FILTER DROPDOWN -->
-                <!-- ===================================== -->
-                <select name="category">
-                    <option value="">All Categories</option>
-                    <option value="Consignee / Importer" {% if selected_category == 'Consignee / Importer' %}selected{% endif %}>Consignee / Importer</option>
-                    <option value="Shipper / Exporter" {% if selected_category == 'Shipper / Exporter' %}selected{% endif %}>Shipper / Exporter</option>
-                    <option value="Freight Forwarding Agent (overseas partner / co-loader)" {% if selected_category == 'Freight Forwarding Agent (overseas partner / co-loader)' %}selected{% endif %}>Freight Forwarding Agent (overseas partner / co-loader)</option>
-                    <option value="NVOCC" {% if selected_category == 'NVOCC' %}selected{% endif %}>NVOCC</option>
-                    <option value="Customs Broker" {% if selected_category == 'Customs Broker' %}selected{% endif %}>Customs Broker</option>
-                    <option value="Trucking / Haulage Company" {% if selected_category == 'Trucking / Haulage Company' %}selected{% endif %}>Trucking / Haulage Company</option>
-                    <option value="Shipping Line / Airline (Carrier)" {% if selected_category == 'Shipping Line / Airline (Carrier)' %}selected{% endif %}>Shipping Line / Airline (Carrier)</option>
-                    <option value="Warehouse / 3PL Provider" {% if selected_category == 'Warehouse / 3PL Provider' %}selected{% endif %}>Warehouse / 3PL Provider</option>
-                    <option value="Direct Corporate Client" {% if selected_category == 'Direct Corporate Client' %}selected{% endif %}>Direct Corporate Client</option>
-                    <option value="Government / Institutional Client" {% if selected_category == 'Government / Institutional Client' %}selected{% endif %}>Government / Institutional Client</option>
-                </select>
+            <div class="client-filter-bottom-row">
+                <div class="client-filter-grid">
+                    <select name="category">
+                        <option value="">All Categories</option>
+                        <option value="Consignee / Importer" {% if selected_category == 'Consignee / Importer' %}selected{% endif %}>Consignee / Importer</option>
+                        <option value="Shipper / Exporter" {% if selected_category == 'Shipper / Exporter' %}selected{% endif %}>Shipper / Exporter</option>
+                        <option value="Freight Forwarding Agent (overseas partner / co-loader)" {% if selected_category == 'Freight Forwarding Agent (overseas partner / co-loader)' %}selected{% endif %}>Freight Forwarding Agent</option>
+                        <option value="NVOCC" {% if selected_category == 'NVOCC' %}selected{% endif %}>NVOCC</option>
+                        <option value="Customs Broker" {% if selected_category == 'Customs Broker' %}selected{% endif %}>Customs Broker</option>
+                        <option value="Trucking / Haulage Company" {% if selected_category == 'Trucking / Haulage Company' %}selected{% endif %}>Trucking / Haulage</option>
+                        <option value="Shipping Line / Airline (Carrier)" {% if selected_category == 'Shipping Line / Airline (Carrier)' %}selected{% endif %}>Carrier</option>
+                        <option value="Warehouse / 3PL Provider" {% if selected_category == 'Warehouse / 3PL Provider' %}selected{% endif %}>Warehouse / 3PL</option>
+                        <option value="Direct Corporate Client" {% if selected_category == 'Direct Corporate Client' %}selected{% endif %}>Direct Corporate</option>
+                        <option value="Government / Institutional Client" {% if selected_category == 'Government / Institutional Client' %}selected{% endif %}>Government / Institutional</option>
+                    </select>
 
-                <select name="status">
-                    <option value="">All Statuses</option>
-                    {% for value, label in statuses %}
-                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
+                    <select name="status">
+                        <option value="">All Statuses</option>
+                        {% for value, label in statuses %}
+                        <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
 
-                <select name="pipeline_stage">
-                    <option value="">All Pipeline Stages</option>
-                    {% for value, label in pipeline_stages %}
-                    <option value="{{ value }}" {% if selected_pipeline_stage == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
+                    <select name="pipeline_stage">
+                        <option value="">All Pipeline Stages</option>
+                        {% for value, label in pipeline_stages %}
+                        <option value="{{ value }}" {% if selected_pipeline_stage == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
 
-                <select name="assigned_to">
-                    <option value="">All Owners</option>
-                    {% for owner in owners %}
-                    <option value="{{ owner.id }}" {% if selected_assigned_to == owner.id %}selected{% endif %}>{{ owner.full_name }}</option>
-                    {% endfor %}
-                </select>
+                    <select name="assigned_to">
+                        <option value="">All Owners</option>
+                        {% for owner in owners %}
+                        <option value="{{ owner.id }}" {% if selected_assigned_to == owner.id %}selected{% endif %}>{{ owner.full_name }}</option>
+                        {% endfor %}
+                    </select>
 
-                <select name="priority">
-                    <option value="">All Priorities</option>
-                    {% for value, label in priorities %}
-                    <option value="{{ value }}" {% if selected_priority == value %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
+                    <select name="priority">
+                        <option value="">All Priorities</option>
+                        {% for value, label in priorities %}
+                        <option value="{{ value }}" {% if selected_priority == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
 
-                <select name="sort">
-                    <option value="newest" {% if selected_sort == "newest" %}selected{% endif %}>Newest First</option>
-                    <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest First</option>
-                    <option value="name_az" {% if selected_sort == "name_az" %}selected{% endif %}>Name A–Z</option>
-                    <option value="name_za" {% if selected_sort == "name_za" %}selected{% endif %}>Name Z–A</option>
-                    <option value="follow_up" {% if selected_sort == "follow_up" %}selected{% endif %}>Follow-Up Date</option>
-                    <option value="last_activity" {% if selected_sort == "last_activity" %}selected{% endif %}>Last Activity</option>
-                </select>
-            </div>
+                    <select name="sort">
+                        <option value="newest" {% if selected_sort == "newest" %}selected{% endif %}>Newest First</option>
+                        <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest First</option>
+                        <option value="name_az" {% if selected_sort == "name_az" %}selected{% endif %}>Name A–Z</option>
+                        <option value="name_za" {% if selected_sort == "name_za" %}selected{% endif %}>Name Z–A</option>
+                        <option value="follow_up" {% if selected_sort == "follow_up" %}selected{% endif %}>Follow-Up Date</option>
+                        <option value="last_activity" {% if selected_sort == "last_activity" %}selected{% endif %}>Last Activity</option>
+                    </select>
+                </div>
 
-            <div class="client-filter-actions">
-                <button type="submit" class="btn btn-primary-red">
-                    <i class="bi bi-funnel"></i> Apply Filters
-                </button>
-                <a href="{{ url_for('clients.client_list') }}" class="btn btn-secondary-soft">Reset</a>
+                <div class="client-filter-actions">
+                    <button type="submit" class="btn btn-primary-red">
+                        <i class="bi bi-funnel"></i> Apply
+                    </button>
+                    <a href="{{ url_for('clients.client_list') }}" class="btn btn-secondary-soft">Reset</a>
+                </div>
             </div>
         </form>
     </section>
@@ -433,9 +433,8 @@ Search, filter and manage complete client lifecycle records.
     </section>
 </div>
 
-<!-- Preservation of modal script logic and toolbar customizations -->
+<!-- Modal and custom toolbars styles -->
 <style>
-/* Modal and custom toolbars styles */
 .custom-modal { position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; overflow-x: hidden; overflow-y: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
 .custom-modal-content { background-color: #ffffff; margin: 30px auto; padding: 28px; border: 1px solid #e2e8f0; width: 90%; max-width: 500px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position: relative; }
 .custom-close { color: #94a3b8; position: absolute; top: 20px; right: 20px; font-size: 28px; font-weight: 300; line-height: 1; cursor: pointer; transition: color 0.15s ease; }
@@ -450,7 +449,6 @@ Search, filter and manage complete client lifecycle records.
 
 .bulk-owner-action { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; flex-wrap: nowrap; }
 
-/* పర్‌ఫెక్ట్ ఫిట్ కోసం విడ్త్ సర్దుబాటు చేయబడింది */
 .bulk-owner-select-wrap {
     position: relative;
     display: flex;
@@ -527,6 +525,85 @@ Search, filter and manage complete client lifecycle records.
 .column-settings-grid label { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #edf0f5; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer; }
 .reset-columns-btn { margin-top: 14px; height: 36px; padding: 0 12px; border: 1px solid #d9dee8; border-radius: 9px; background: #f8fafc; font-size: 12px; font-weight: 700; cursor: pointer; }
 
+/* --- SEARCH TOP & FILTERS BOTTOM STYLING --- */
+.client-filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+.client-search-box-top {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.client-search-box-top input {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px 0 38px;
+    border: 1px solid #d9dee8;
+    border-radius: 10px;
+    font-size: 12.5px;
+    outline: none;
+    background: #ffffff;
+}
+.client-search-box-top input:focus {
+    border-color: #c62828;
+    box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.08);
+}
+.client-search-box-top i {
+    position: absolute;
+    left: 13px;
+    color: #667085;
+    font-size: 14px;
+}
+.client-filter-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+.client-filter-grid {
+    display: flex;
+    flex: 1;
+    gap: 5px;
+    flex-wrap: nowrap;
+}
+.client-filter-grid select {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    padding: 0 6px;
+    border: 1px solid #d9dee8;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    color: #273043;
+    outline: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.client-filter-actions {
+    display: flex;
+    gap: 5px;
+    flex: 0 0 auto;
+}
+.client-filter-actions .btn {
+    height: 38px;
+    padding: 0 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    white-space: nowrap;
+}
+/* ------------------------------------------- */
+
 .client-list-tags { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
 .client-list-tag, .client-list-tag-more { display: inline-flex; align-items: center; gap: 4px; min-height: 22px; padding: 3px 7px; border-radius: 999px; font-size: 10px; line-height: 1; font-weight: 700; white-space: nowrap; }
 .client-list-tag { border: 1px solid #dfe3ff; background: #eef2ff; color: #4338ca; }
@@ -552,9 +629,6 @@ Search, filter and manage complete client lifecycle records.
 .client-status-badge.status-reactivated .status-dot { background:#14b8a6; }
 .client-status-badge.status-referral .status-dot { background:#a855f7; }
 
-@media (max-width: 1300px) {
-    .bulk-owner-action { flex-wrap: wrap; justify-content: flex-start; }
-}
 @media (max-width: 1100px) {
     .column-settings-grid { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
 }
@@ -566,8 +640,11 @@ Search, filter and manage complete client lifecycle records.
     .bulk-tag-wrap { width: 100%; }
     .bulk-tag-wrap input, .bulk-tag-wrap select, .bulk-tag-btn, .column-settings-btn { width: 100%; }
     .column-settings-grid { grid-template-columns: 1fr; }
+    .client-filter-bottom-row { flex-wrap: wrap; }
+    .client-filter-grid { flex-wrap: wrap; width: 100%; }
+    .client-filter-grid select { flex: 1 0 45%; }
+    .client-filter-actions { width: 100%; justify-content: flex-end; }
 }
-```[cite: 1]
 </style>
 
 <script>
@@ -705,7 +782,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function applyColumns(visibleColumns) {
-        toggles.forEach(toggle => {
+        toggles.foreach(toggle => {
             const columnName = toggle.dataset.columnToggle;
             const isVisible = visibleColumns.includes(columnName);
             toggle.checked = isVisible;

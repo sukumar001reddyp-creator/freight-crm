@@ -1,0 +1,134 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Create Direct Shipment | Freight CRM
+{% endblock %}
+
+{% block content %}
+<div class="shipment-view-page" style="max-width: 900px; margin: 0 auto;">
+    <div class="shipments-header" style="margin-bottom: 20px;">
+        <div>
+            <a href="{{ url_for('shipments.shipment_list') }}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back to Shipments
+            </a>
+            <h1>Create Direct Shipment</h1>
+            <p>Manually create a new shipment without quotation conversion.</p>
+        </div>
+    </div>
+
+    <div class="detail-card" style="background: #fff; padding: 24px; border-radius: 14px; border: 1px solid #e5e7eb;">
+        <form method="POST">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Client</label>
+                    <select name="client_id" id="clientSelect" onchange="toggleOtherClient(this)" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        <option value="">Select Registered Client</option>
+                        {% for client in clients_list %}
+                        <option value="{{ client.id }}">{{ client.company_name }}</option>
+                        {% endfor %}
+                        <option value="other">Other / Walk-in Client</option>
+                    </select>
+                </div>
+
+                <div class="crm-field" id="otherClientField" style="display: none;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Other Client Name</label>
+                    <input type="text" name="other_client_name" placeholder="Enter client name" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Mode of Shipment *</label>
+                    <select name="mode_of_shipment" required style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        <option value="air_freight">Air Freight</option>
+                        <option value="sea_freight">Sea Freight</option>
+                        <option value="land_freight">Land Freight</option>
+                    </select>
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Origin *</label>
+                    <input type="text" name="origin" required placeholder="Origin city or port" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Destination *</label>
+                    <input type="text" name="destination" required placeholder="Destination city or port" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field" style="grid-column: span 2;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Cargo Description *</label>
+                    <textarea name="cargo_description" required rows="3" placeholder="Describe the cargo items" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;"></textarea>
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Weight / Volume</label>
+                    <input type="text" name="cargo_weight_volume" placeholder="e.g. 500 kg / 2 CBM" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">HBL / Tracking No.</label>
+                    <input type="text" name="hbl_no" placeholder="Tracking or House Bill of Lading" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Shipping Line / Airline</label>
+                    <input type="text" name="shipping_line" placeholder="Carrier name" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Vessel / Flight</label>
+                    <input type="text" name="vessel" placeholder="Vessel or flight number" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Container No.</label>
+                    <input type="text" name="container_no" placeholder="Container number" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Container Type</label>
+                    <input type="text" name="container_type" value="40HC" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">ETD (Estimated Departure)</label>
+                    <input type="datetime-local" name="etd" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">ETA (Estimated Arrival)</label>
+                    <input type="datetime-local" name="eta" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                </div>
+
+                <div class="crm-field">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Handled By</label>
+                    <select name="handled_by_id" style="width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        {% for user in users_list %}
+                        <option value="{{ user.id }}" {% if user.id == current_user.id %}selected{% endif %}>{{ user.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <a href="{{ url_for('shipments.shipment_list') }}" class="btn" style="padding: 10px 16px; background: #f3f4f6; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; text-decoration: none; color: #374151; font-size: 12px;">Cancel</a>
+                <button type="submit" class="btn" style="padding: 10px 20px; background: #7f1d1d; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;">
+                    <i class="bi bi-check2-circle"></i> Create Shipment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleOtherClient(select) {
+    const otherField = document.getElementById("otherClientField");
+    if (select.value === "other") {
+        otherField.style.display = "block";
+    } else {
+        otherField.style.display = "none";
+    }
+}
+</script>
+{% endblock %}
