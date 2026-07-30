@@ -27,16 +27,13 @@
             background: #0a0f1c;
             color: white;
             overflow-x: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         /* FULL SCREEN BACKGROUND IMAGE CONTAINER */
         .portal-page {
             position: relative;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            min-height: 100vh;
             background: url("{{ url_for('static', filename='images/background.png') }}") center/cover no-repeat;
             display: flex;
             flex-direction: column;
@@ -48,7 +45,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: rgba(10, 15, 28, 0.4);
+            background: rgba(10, 15, 28, 0.65); /* Slight dark overlay for mobile readability */
             pointer-events: none;
         }
 
@@ -58,27 +55,28 @@
             justify-content: space-between;
             align-items: center;
             z-index: 10;
+            width: 100%;
         }
 
         /* LARGE BRAND LOGO & NAME ON LEFT */
         .left-brand-header {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .brand-logo-img-lg {
-            height: 60px;
+            height: 48px;
             width: auto;
             object-fit: contain;
             background: #ffffff;
-            padding: 6px 14px;
-            border-radius: 14px;
+            padding: 4px 10px;
+            border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
 
         .brand-text-lg h1 {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 800;
             letter-spacing: 0.5px;
             line-height: 1.2;
@@ -87,7 +85,7 @@
         }
 
         .brand-text-lg p {
-            font-size: 12px;
+            font-size: 10.5px;
             color: #ff4d6d;
             font-weight: 700;
             letter-spacing: 1px;
@@ -96,7 +94,7 @@
         }
 
         .back-main-site {
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             color: #cbd5e1;
             text-decoration: none;
@@ -105,10 +103,11 @@
             gap: 6px;
             transition: 0.2s;
             background: rgba(15, 23, 42, 0.7);
-            padding: 9px 18px;
-            border-radius: 12px;
+            padding: 8px 14px;
+            border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
+            white-space: nowrap;
         }
 
         .back-main-site:hover {
@@ -125,7 +124,7 @@
             gap: 40px;
             align-items: center;
             z-index: 5;
-            padding: 10px 0;
+            padding: 30px 0;
         }
 
         /* LEFT CONTENT */
@@ -134,7 +133,7 @@
         }
 
         .left-content h2 {
-            font-size: 44px;
+            font-size: 42px;
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -1.2px;
@@ -174,12 +173,12 @@
             font-size: 16px;
         }
 
-        /* ========== ULTRA PREMIUM CLIENT PORTAL LOGIN CARD ========== */
+        /* ========== CLIENT PORTAL LOGIN CARD ========== */
         .portal-card {
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(11, 17, 32, 0.85));
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(11, 17, 32, 0.9));
             border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 30px;
-            padding: 42px 38px;
+            border-radius: 28px;
+            padding: 36px 32px;
             backdrop-filter: blur(35px);
             box-shadow: 
                 0 50px 100px rgba(0, 0, 0, 0.75),
@@ -190,18 +189,8 @@
             margin-left: auto;
             position: relative;
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .portal-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 
-                0 60px 110px rgba(0, 0, 0, 0.8),
-                0 0 0 1px rgba(225, 29, 72, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.25);
-        }
-
-        /* Luxury ambient light glow inside card */
         .portal-card::before {
             content: '';
             position: absolute;
@@ -215,51 +204,51 @@
 
         .portal-header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             position: relative;
             z-index: 2;
         }
 
         .portal-icon-badge {
-            width: 52px;
-            height: 52px;
+            width: 48px;
+            height: 48px;
             background: linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(225, 29, 72, 0.05));
             border: 1px solid rgba(225, 29, 72, 0.4);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 14px;
+            margin: 0 auto 12px;
             color: #e11d48;
-            font-size: 22px;
+            font-size: 20px;
             box-shadow: 0 8px 20px rgba(225, 29, 72, 0.2);
         }
 
         .portal-header h3 {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
             color: white;
             letter-spacing: -0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .portal-header p {
-            font-size: 13.5px;
+            font-size: 13px;
             color: #94a3b8;
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             position: relative;
             z-index: 2;
         }
 
         .form-group label {
             display: block;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             color: #cbd5e1;
-            margin-bottom: 7px;
+            margin-bottom: 6px;
         }
 
         .input-wrap {
@@ -279,13 +268,13 @@
 
         .form-control {
             width: 100%;
-            height: 50px;
+            height: 48px;
             padding: 10px 16px 10px 46px;
             background: rgba(10, 15, 28, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 14px;
+            border-radius: 12px;
             color: white;
-            font-size: 13.5px;
+            font-size: 14px; /* 16px prevents iOS zoom on focus */
             outline: none;
             transition: all 0.25s ease;
         }
@@ -300,16 +289,7 @@
             background: rgba(10, 15, 28, 0.95);
         }
 
-        .form-control:focus + i,
-        .input-wrap:focus-within > i:first-child {
-            color: #e11d48;
-        }
-
         /* Password Toggle */
-        .password-wrap {
-            position: relative;
-        }
-
         .password-wrap .form-control {
             padding-right: 48px;
         }
@@ -326,6 +306,7 @@
             font-size: 16px;
             z-index: 5;
             transition: color 0.2s;
+            padding: 5px;
         }
 
         .password-toggle-btn:hover {
@@ -335,12 +316,12 @@
         /* PREMIUM CTA BUTTON */
         .btn-portal {
             width: 100%;
-            height: 52px;
+            height: 48px;
             background: linear-gradient(135deg, #e11d48, #be123c);
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             color: white;
-            font-size: 14.5px;
+            font-size: 14px;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -349,44 +330,101 @@
             cursor: pointer;
             box-shadow: 0 12px 32px rgba(225, 29, 72, 0.45);
             transition: all 0.3s ease;
-            margin-top: 14px;
+            margin-top: 12px;
             position: relative;
             z-index: 2;
-            letter-spacing: 0.3px;
-        }
-
-        .btn-portal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 40px rgba(225, 29, 72, 0.6);
-            background: linear-gradient(135deg, #f43f5e, #e11d48);
         }
 
         .btn-portal:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
 
         /* FOOTER COPYRIGHT */
         .portal-footer {
             text-align: center;
-            font-size: 11.5px;
+            font-size: 11px;
             color: #94a3b8;
             z-index: 10;
             text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+            margin-top: 20px;
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 1000px) {
+        /* ========== MOBILE RESPONSIVE OPTIMIZATIONS ========== */
+        @media (max-width: 900px) {
             .portal-page {
+                padding: 16px;
                 height: auto;
                 min-height: 100vh;
-                padding: 20px;
             }
+
+            .portal-topbar {
+                flex-direction: row;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .brand-logo-img-lg {
+                height: 38px;
+                padding: 3px 8px;
+            }
+
+            .brand-text-lg h1 {
+                font-size: 13px;
+            }
+
+            .brand-text-lg p {
+                font-size: 9px;
+            }
+
+            .back-main-site {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
             .portal-main {
                 grid-template-columns: 1fr;
-                gap: 30px;
+                gap: 20px;
+                padding: 10px 0;
             }
-            .portal-card {
+
+            .left-content {
+                text-align: center;
+                max-width: 100%;
                 margin: 0 auto;
+            }
+
+            .left-content h2 {
+                font-size: 28px;
+                letter-spacing: -0.5px;
+                margin-bottom: 10px;
+            }
+
+            .left-content .tagline {
+                font-size: 13px;
+                margin: 0 auto 16px auto;
+            }
+
+            .trust {
+                font-size: 11px;
+                padding: 8px 12px;
+                justify-content: center;
+                text-align: left;
+            }
+
+            .portal-card {
+                padding: 24px 20px;
+                max-width: 100%;
+                border-radius: 20px;
+                margin: 0;
+            }
+
+            .portal-header h3 {
+                font-size: 22px;
+            }
+            
+            /* Prevent iOS Safari Auto-Zoom by ensuring font-size is 16px on inputs during focus */
+            .form-control {
+                font-size: 16px !important;
             }
         }
     </style>
@@ -486,6 +524,7 @@
         if (togglePassword && passwordField && eyeIcon) {
             let peekTimeout = null;
 
+            togglePassword.decode = 'sync';
             togglePassword.addEventListener('click', function () {
                 if (passwordField.getAttribute('type') === 'text') return;
 
