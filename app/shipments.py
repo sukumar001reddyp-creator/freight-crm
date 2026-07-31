@@ -2303,10 +2303,6 @@ def create_direct_shipment():
 
     return render_template("shipments/create_direct.html", clients_list=clients_list, users_list=users_list)
 
-    # =========================================================
-# CANCEL SHIPMENT ROUTE
-# URL: /shipments/<shipment_id>/cancel
-# =========================================================
 @shipments_bp.route("/<int:shipment_id>/cancel", methods=["POST"])
 @login_required
 def cancel_shipment(shipment_id):
@@ -2316,7 +2312,7 @@ def cancel_shipment(shipment_id):
     try:
         shipment.shipment_status = "cancelled"
         db.session.commit()
-        flash(f"Shipment {shipment.shipment_reference} has been cancelled.", "success")
+        flash(f"Shipment {shipment.shipment_reference} has been cancelled successfully.", "success")
     except Exception:
         db.session.rollback()
         flash("Unable to cancel shipment.", "danger")
@@ -2324,18 +2320,14 @@ def cancel_shipment(shipment_id):
     return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
 
-# =========================================================
-# DELETE SHIPMENT ROUTE
-# URL: /shipments/<shipment_id>/delete
-# =========================================================
 @shipments_bp.route("/<int:shipment_id>/delete", methods=["POST"])
 @login_required
 def delete_shipment(shipment_id):
     require_shipment_write_access()
     shipment = get_visible_shipment_or_404(shipment_id)
     
-    # Shipment status cancelled unte ne delete avvalani condition
-    if shipment.shipment_status != "cancelled" and not is_admin_user():
+    # Kevalam shipment status cancelled unte ne delete avtundi
+    if shipment.shipment_status != "cancelled":
         flash("Only cancelled shipments can be deleted.", "warning")
         return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
     

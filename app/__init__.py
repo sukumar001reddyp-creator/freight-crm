@@ -9,6 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from app.permissions import permissions
+from flask_jwt_extended import JWTManager
 
 from flask_login import (
     LoginManager,
@@ -88,6 +89,8 @@ def create_app():
 
     app.config.from_object(Config)
 
+    app.config["JWT_SECRET_KEY"] = "freight-crm-mobile-secret-key"
+    jwt = JWTManager(app)
 
     # ==========================================
     # INITIALIZE EXTENSIONS
@@ -154,6 +157,9 @@ def create_app():
 
     from app.settings import settings_bp
     app.register_blueprint(settings_bp)
+
+    from app.api import api_bp
+    app.register_blueprint(api_bp)
 
 
     # ==========================================
