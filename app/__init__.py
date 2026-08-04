@@ -1,3 +1,4 @@
+from datetime import timedelta  # <--- timedelta ఇక్కడ ఇంపోర్ట్ చేయబడింది
 from flask import (
     Flask,
     redirect,
@@ -90,6 +91,10 @@ def create_app():
     app.config.from_object(Config)
 
     app.config["JWT_SECRET_KEY"] = "freight-crm-mobile-secret-key"
+    
+    # --- JWT టోకెన్ గడువును 7 రోజులకు సెట్ చేయడం జరిగింది ---
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
+
     jwt = JWTManager(app)
 
     # ==========================================
