@@ -114,6 +114,7 @@ def create_direct_quotation():
 
         quotation = Quotation()
         quotation.enquiry_id = None
+        quotation.status = "pending"
 
         if client_id == "others":
             quotation.client_id = None
