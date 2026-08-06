@@ -5,136 +5,761 @@
 
 {% block content %}
 {% if permissions.is_sales_executive() %}
-<div style="margin-bottom:14px;padding:12px 15px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-size:12px;font-weight:700;">
+<div class="workspace-banner">
     <i class="bi bi-person-badge-fill"></i>
-    Private sales workspace — only records assigned to {{ current_user.full_name }} are included.
+    <span>Private sales workspace — only records assigned to <strong>{{ current_user.full_name }}</strong> are included.</span>
 </div>
 {% endif %}
+
 <style>
-.clean-dashboard{--red:#b91c1c;--dark:#172033;--muted:#64748b;--line:#e6eaf0;display:grid;gap:18px}
-.cd-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 24px;border-radius:18px;background:linear-gradient(120deg,#7f1d1d,#b91c1c);color:#fff;box-shadow:0 14px 30px rgba(127,29,29,.14)}
-.cd-hero h2{margin:4px 0 6px;font-size:27px}.cd-hero p{margin:0;max-width:650px;font-size:12px;line-height:1.6;opacity:.84}
-.cd-kicker{font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
-.cd-actions{display:flex;gap:9px;flex-shrink:0}.cd-btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 13px;border-radius:10px;text-decoration:none;font-size:11px;font-weight:800}
-.cd-btn.light{background:#fff;color:#7f1d1d}.cd-btn.outline{border:1px solid rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.08)}
-.cd-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.cd-kpi,.cd-panel{border:1px solid var(--line);background:#fff;box-shadow:0 7px 20px rgba(15,23,42,.04)}
-.cd-kpi{padding:16px;border-radius:15px}.cd-kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cd-icon{width:37px;height:37px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
-.i-red{background:#fee2e2;color:#b91c1c}.i-orange{background:#ffedd5;color:#c2410c}.i-purple{background:#ede9fe;color:#6d28d9}.i-green{background:#dcfce7;color:#15803d}
-.cd-state{font-size:9px;font-weight:850;text-transform:uppercase;color:var(--muted)}.cd-value{font-size:26px;font-weight:850;line-height:1;color:var(--dark)}.cd-label{margin-top:4px;font-size:11px;font-weight:750;color:#475569}
-.cd-main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,.85fr);gap:16px}.cd-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.cd-panel{min-width:0;padding:18px;border-radius:16px}.cd-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:15px}.cd-head small{display:block;margin-bottom:4px;color:var(--red);font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
-.cd-head h3{margin:0;color:var(--dark);font-size:15px}.cd-head p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.cd-link{flex-shrink:0;color:var(--red);text-decoration:none;font-size:10px;font-weight:800}
-.stage-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stage{padding:11px;border:1px solid var(--line);border-radius:11px;background:#f8fafc}.stage i{color:var(--red)}.stage strong{display:block;margin-top:7px;color:var(--dark);font-size:10px;line-height:1.3}.stage-foot{display:flex;justify-content:space-between;align-items:center;margin-top:7px;color:var(--muted);font-size:8px}.stage-foot b{color:#7f1d1d;font-size:15px}
-.action-list,.task-list,.activity-list,.category-list{display:grid;gap:8px}.action{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:11px;background:#f8fafc}
-.action-icon{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:9px}.action-copy strong,.task-copy strong,.activity-copy strong{display:block;color:#273043;font-size:11px}.action-copy span,.task-copy span,.activity-copy span{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
-.action-count{min-width:30px;height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0 7px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:11px;font-weight:850;color:var(--dark)}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.summary-box{padding:12px;border:1px solid var(--line);border-radius:11px;background:#f8fafc}.summary-box span{display:block;margin-bottom:5px;color:var(--muted);font-size:9px;font-weight:700}.summary-box strong{font-size:19px;color:var(--dark)}.pending strong{color:#c2410c}.approved strong{color:#15803d}.rejected strong{color:#b91c1c}
-.divider{height:1px;margin:14px 0;background:var(--line)}.mini-title{margin:0 0 9px;color:#475569;font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}
-.task,.activity{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #edf0f4}.task:last-child,.activity:last-child{border-bottom:0}.task-copy,.activity-copy{min-width:0;flex:1}.priority{padding:4px 6px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:8px;font-weight:850;text-transform:uppercase}.priority.high,.priority.urgent{background:#fee2e2;color:#b91c1c}
-.activity-icon{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:9px;background:#f1f5f9;color:#475569}
-.life-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.life{display:flex;align-items:center;gap:7px;padding:9px;border:1px solid var(--line);border-radius:9px;background:#f8fafc}.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.life span:nth-child(2){min-width:0;flex:1;color:#475569;font-size:9px;font-weight:700}.life strong{font-size:11px;color:var(--dark)}
-.d1{background:#6366f1}.d2{background:#0ea5e9}.d3{background:#22c55e}.d4{background:#eab308}.d5{background:#f97316}.d6{background:#64748b}.d7{background:#ef4444}.d8{background:#14b8a6}.d9{background:#a855f7}
-.category{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px 0;border-bottom:1px solid #edf0f4}.category:last-child{border-bottom:0}.category span{color:#475569;font-size:10px;font-weight:700}.category strong{color:var(--dark);font-size:11px}.empty{padding:22px;text-align:center;color:var(--muted);font-size:10px}
-@media(max-width:1100px){.cd-kpis{grid-template-columns:repeat(2,1fr)}.cd-main,.cd-two{grid-template-columns:1fr}}
-@media(max-width:720px){.cd-hero{align-items:stretch;flex-direction:column}.cd-actions{width:100%}.cd-btn{flex:1}.stage-grid,.life-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:500px){.cd-kpis,.stage-grid,.life-grid,.summary{grid-template-columns:1fr}.cd-actions{flex-direction:column}}
+/* ==========================================================================
+   CORPORATE UI REDESIGN - FREIGHT CRM DASHBOARD
+   Maintains all original functionality, variables, blocks, and data bindings.
+   ================================================================---------- */
+
+:root {
+    --primary-red: #b91c1c;
+    --primary-dark-red: #7f1d1d;
+    --surface-dark: #0f172a;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #cbd5e1;
+    --border-light: #e2e8f0;
+    --bg-canvas: #f8fafc;
+    --bg-card: #ffffff;
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --shadow-subtle: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+    --shadow-card: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+}
+
+.clean-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    background: transparent;
+    padding-bottom: 32px;
+}
+
+/* Workspace Banner */
+.workspace-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+    padding: 14px 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-lg);
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-subtle);
+}
+.workspace-banner i {
+    font-size: 16px;
+}
+
+/* Global Search Component */
+.global-search-wrapper {
+    background: var(--bg-card);
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-card);
+}
+.global-search-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.search-input-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.search-input-container i {
+    position: absolute;
+    left: 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.search-input-container input {
+    width: 100%;
+    height: 44px;
+    padding: 0 16px 0 44px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    outline: none;
+    font-size: 13px;
+    color: var(--text-main);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.search-input-container input:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+}
+.btn-search {
+    height: 44px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--primary-red);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.btn-search:hover {
+    background: var(--primary-dark-red);
+}
+.btn-clear {
+    height: 44px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--bg-canvas);
+    transition: background 0.15s ease;
+}
+.btn-clear:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+/* Search Drawer Results */
+.search-results-drawer {
+    background: var(--bg-card);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    border-top: 3px solid var(--primary-red);
+    box-shadow: var(--shadow-card);
+}
+.search-results-drawer h3 {
+    margin: 0 0 18px;
+    font-size: 15px;
+    color: var(--surface-dark);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.search-results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+.search-column {
+    background: var(--bg-canvas);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+.search-column h4 {
+    margin: 0 0 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.search-item-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 12px;
+}
+.search-item-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+.search-item-row a {
+    font-weight: 600;
+    color: var(--surface-dark);
+    text-decoration: none;
+}
+.search-item-row a:hover {
+    color: var(--primary-red);
+    text-decoration: underline;
+}
+.search-item-row small {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Hero Section */
+.cd-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 28px 32px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-dark-red), var(--primary-red));
+    color: #fff;
+    box-shadow: 0 10px 25px -5px rgba(127, 29, 29, 0.2);
+}
+.cd-hero h2 {
+    margin: 6px 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.cd-hero p {
+    margin: 0;
+    max-width: 600px;
+    font-size: 13px;
+    line-height: 1.5;
+    opacity: 0.9;
+}
+.cd-kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.8;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.cd-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.cd-btn {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+.cd-btn.light {
+    background: #ffffff;
+    color: var(--primary-dark-red);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.cd-btn.light:hover {
+    background: #f8fafc;
+}
+.cd-btn.outline {
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+.cd-btn.outline:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* KPIs Grid */
+.cd-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+.cd-kpi {
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-subtle);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cd-kpi:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-1px);
+}
+.cd-kpi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.cd-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+}
+.i-red { background: #fee2e2; color: #b91c1c; }
+.i-orange { background: #ffedd5; color: #c2410c; }
+.i-purple { background: #ede9fe; color: #6d28d9; }
+.i-green { background: #dcfce7; color: #15803d; }
+
+.cd-state {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+}
+.cd-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--surface-dark);
+    letter-spacing: -0.02em;
+}
+.cd-label {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* Layout Grids */
+.cd-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr);
+    gap: 20px;
+}
+.cd-two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+/* Panels */
+.cd-panel {
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-subtle);
+    min-width: 0;
+    padding: 22px;
+    border-radius: var(--radius-lg);
+}
+.cd-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+.cd-head small {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--primary-red);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.cd-head h3 {
+    margin: 0;
+    color: var(--surface-dark);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.cd-head p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+.cd-link {
+    flex-shrink: 0;
+    color: var(--primary-red);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.cd-link:hover {
+    text-decoration: underline;
+}
+
+/* Stage Grid */
+.stage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+.stage {
+    padding: 14px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    transition: border-color 0.15s ease;
+}
+.stage:hover {
+    border-color: var(--border-color);
+}
+.stage i {
+    color: var(--primary-red);
+    font-size: 16px;
+}
+.stage strong {
+    display: block;
+    margin-top: 8px;
+    color: var(--surface-dark);
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 600;
+}
+.stage-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 10px;
+}
+.stage-foot b {
+    color: var(--primary-dark-red);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Action, Task, Activity, Category Lists */
+.action-list, .task-list, .activity-list, .category-list {
+    display: grid;
+    gap: 10px;
+}
+.action {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+}
+.action-icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    font-size: 15px;
+}
+.action-copy strong, .task-copy strong, .activity-copy strong {
+    display: block;
+    color: var(--surface-dark);
+    font-size: 12px;
+    font-weight: 600;
+}
+.action-copy span, .task-copy span, .activity-copy span {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+.action-count {
+    min-width: 32px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--surface-dark);
+}
+
+/* Summary Boxes */
+.summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.summary-box {
+    padding: 14px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+}
+.summary-box span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.summary-box strong {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--surface-dark);
+    letter-spacing: -0.01em;
+}
+.summary-box.pending strong { color: #c2410c; }
+.summary-box.approved strong { color: #15803d; }
+.summary-box.rejected strong { color: #b91c1c; }
+
+.divider {
+    height: 1px;
+    margin: 16px 0;
+    background: var(--border-light);
+}
+.mini-title {
+    margin: 0 0 10px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Tasks & Activities */
+.task, .activity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+.task:last-child, .activity:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+.task-copy, .activity-copy {
+    min-width: 0;
+    flex: 1;
+}
+.priority {
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.priority.high, .priority.urgent {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background: #f1f5f9;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Lifecycle & Category Grid */
+.life-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.life {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+}
+.dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.life span:nth-child(2) {
+    min-width: 0;
+    flex: 1;
+    color: var(--text-main);
+    font-size: 11px;
+    font-weight: 600;
+}
+.life strong {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--surface-dark);
+}
+.d1 { background: #6366f1; }
+.d2 { background: #0ea5e9; }
+.d3 { background: #22c55e; }
+.d4 { background: #eab308; }
+.d5 { background: #f97316; }
+.d6 { background: #64748b; }
+.d7 { background: #ef4444; }
+.d8 { background: #14b8a6; }
+.d9 { background: #a855f7; }
+
+.category {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+.category:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+.category span {
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 500;
+}
+.category strong {
+    color: var(--surface-dark);
+    font-size: 12px;
+    font-weight: 700;
+}
+.empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Responsive Breakpoints */
+@media(max-width: 1200px) {
+    .search-results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media(max-width: 1100px) {
+    .cd-kpis { grid-template-columns: repeat(2, 1fr); }
+    .cd-main, .cd-two { grid-template-columns: 1fr; }
+}
+@media(max-width: 720px) {
+    .cd-hero { align-items: stretch; flex-direction: column; }
+    .cd-actions { width: 100%; }
+    .cd-btn { flex: 1; }
+    .stage-grid, .life-grid { grid-template-columns: repeat(2, 1fr); }
+    .search-results-grid { grid-template-columns: 1fr; }
+}
+@media(max-width: 500px) {
+    .cd-kpis, .stage-grid, .life-grid, .summary { grid-template-columns: 1fr; }
+    .cd-actions { flex-direction: column; }
+    .global-search-form { flex-direction: column; align-items: stretch; }
+}
 </style>
 
 <div class="clean-dashboard">
+
 <!-- GLOBAL SEARCH BAR COMPONENT -->
-<div style="margin-bottom: 20px; background: #ffffff; padding: 16px; border-radius: 16px; border: 1px solid #e6eaf0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-    <form method="GET" action="{{ url_for('dashboard') }}" style="display: flex; gap: 10px; align-items: center;">
-        <div style="flex: 1; position: relative; display: flex; align-items: center;">
-            <i class="bi bi-search" style="position: absolute; left: 14px; color: #64748b; font-size: 14px;"></i>
-            <input type="text" name="global_q" value="{{ search_q or '' }}" placeholder="Search across clients, enquiries, and quotations (e.g. company name, reference no.)..." style="width: 100%; height: 42px; padding: 0 14px 0 40px; border-radius: 10px; border: 1px solid #cbd5e1; outline: none; font-size: 13px;">
+<div class="global-search-wrapper">
+    <form method="GET" action="{{ url_for('dashboard') }}" class="global-search-form">
+        <div class="search-input-container">
+            <i class="bi bi-search"></i>
+            <input type="text" name="global_q" value="{{ search_q or '' }}" placeholder="Search across clients, enquiries, and quotations (e.g. company name, reference no.)...">
         </div>
-        <button type="submit" style="height: 42px; padding: 0 24px; border: 0; border-radius: 10px; background: #b91c1c; color: #ffffff; font-weight: 700; font-size: 13px; cursor: pointer;">Search</button>
+        <button type="submit" class="btn-search">Search</button>
         {% if search_q %}
-            <a href="{{ url_for('dashboard') }}" style="height: 42px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 10px; color: #64748b; text-decoration: none; font-size: 13px; background: #f8fafc;">Clear</a>
+            <a href="{{ url_for('dashboard') }}" class="btn-clear">Clear</a>
         {% endif %}
     </form>
 </div>
 
 <!-- DYNAMIC SEARCH RESULTS DRAWER -->
 {% if search_q %}
-<div style="margin-bottom: 24px; padding: 20px; background: #ffffff; border-radius: 16px; border: 2px solid #b91c1c; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
-    <h3 style="margin: 0 0 15px; font-size: 16px; color: #172033; font-weight: 800;"><i class="bi bi-filter-square-fill" style="color:#b91c1c;"></i> Global Search Results for "{{ search_q }}"</h3>
+<div class="search-results-drawer">
+    <h3><i class="bi bi-filter-square-fill" style="color:var(--primary-red);"></i> Global Search Results for "{{ search_q }}"</h3>
     
-    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+    <div class="search-results-grid">
         <!-- Clients Column -->
-        <div style="background:#f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e6eaf0;">
-            <h4 style="margin:0 0 10px; font-size: 12px; font-weight: 850; text-transform: uppercase; color:#64748b;"><i class="bi bi-people-fill"></i> Clients ({{ search_results.clients|length }})</h4>
+        <div class="search-column">
+            <h4><i class="bi bi-people-fill"></i> Clients ({{ search_results.clients|length }})</h4>
             {% if search_results.clients %}
                 {% for c in search_results.clients %}
-                    <div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 12px;">
-                        <a href="{{ url_for('clients.view_client', client_id=c.id) }}" style="font-weight:700; color:#172033; text-decoration:none;">{{ c.company_name }}</a>
-                        <small style="display:block; color:#64748b;">Ref: {{ c.client_reference or 'N/A' }} • {{ c.contact_person_name }}</small>
+                    <div class="search-item-row">
+                        <a href="{{ url_for('clients.view_client', client_id=c.id) }}">{{ c.company_name }}</a>
+                        <small>Ref: {{ c.client_reference or 'N/A' }} • {{ c.contact_person_name }}</small>
                     </div>
                 {% endfor %}
             {% else %}
-                <p style="font-size:11px; color:#64748b; margin:5px 0 0;">No matching clients found.</p>
+                <p style="font-size:12px; color:var(--text-muted); margin:6px 0 0;">No matching clients found.</p>
             {% endif %}
         </div>
 
         <!-- Enquiries Column -->
-        <div style="background:#f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e6eaf0;">
-            <h4 style="margin:0 0 10px; font-size: 12px; font-weight: 850; text-transform: uppercase; color:#64748b;"><i class="bi bi-inbox-fill"></i> Enquiries ({{ search_results.enquiries|length }})</h4>
+        <div class="search-column">
+            <h4><i class="bi bi-inbox-fill"></i> Enquiries ({{ search_results.enquiries|length }})</h4>
             {% if search_results.enquiries %}
                 {% for e in search_results.enquiries %}
-                    <div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 12px;">
-                        <a href="{{ url_for('enquiries.view_enquiry', enquiry_id=e.id) }}" style="font-weight:700; color:#172033; text-decoration:none;">{{ e.enquiry_reference }}</a>
-                        <small style="display:block; color:#64748b;">{{ e.client.company_name }} • {{ e.mode_of_shipment|replace('_',' ')|title }}</small>
+                    <div class="search-item-row">
+                        <a href="{{ url_for('enquiries.view_enquiry', enquiry_id=e.id) }}">{{ e.enquiry_reference }}</a>
+                        <small>{{ e.client.company_name }} • {{ e.mode_of_shipment|replace('_',' ')|title }}</small>
                     </div>
                 {% endfor %}
             {% else %}
-                <p style="font-size:11px; color:#64748b; margin:5px 0 0;">No matching enquiries found.</p>
+                <p style="font-size:12px; color:var(--text-muted); margin:6px 0 0;">No matching enquiries found.</p>
             {% endif %}
         </div>
 
         <!-- Quotations Column -->
-        <div style="background:#f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e6eaf0;">
-            <h4 style="margin:0 0 10px; font-size: 12px; font-weight: 850; text-transform: uppercase; color:#64748b;"><i class="bi bi-file-earmark-text-fill"></i> Quotations ({{ search_results.quotations|length }})</h4>
+        <div class="search-column">
+            <h4><i class="bi bi-file-earmark-text-fill"></i> Quotations ({{ search_results.quotations|length }})</h4>
             {% if search_results.quotations %}
                 {% for q in search_results.quotations %}
-                    <div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 12px;">
-                        <a href="{{ url_for('quotations.view_quotation', quotation_id=q.id) }}" style="font-weight:700; color:#172033; text-decoration:none;">{{ q.quotation_number }}</a>
-                        <small style="display:block; color:#64748b;">Amt: {{ q.quotation_amount }} {{ q.currency }} • <span style="font-weight:700;">{{ q.status|title }}</span></small>
+                    <div class="search-item-row">
+                        <a href="{{ url_for('quotations.view_quotation', quotation_id=q.id) }}">{{ q.quotation_number }}</a>
+                        <small>Amt: {{ q.quotation_amount }} {{ q.currency }} • <span style="font-weight:600;">{{ q.status|title }}</span></small>
                     </div>
                 {% endfor %}
             {% else %}
-                <p style="font-size:11px; color:#64748b; margin:5px 0 0;">No matching quotations found.</p>
+                <p style="font-size:12px; color:var(--text-muted); margin:6px 0 0;">No matching quotations found.</p>
             {% endif %}
         </div>
 
-        <div style="background:#f8fafc; padding: 14px; border-radius: 12px; border: 1px solid #e6eaf0;">
-    <h4 style="margin:0 0 10px; font-size: 12px; font-weight: 850; text-transform: uppercase; color:#64748b;">
-        <i class="bi bi-truck"></i> Shipments ({{ search_results.shipments|length }})
-    </h4>
-
-    {% if search_results.shipments %}
-        {% for s in search_results.shipments %}
-            <div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 12px;">
-                <a href="{{ url_for('shipments.view_shipment', shipment_id=s.id) }}"
-                   style="font-weight:700; color:#172033; text-decoration:none;">
-                    {{ s.shipment_reference }}
-                </a>
-
-                <small style="display:block; color:#64748b;">
-                    {{ s.client.company_name }}
-                    •
-                    {{ s.current_stage|replace('_',' ')|title }}
-                </small>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p style="font-size:11px; color:#64748b; margin:5px 0 0;">
-            No matching shipments found.
-        </p>
-    {% endif %}
-</div>
+        <!-- Shipments Column -->
+        <div class="search-column">
+            <h4><i class="bi bi-truck"></i> Shipments ({{ search_results.shipments|length }})</h4>
+            {% if search_results.shipments %}
+                {% for s in search_results.shipments %}
+                    <div class="search-item-row">
+                        <a href="{{ url_for('shipments.view_shipment', shipment_id=s.id) }}">{{ s.shipment_reference }}</a>
+                        <small>{{ s.client.company_name }} • {{ s.current_stage|replace('_',' ')|title }}</small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="font-size:12px; color:var(--text-muted); margin:6px 0 0;">No matching shipments found.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endif %}
+
+<!-- HERO SECTION -->
 <section class="cd-hero">
   <div>
     <span class="cd-kicker"><i class="bi bi-grid-1x2-fill"></i> Freight Operations Command Center</span>
@@ -147,6 +772,7 @@
   </div>
 </section>
 
+<!-- KPIS SECTION -->
 <section class="cd-kpis">
 {% set kpis = [
 ("i-red","people-fill","Live Records",total_clients,"Total Clients"),
@@ -155,64 +781,214 @@
 ("i-green","truck","In Progress",total_shipments,"Active Shipments")
 ] %}
 {% for icon_class,icon,state,value,label in kpis %}
-<article class="cd-kpi"><div class="cd-kpi-top"><span class="cd-icon {{ icon_class }}"><i class="bi bi-{{ icon }}"></i></span><span class="cd-state">{{ state }}</span></div><div class="cd-value">{{ value }}</div><div class="cd-label">{{ label }}</div></article>
+<article class="cd-kpi">
+    <div class="cd-kpi-top">
+        <span class="cd-icon {{ icon_class }}"><i class="bi bi-{{ icon }}"></i></span>
+        <span class="cd-state">{{ state }}</span>
+    </div>
+    <div class="cd-value">{{ value }}</div>
+    <div class="cd-label">{{ label }}</div>
+</article>
 {% endfor %}
 </section>
 
+<!-- MAIN SECTION -->
 <section class="cd-main">
 <article class="cd-panel">
-<div class="cd-head"><div><small>Shipment Operations</small><h3>Current Shipment Stage</h3><p>Live workflow position across operational milestones.</p></div><a href="{{ url_for('shipments.shipment_list') }}" class="cd-link">View all <i class="bi bi-arrow-right"></i></a></div>
-{% set stages=[("booked","Booked","journal-check"),("cargo_picked_up","Cargo Picked Up","box-seam"),("in_transit","In Transit","arrow-left-right"),("arrived_destination","Arrived at Destination","geo-alt-fill"),("customs_clearance","Customs Clearance","shield-check"),("out_for_delivery","Out for Delivery","truck"),("delivered","Delivered","check-circle"),("closed_completed","Closed / Completed","check2-circle")] %}
-<div class="stage-grid">{% for key,label,icon in stages %}<div class="stage"><i class="bi bi-{{ icon }}"></i><strong>{{ label }}</strong><div class="stage-foot"><span>Shipments</span><b>{{ shipment_stage_counts.get(key,0) }}</b></div></div>{% endfor %}</div>
+    <div class="cd-head">
+        <div>
+            <small>Shipment Operations</small>
+            <h3>Current Shipment Stage</h3>
+            <p>Live workflow position across operational milestones.</p>
+        </div>
+        <a href="{{ url_for('shipments.shipment_list') }}" class="cd-link">View all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% set stages=[("booked","Booked","journal-check"),("cargo_picked_up","Cargo Picked Up","box-seam"),("in_transit","In Transit","arrow-left-right"),("arrived_destination","Arrived at Destination","geo-alt-fill"),("customs_clearance","Customs Clearance","shield-check"),("out_for_delivery","Out for Delivery","truck"),("delivered","Delivered","check-circle"),("closed_completed","Closed / Completed","check2-circle")] %}
+    <div class="stage-grid">
+        {% for key,label,icon in stages %}
+        <div class="stage">
+            <i class="bi bi-{{ icon }}"></i>
+            <strong>{{ label }}</strong>
+            <div class="stage-foot"><span>Shipments</span><b>{{ shipment_stage_counts.get(key,0) }}</b></div>
+        </div>
+        {% endfor %}
+    </div>
 </article>
 
 <article class="cd-panel">
-<div class="cd-head"><div><small>Attention Required</small><h3>Action Center</h3><p>Items needing sales or operations attention.</p></div></div>
-<div class="action-list">
-<div class="action"><span class="action-icon i-red"><i class="bi bi-calendar2-check"></i></span><div class="action-copy"><strong>Pending Follow-ups</strong><span>Pending or in-progress actions</span></div><span class="action-count">{{ pending_followups_count }}</span></div>
-<div class="action"><span class="action-icon i-orange"><i class="bi bi-exclamation-triangle"></i></span><div class="action-copy"><strong>At-Risk Clients</strong><span>Relationships requiring attention</span></div><span class="action-count">{{ lifecycle_counts["at_risk"] }}</span></div>
-<div class="action"><span class="action-icon i-purple"><i class="bi bi-file-earmark-text"></i></span><div class="action-copy"><strong>Pending Quotations</strong><span>Awaiting client decision</span></div><span class="action-count">{{ quotation_status_counts["pending"] }}</span></div>
-</div>
+    <div class="cd-head">
+        <div>
+            <small>Attention Required</small>
+            <h3>Action Center</h3>
+            <p>Items needing sales or operations attention.</p>
+        </div>
+    </div>
+    <div class="action-list">
+        <div class="action">
+            <span class="action-icon i-red"><i class="bi bi-calendar2-check"></i></span>
+            <div class="action-copy"><strong>Pending Follow-ups</strong><span>Pending or in-progress actions</span></div>
+            <span class="action-count">{{ pending_followups_count }}</span>
+        </div>
+        <div class="action">
+            <span class="action-icon i-orange"><i class="bi bi-exclamation-triangle"></i></span>
+            <div class="action-copy"><strong>At-Risk Clients</strong><span>Relationships requiring attention</span></div>
+            <span class="action-count">{{ lifecycle_counts["at_risk"] }}</span>
+        </div>
+        <div class="action">
+            <span class="action-icon i-purple"><i class="bi bi-file-earmark-text"></i></span>
+            <div class="action-copy"><strong>Pending Quotations</strong><span>Awaiting client decision</span></div>
+            <span class="action-count">{{ quotation_status_counts["pending"] }}</span>
+        </div>
+    </div>
 </article>
 </section>
 
+<!-- SECTION TWO -->
 <section class="cd-two">
 <article class="cd-panel">
-<div class="cd-head"><div><small>Commercial Pipeline</small><h3>Quotation Decisions</h3><p>Pending, approved and rejected records.</p></div><a href="{{ url_for('quotations.quotation_list') }}" class="cd-link">View quotes <i class="bi bi-arrow-right"></i></a></div>
-<div class="summary"><div class="summary-box pending"><span>Pending</span><strong>{{ quotation_status_counts["pending"] }}</strong></div><div class="summary-box approved"><span>Approved</span><strong>{{ quotation_status_counts["approved"] }}</strong></div><div class="summary-box rejected"><span>Rejected</span><strong>{{ quotation_status_counts["rejected"] }}</strong></div></div>
-<div class="divider"></div><h4 class="mini-title">Enquiry Outcome</h4>
-<div class="summary"><div class="summary-box"><span>Open</span><strong>{{ enquiry_status_counts["open"] }}</strong></div><div class="summary-box approved"><span>Converted</span><strong>{{ enquiry_status_counts["converted"] }}</strong></div><div class="summary-box"><span>Closed</span><strong>{{ enquiry_status_counts["closed"] }}</strong></div></div>
+    <div class="cd-head">
+        <div>
+            <small>Commercial Pipeline</small>
+            <h3>Quotation Decisions</h3>
+            <p>Pending, approved and rejected records.</p>
+        </div>
+        <a href="{{ url_for('quotations.quotation_list') }}" class="cd-link">View quotes <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="summary">
+        <div class="summary-box pending"><span>Pending</span><strong>{{ quotation_status_counts["pending"] }}</strong></div>
+        <div class="summary-box approved"><span>Approved</span><strong>{{ quotation_status_counts["approved"] }}</strong></div>
+        <div class="summary-box rejected"><span>Rejected</span><strong>{{ quotation_status_counts["rejected"] }}</strong></div>
+    </div>
+    <div class="divider"></div>
+    <h4 class="mini-title">Enquiry Outcome</h4>
+    <div class="summary">
+        <div class="summary-box"><span>Open</span><strong>{{ enquiry_status_counts["open"] }}</strong></div>
+        <div class="summary-box approved"><span>Converted</span><strong>{{ enquiry_status_counts["converted"] }}</strong></div>
+        <div class="summary-box"><span>Closed</span><strong>{{ enquiry_status_counts["closed"] }}</strong></div>
+    </div>
 </article>
 
 <article class="cd-panel">
-<div class="cd-head"><div><small>Follow-up Needed</small><h3>Upcoming Actions</h3><p>{{ pending_followups_count }} pending or in-progress tasks.</p></div><a href="{{ url_for('tasks.task_list') }}" class="cd-link">View tasks <i class="bi bi-arrow-right"></i></a></div>
-{% if follow_up_tasks %}<div class="task-list">{% for task in follow_up_tasks %}<div class="task"><div class="task-copy"><strong>{{ task.title }}</strong><span>{{ task.client.company_name }}{% if task.due_date %} • {{ task.due_date.strftime("%d %b %Y, %I:%M %p") }}{% endif %}</span></div><span class="priority {{ task.priority }}">{{ task.priority|title }}</span></div>{% endfor %}</div>{% else %}<div class="empty">No pending follow-ups.</div>{% endif %}
+    <div class="cd-head">
+        <div>
+            <small>Follow-up Needed</small>
+            <h3>Upcoming Actions</h3>
+            <p>{{ pending_followups_count }} pending or in-progress tasks.</p>
+        </div>
+        <a href="{{ url_for('tasks.task_list') }}" class="cd-link">View tasks <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% if follow_up_tasks %}
+    <div class="task-list">
+        {% for task in follow_up_tasks %}
+        <div class="task">
+            <div class="task-copy">
+                <strong>{{ task.title }}</strong>
+                <span>{{ task.client.company_name }}{% if task.due_date %} • {{ task.due_date.strftime("%d %b %Y, %I:%M %p") }}{% endif %}</span>
+            </div>
+            <span class="priority {{ task.priority }}">{{ task.priority|title }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">No pending follow-ups.</div>
+    {% endif %}
 </article>
 </section>
 
+<!-- SECTION THREE -->
 <section class="cd-two">
 <article class="cd-panel">
-<div class="cd-head"><div><small>Client Health</small><h3>Lifecycle Status</h3><p>Color-coded relationship status.</p></div><a href="{{ url_for('clients.client_list') }}" class="cd-link">View clients <i class="bi bi-arrow-right"></i></a></div>
-{% set life=[("lead","Lead / Prospect","d1"),("new","New","d2"),("active","Active","d3"),("key","Key","d4"),("at_risk","At-Risk","d5"),("dormant","Dormant","d6"),("churned","Churned","d7"),("reactivated","Reactivated","d8"),("referral","Referral","d9")] %}
-<div class="life-grid">{% for key,label,dot in life %}<div class="life"><span class="dot {{ dot }}"></span><span>{{ label }}</span><strong>{{ lifecycle_counts[key] }}</strong></div>{% endfor %}</div>
+    <div class="cd-head">
+        <div>
+            <small>Client Health</small>
+            <h3>Lifecycle Status</h3>
+            <p>Color-coded relationship status.</p>
+        </div>
+        <a href="{{ url_for('clients.client_list') }}" class="cd-link">View clients <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% set life=[("lead","Lead / Prospect","d1"),("new","New","d2"),("active","Active","d3"),("key","Key","d4"),("at_risk","At-Risk","d5"),("dormant","Dormant","d6"),("churned","Churned","d7"),("reactivated","Reactivated","d8"),("referral","Referral","d9")] %}
+    <div class="life-grid">
+        {% for key,label,dot in life %}
+        <div class="life">
+            <span class="dot {{ dot }}"></span>
+            <span>{{ label }}</span>
+            <strong>{{ lifecycle_counts[key] }}</strong>
+        </div>
+        {% endfor %}
+    </div>
 </article>
 
 <article class="cd-panel">
-<div class="cd-head"><div><small>Category Overview</small><h3>Clients by Category</h3><p>Non-archived records grouped by category.</p></div></div>
-{% if client_category_counts %}<div class="category-list">{% for name,count in client_category_counts.items() %}<div class="category"><span>{{ name|replace("_"," ")|title }}</span><strong>{{ count }}</strong></div>{% endfor %}</div>{% else %}<div class="empty">No category data available.</div>{% endif %}
+    <div class="cd-head">
+        <div>
+            <small>Category Overview</small>
+            <h3>Clients by Category</h3>
+            <p>Non-archived records grouped by category.</p>
+        </div>
+    </div>
+    {% if client_category_counts %}
+    <div class="category-list">
+        {% for name,count in client_category_counts.items() %}
+        <div class="category">
+            <span>{{ name|replace("_"," ")|title }}</span>
+            <strong>{{ count }}</strong>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">No category data available.</div>
+    {% endif %}
 </article>
 </section>
 
+<!-- SECTION FOUR -->
 <section class="cd-two">
 <article class="cd-panel">
-<div class="cd-head"><div><small>Recent Movement</small><h3>Activity Timeline</h3><p>Latest calls, emails and meetings.</p></div></div>
-{% if recent_activities %}<div class="activity-list">{% for activity in recent_activities %}<div class="activity"><span class="activity-icon">{% if activity.activity_type=="call" %}<i class="bi bi-telephone-fill"></i>{% elif activity.activity_type=="email" %}<i class="bi bi-envelope-fill"></i>{% elif activity.activity_type=="meeting" %}<i class="bi bi-people-fill"></i>{% else %}<i class="bi bi-activity"></i>{% endif %}</span><div class="activity-copy"><strong>{{ activity.subject }}</strong><span>{{ activity.client.company_name }} • {{ activity.activity_date.strftime("%d %b %Y, %I:%M %p") }}</span></div></div>{% endfor %}</div>{% else %}<div class="empty">No recent activity recorded.</div>{% endif %}
+    <div class="cd-head">
+        <div>
+            <small>Recent Movement</small>
+            <h3>Activity Timeline</h3>
+            <p>Latest calls, emails and meetings.</p>
+        </div>
+    </div>
+    {% if recent_activities %}
+    <div class="activity-list">
+        {% for activity in recent_activities %}
+        <div class="activity">
+            <span class="activity-icon">
+                {% if activity.activity_type=="call" %}<i class="bi bi-telephone-fill"></i>
+                {% elif activity.activity_type=="email" %}<i class="bi bi-envelope-fill"></i>
+                {% elif activity.activity_type=="meeting" %}<i class="bi bi-people-fill"></i>
+                {% else %}<i class="bi bi-activity"></i>{% endif %}
+            </span>
+            <div class="activity-copy">
+                <strong>{{ activity.subject }}</strong>
+                <span>{{ activity.client.company_name }} • {{ activity.activity_date.strftime("%d %b %Y, %I:%M %p") }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">No recent activity recorded.</div>
+    {% endif %}
 </article>
 
 <article class="cd-panel">
-<div class="cd-head"><div><small>Shipment Reporting</small><h3>Progress Summary</h3><p>In-progress and completed shipment records.</p></div><a href="{{ url_for('shipments.shipment_list') }}" class="cd-link">View shipments <i class="bi bi-arrow-right"></i></a></div>
-<div class="summary"><div class="summary-box pending"><span>In Progress</span><strong>{{ total_shipments }}</strong></div><div class="summary-box approved"><span>Closed / Done</span><strong>{{ closed_shipments_count }}</strong></div><div class="summary-box"><span>Total Tracked</span><strong>{{ total_shipments + closed_shipments_count }}</strong></div></div>
+    <div class="cd-head">
+        <div>
+            <small>Shipment Reporting</small>
+            <h3>Progress Summary</h3>
+            <p>In-progress and completed shipment records.</p>
+        </div>
+        <a href="{{ url_for('shipments.shipment_list') }}" class="cd-link">View shipments <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="summary">
+        <div class="summary-box pending"><span>In Progress</span><strong>{{ total_shipments }}</strong></div>
+        <div class="summary-box approved"><span>Closed / Done</span><strong>{{ closed_shipments_count }}</strong></div>
+        <div class="summary-box"><span>Total Tracked</span><strong>{{ total_shipments + closed_shipments_count }}</strong></div>
+    </div>
 </article>
 </section>
+
 </div>
 {% endblock %}
