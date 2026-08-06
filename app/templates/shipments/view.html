@@ -79,13 +79,13 @@
         </div>
         <div class="shipment-header-actions" style="display: flex; align-items: center; gap: 10px;">
     
-    {% if shipment.shipment_status != "closed" and shipment.shipment_status != "cancelled" %}
-    <form method="POST" action="{{ url_for('shipments.cancel_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to cancel this shipment?');" style="display: inline;">
-        <button type="submit" class="edit-shipment-btn" style="background: #fffbeb; color: #b45309; border-color: #fde68a;">
-            <i class="bi bi-x-circle-fill"></i> Cancel Shipment
-        </button>
-    </form>
-    {% endif %}
+    {% if shipment.shipment_status == "active" %}
+<form method="POST" action="{{ url_for('shipments.cancel_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to cancel this shipment?');" style="display: inline;">
+    <button type="submit" class="edit-shipment-btn" style="background: #fffbeb; color: #b45309; border-color: #fde68a;">
+        <i class="bi bi-x-circle-fill"></i> Cancel Shipment
+    </button>
+</form>
+{% endif %}
 
     {% if shipment.shipment_status == "cancelled" %}
     <form method="POST" action="{{ url_for('shipments.delete_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete this cancelled shipment?');" style="display: inline;">
