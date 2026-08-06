@@ -6,61 +6,33 @@
 
 {% block content %}
 
-<div class="shipment-view-page">
+<div class="enquiry-view-page">
 
     <!-- ==========================================
-         HEADER
+         PAGE HEADER & ACTIONS
          ========================================== -->
-        
 
-    <div class="shipment-header">
-
-        <div>
-
-            <a
-                href="{{ url_for('shipments.shipment_list') }}"
-                class="back-link"
-            >
+    <section class="enquiry-hero">
+        <div class="enquiry-hero-copy">
+            <a href="{{ url_for('shipments.shipment_list') }}" class="back-link">
                 <i class="bi bi-arrow-left"></i>
                 Back to Shipments
             </a>
 
             <div class="reference-row">
-
-                <h1>
-                    {{ shipment.shipment_reference }}
-                </h1>
-
-                <span
-                    class="
-                        shipment-status
-                        status-{{ shipment.shipment_status }}
-                    "
-                >
-                    {{
-                        shipment.shipment_status
-                        |replace("_", " ")
-                        |title
-                    }}
+                <h2>{{ shipment.shipment_reference }}</h2>
+                <span class="enquiry-status status-{{ shipment.shipment_status }}">
+                    <span class="status-dot"></span>
+                    {{ shipment.shipment_status | replace("_", " ") | title }}
                 </span>
-
             </div>
 
             <p>
-                Active freight shipment for
-                <strong>
-                    {% if shipment.client %}
-                    {{ shipment.client.company_name }}
-                    {% elif shipment.other_client_name %}
-                        {{ shipment.other_client_name }}
-                    {% else %}
-                    -
-                    {% endif %}
-                </strong>
+                Active freight shipment for <strong>{% if shipment.client %}{{ shipment.client.company_name }}{% elif shipment.other_client_name %}{{ shipment.other_client_name }}{% else %}-{% endif %}</strong>
             </p>
 
-            <div class="tracking-overview" aria-label="Shipment tracking overview">
-                <span class="tracking-mode-badge">
+            <div class="tracking-overview" aria-label="Shipment tracking overview" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 10px; color: #f8fafc; font-size: 11px;">
+                <span class="tracking-mode-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.15); color: #fff; font-weight: 700;">
                     {% if shipment.mode_of_shipment == "air_freight" %}
                         <i class="bi bi-airplane-engines-fill"></i> Air Freight
                     {% elif shipment.mode_of_shipment == "sea_freight" %}
@@ -69,1580 +41,744 @@
                         <i class="bi bi-truck"></i> Land Freight
                     {% endif %}
                 </span>
-                <span><strong>HBL / Tracking No.</strong> {{ shipment.hbl_no | default(shipment.shipment_reference, true) }}</span>
-                <span><strong>Origin</strong> {{ shipment.origin }}</span>
-                <span><strong>Destination</strong> {{ shipment.destination }}</span>
-                <span><strong>ETD</strong> {% if shipment.etd %}{{ shipment.etd.strftime("%d %b %Y") }}{% else %}Not scheduled{% endif %}</span>
-                <span><strong>ETA</strong> {% if shipment.eta %}{{ shipment.eta.strftime("%d %b %Y") }}{% else %}Not scheduled{% endif %}</span>
+                <span><strong>HBL:</strong> {{ shipment.hbl_no | default(shipment.shipment_reference, true) }}</span>
+                <span><strong>ETD:</strong> {% if shipment.etd %}{{ shipment.etd.strftime("%d %b %Y") }}{% else %}Not scheduled{% endif %}</span>
+                <span><strong>ETA:</strong> {% if shipment.eta %}{{ shipment.eta.strftime("%d %b %Y") }}{% else %}Not scheduled{% endif %}</span>
             </div>
-
         </div>
-        <div class="shipment-header-actions" style="display: flex; align-items: center; gap: 10px;">
-    
-    {% if shipment.shipment_status == "active" %}
-<form method="POST" action="{{ url_for('shipments.cancel_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to cancel this shipment?');" style="display: inline;">
-    <button type="submit" class="edit-shipment-btn" style="background: #fffbeb; color: #b45309; border-color: #fde68a;">
-        <i class="bi bi-x-circle-fill"></i> Cancel Shipment
-    </button>
-</form>
-{% endif %}
 
-    {% if shipment.shipment_status == "cancelled" %}
-    <form method="POST" action="{{ url_for('shipments.delete_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete this cancelled shipment?');" style="display: inline;">
-        <button type="submit" class="edit-shipment-btn" style="background: #fef2f2; color: #dc2626; border-color: #fecaca;">
-            <i class="bi bi-trash-fill"></i> Delete Shipment
-        </button>
-    </form>
-    {% endif %}
+        <div class="view-header-actions">
+            <a href="{{ url_for('shipments.download_shipment_pdf', shipment_id=shipment.id) }}" class="btn btn-secondary-soft">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF
+            </a>
 
-    
-</div>
+            {% if shipment.shipment_status != "closed" or current_user.role == "admin" %}
+            <a href="{{ url_for('shipments.edit_shipment', shipment_id=shipment.id) }}" class="btn btn-secondary-soft">
+                <i class="bi bi-pencil-square"></i> Edit Shipment
+            </a>
+            {% endif %}
 
-    <div class="shipment-header-actions">
+            {% if shipment.shipment_status == "active" %}
+            <form method="POST" action="{{ url_for('shipments.cancel_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to cancel this shipment?');" style="display: inline;">
+                <button type="submit" class="btn" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
+                    <i class="bi bi-x-circle-fill"></i> Cancel
+                </button>
+            </form>
+            {% endif %}
 
-    
-
-    {% if shipment.shipment_status != "closed" or current_user.role == "admin" %}
-    <a href="{{ url_for('shipments.edit_shipment', shipment_id=shipment.id) }}"
-       class="edit-shipment-btn">
-        <i class="bi bi-pencil-square"></i>
-        Edit Shipment
-    </a>
-    {% endif %}
-
-    <a href="{{ url_for('shipments.download_shipment_pdf', shipment_id=shipment.id) }}"
-       class="edit-shipment-btn">
-        <i class="bi bi-file-earmark-pdf-fill"></i>
-        Download PDF
-    </a>
-
-</div>
-
-    </div>
-
+            {% if shipment.shipment_status == "cancelled" %}
+            <form method="POST" action="{{ url_for('shipments.delete_shipment', shipment_id=shipment.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete this cancelled shipment?');" style="display: inline;">
+                <button type="submit" class="btn" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+                    <i class="bi bi-trash-fill"></i> Delete
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </section>
 
     <!-- ==========================================
-         MAIN GRID
+         TRACKING TABS (From Shipment View)
+         ========================================== -->
+    <div class="tracking-tabs">
+        <button class="tab-btn active" data-tab="status">STATUS</button>
+        <button class="tab-btn" data-tab="details">DETAILS</button>
+        <button class="tab-btn" data-tab="documents">DOCUMENTS</button>
+    </div>
+
+    <!-- ==========================================
+         MAIN GRID (TAB CONTENT WRAPPER)
          ========================================== -->
 
-    <div class="shipment-detail-grid">
-
-        <!-- ======================================
-             LEFT COLUMN
-             ====================================== -->
-
-        <div class="shipment-main-column">
-
-    <div class="tracking-tabs">
-
-    <button class="tab-btn active"
-            data-tab="status">
-        STATUS
-    </button>
-
-    <button class="tab-btn"
-            data-tab="details">
-        DETAILS
-    </button>
-
-    <button class="tab-btn"
-            data-tab="documents">
-        DOCUMENTS
-    </button>
-
-</div>
-
-<div id="status" class="tracking-tab active">
-            <!-- ======================================
-     SHIPMENT OPERATIONAL WORKFLOW
-     ====================================== -->
-
-<div class="detail-card workflow-timeline-card">
-
-    <div class="card-heading">
-
-        <span class="heading-icon workflow-heading-icon">
-            <i class="bi bi-diagram-3-fill"></i>
-        </span>
-
-        <div>
-            <h3>Operational Workflow</h3>
-
-            <p>
-                Complete shipment milestones in sequence
-                from booking to closure.
-            </p>
-        </div>
-
-    </div>
-    {% if milestones %}
-
-    <div class="workflow-actions-bar">
-
-        <div class="undo-info">
-
-            <i class="bi bi-arrow-counterclockwise"></i>
-
-            <div>
-                <strong>Need to go back?</strong>
-
-                <span>
-                    Undo the latest completed stage only.
-                </span>
-            </div>
-
-        </div>
-
-
-        <form
-            method="POST"
-            action="{{
-                url_for(
-                    'shipments.undo_last_stage',
-                    shipment_id=shipment.id
-                )
-            }}"
-            onsubmit="
-                return confirm(
-                    'Undo the latest completed shipment stage?'
-                );
-            "
-        >
-
-            <button
-                type="submit"
-                class="undo-stage-btn"
-            >
-                <i class="bi bi-arrow-counterclockwise"></i>
-                Undo Last Stage
-            </button>
-
-        </form>
-
-    </div>
-
-{% endif %}
-
-
-    <div class="shipment-timeline">
-
-        {% for stage in shipment_stages %}
-
-            {% set is_completed = stage in completed_stages %}
-            {% set is_next = stage == next_stage %}
-
-            <div
-                class="
-                    timeline-stage
-                    {% if is_completed %}
-                        timeline-completed
-                    {% elif is_next %}
-                        timeline-current
-                    {% else %}
-                        timeline-locked
-                    {% endif %}
-                "
-            >
-
-                <div class="timeline-marker">
-
-                    {% if is_completed %}
-                        <i class="bi bi-check-lg"></i>
-
-                    {% elif is_next %}
-                        <span>{{ loop.index }}</span>
-
-                    {% else %}
-                        <i class="bi bi-lock-fill"></i>
-                    {% endif %}
-
-                </div>
-
-
-                <div class="timeline-content">
-
-                    <div class="timeline-title-row">
-
+    <!-- TAB 1: STATUS -->
+    <div id="status" class="tracking-tab active">
+        <div class="detail-grid">
+            <!-- LEFT COLUMN: WORKFLOW & CUSTOMS -->
+            <div class="detail-main">
+                
+                <!-- OPERATIONAL WORKFLOW TIMELINE -->
+                <div class="detail-card workflow-timeline-card" style="border-top: 4px solid #2563eb;">
+                    <div class="card-heading">
+                        <span class="heading-icon" style="background: #eff6ff; color: #2563eb;">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </span>
                         <div>
-                            <small>
-                                Stage {{ loop.index }}
-                            </small>
-
-                            <strong>
-                                {{ stage_labels[stage] }}
-                            </strong>
+                            <h3>Operational Workflow</h3>
+                            <p>Complete shipment milestones in sequence from booking to closure.</p>
                         </div>
-
-
-                        {% if is_completed %}
-
-                            <span class="stage-state completed-state">
-                                Completed
-                            </span>
-
-                        {% elif is_next %}
-
-                            <span class="stage-state current-state">
-                                Next Stage
-                            </span>
-
-                        {% else %}
-
-                            <span class="stage-state locked-state">
-                                Locked
-                            </span>
-
-                        {% endif %}
-
                     </div>
 
-
-                    {% if is_completed %}
-
-                        {% for milestone in milestones %}
-
-                            {% if milestone.stage == stage %}
-
-                                <div class="milestone-meta">
-
-                                    <span>
-                                        <i class="bi bi-person-fill"></i>
-                                        {{ milestone.completed_by.full_name }}
-                                    </span>
-
-                                    <span>
-                                        <i class="bi bi-clock-fill"></i>
-                                        {{
-                                            milestone.completed_at.strftime(
-                                                "%d %b %Y %H:%M"
-                                            )
-                                        }}
-                                    </span>
-
-                                </div>
-
-                            {% endif %}
-
-                        {% endfor %}
-
-
-                    {% elif is_next %}
-
-                        <form
-                            method="POST"
-                            action="{{
-                                url_for(
-                                    'shipments.complete_stage',
-                                    shipment_id=shipment.id,
-                                    stage=stage
-                                )
-                            }}"
-                            onsubmit="
-                                return confirm(
-                                    'Complete {{ stage_labels[stage] }} stage?'
-                                );
-                            "
-                        >
-
-                            <button
-                                type="submit"
-                                class="complete-stage-btn"
-                            >
-                                <i class="bi bi-check-circle-fill"></i>
-
-                                Complete
-                                {{ stage_labels[stage] }}
+                    {% if milestones %}
+                    <div class="workflow-actions-bar">
+                        <div class="undo-info">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <div>
+                                <strong>Need to go back?</strong>
+                                <span>Undo the latest completed stage only.</span>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ url_for('shipments.undo_last_stage', shipment_id=shipment.id) }}" onsubmit="return confirm('Undo the latest completed shipment stage?');">
+                            <button type="submit" class="undo-stage-btn">
+                                <i class="bi bi-arrow-counterclockwise"></i> Undo Last Stage
                             </button>
-
                         </form>
-
-                    {% else %}
-
-                        <p class="locked-message">
-                            Complete previous stages first.
-                        </p>
-
+                    </div>
                     {% endif %}
 
+                    <div class="shipment-timeline">
+                        {% for stage in shipment_stages %}
+                            {% set is_completed = stage in completed_stages %}
+                            {% set is_next = stage == next_stage %}
+                            <div class="timeline-stage {% if is_completed %}timeline-completed{% elif is_next %}timeline-current{% else %}timeline-locked{% endif %}">
+                                <div class="timeline-marker">
+                                    {% if is_completed %}
+                                        <i class="bi bi-check-lg"></i>
+                                    {% elif is_next %}
+                                        <span>{{ loop.index }}</span>
+                                    {% else %}
+                                        <i class="bi bi-lock-fill"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title-row">
+                                        <div>
+                                            <small>Stage {{ loop.index }}</small>
+                                            <strong>{{ stage_labels[stage] }}</strong>
+                                        </div>
+                                        {% if is_completed %}
+                                            <span class="stage-state completed-state">Completed</span>
+                                        {% elif is_next %}
+                                            <span class="stage-state current-state">Next Stage</span>
+                                        {% else %}
+                                            <span class="stage-state locked-state">Locked</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if is_completed %}
+                                        {% for milestone in milestones %}
+                                            {% if milestone.stage == stage %}
+                                                <div class="milestone-meta">
+                                                    <span><i class="bi bi-person-fill"></i> {{ milestone.completed_by.full_name }}</span>
+                                                    <span><i class="bi bi-clock-fill"></i> {{ milestone.completed_at.strftime("%d %b %Y %H:%M") }}</span>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% elif is_next %}
+                                        <form method="POST" action="{{ url_for('shipments.complete_stage', shipment_id=shipment.id, stage=stage) }}" onsubmit="return confirm('Complete {{ stage_labels[stage] }} stage?');">
+                                            <button type="submit" class="complete-stage-btn">
+                                                <i class="bi bi-check-circle-fill"></i> Complete {{ stage_labels[stage] }}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <p class="locked-message">Complete previous stages first.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
 
-            </div>
-
-        {% endfor %}
-
-    </div>
-
-</div>
-
-
-<!-- ======================================
-     CUSTOMS CLEARANCE
-     ====================================== -->
-<div class="detail-card customs-clearance-card" style="margin-top: 20px;">
-    <div class="card-heading">
-        <span class="heading-icon customs-heading-icon"><i class="bi bi-shield-check"></i></span>
-        <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
-    </div>
-    {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
-    {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
-    {% if customs_clearance %}
-    <div id="customsSummaryView" class="customs-summary-view">
-        <div class="customs-summary-grid">
-            <div class="customs-summary-item">
-                <span>Clearance Required</span>
-                <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
-            </div>
-            <div class="customs-summary-item">
-                <span>Status</span>
-                <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
-            </div>
-            <div class="customs-summary-item">
-                <span>Clearing Agent</span>
-                <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
-            </div>
-            <div class="customs-summary-item">
-                <span>Clearance Date</span>
-                <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
-            </div>
-        </div>
-
-        {% if customs_clearance.remarks %}
-        <div class="customs-summary-remarks">
-            <span>Remarks</span>
-            <p>{{ customs_clearance.remarks }}</p>
-        </div>
-        {% endif %}
-
-        <div class="customs-summary-footer">
-            <div class="customs-saved-meta">
-                <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
-                {% if customs_clearance.updated_by %}
-                <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
-                {% endif %}
-            </div>
-            <button type="button" id="editCustomsBtn" class="edit-customs-btn">
-                <i class="bi bi-pencil-square"></i> Edit Customs Clearance
-            </button>
-        </div>
-    </div>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
-        <div class="customs-required-panel">
-            <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
-            <div class="customs-choice-group">
-                <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
-                <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
-            </div>
-        </div>
-        <div id="customsConditionalFields" class="customs-conditional-fields">
-            <div class="customs-form-grid">
-                <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
-                    <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
-                    <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
-                    <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
-                    <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
-                </select></div>
-                <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
-                <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
-            </div>
-        </div>
-        <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
-        <div class="customs-form-actions">
-            {% if customs_clearance %}
-            <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
-                <i class="bi bi-x-circle"></i> Cancel
-            </button>
-            {% endif %}
-            <button type="submit" class="save-customs-btn">
-                {% if customs_clearance %}
-                <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
-                {% else %}
-                <i class="bi bi-check2-circle"></i> Save Customs Clearance
-                {% endif %}
-            </button>
-        </div>
-    </form>
-</div>
-
-
-<!-- ======================================
-     SHIPMENT CLOSING SECTION
-     ====================================== -->
-<div class="detail-card" style="margin-top: 20px;">
-{% set delivered_complete = "delivered" in completed_stages %}
-
-                {% if shipment_closure %}
-
-                    <div class="closure-success-banner">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <div>
-                            <strong>Shipment Closed Successfully</strong>
-                            <span>
-                                Final closure record is saved and the shipment is locked.
-                            </span>
-                        </div>
+                <!-- CUSTOMS CLEARANCE -->
+                <div class="detail-card customs-clearance-card" style="margin-top: 16px; border-top: 4px solid #0f766e;">
+                    <div class="card-heading">
+                        <span class="heading-icon" style="background: #f0fdfa; color: #0f766e;"><i class="bi bi-shield-check"></i></span>
+                        <div><h3>Customs Clearance</h3><p>Track customs clearance requirement, status, agent, date and remarks.</p></div>
                     </div>
-
-                    <div class="closure-summary-grid">
-
-                        <div class="closure-summary-item">
-                            <span>Closing Status</span>
-                            <strong>
-                                {{ shipment_closure.closing_status | replace("_", " ") | title }}
-                            </strong>
+                    {% set cr = "yes" if customs_clearance and customs_clearance.clearance_required else "no" %}
+                    {% set cs = customs_clearance.clearance_status if customs_clearance else "not_required" %}
+                    {% if customs_clearance %}
+                    <div id="customsSummaryView" class="customs-summary-view">
+                        <div class="customs-summary-grid">
+                            <div class="customs-summary-item">
+                                <span>Clearance Required</span>
+                                <strong>{{ "Yes" if customs_clearance.clearance_required else "No" }}</strong>
+                            </div>
+                            <div class="customs-summary-item">
+                                <span>Status</span>
+                                <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong>
+                            </div>
+                            <div class="customs-summary-item">
+                                <span>Clearing Agent</span>
+                                <strong>{{ customs_clearance.clearing_agent_name or "Not specified" }}</strong>
+                            </div>
+                            <div class="customs-summary-item">
+                                <span>Clearance Date</span>
+                                <strong>{{ customs_clearance.clearance_date.strftime("%d-%m-%Y") if customs_clearance.clearance_date else "Not specified" }}</strong>
+                            </div>
                         </div>
 
-                        <div class="closure-summary-item">
-                            <span>Closing Date</span>
-                            <strong>
-                                {{ shipment_closure.closing_date.strftime("%d %b %Y %H:%M") }}
-                            </strong>
+                        {% if customs_clearance.remarks %}
+                        <div class="customs-summary-remarks">
+                            <span>Remarks</span>
+                            <p>{{ customs_clearance.remarks }}</p>
                         </div>
-
-                        <div class="closure-summary-item">
-                            <span>Document Archive</span>
-                            <strong class="archive-confirmed-text">
-                                <i class="bi bi-check-circle-fill"></i>
-                                Confirmed
-                            </strong>
-                        </div>
-
-                        <div class="closure-summary-item">
-                            <span>Client Rating</span>
-                            <strong>
-                                {% if shipment_closure.client_rating %}
-                                    {{ shipment_closure.client_rating }} / 5
-                                {% else %}
-                                    Not provided
-                                {% endif %}
-                            </strong>
-                        </div>
-
-                    </div>
-
-                    {% if shipment_closure.closing_notes %}
-                        <div class="closure-text-summary">
-                            <span>Closing Notes</span>
-                            <p>{{ shipment_closure.closing_notes }}</p>
-                        </div>
-                    {% endif %}
-
-                    {% if shipment_closure.client_feedback %}
-                        <div class="closure-text-summary feedback-summary">
-                            <span>Client Feedback</span>
-                            <p>{{ shipment_closure.client_feedback }}</p>
-                        </div>
-                    {% endif %}
-
-                    <div class="closure-audit-bar">
-                        <span>
-                            <i class="bi bi-person-check-fill"></i>
-                            Closed by {{ shipment_closure.closed_by.full_name }}
-                        </span>
-
-                        {% if shipment_closure.updated_by %}
-                            <span>
-                                <i class="bi bi-clock-history"></i>
-                                Last updated by {{ shipment_closure.updated_by.full_name }}
-                            </span>
                         {% endif %}
-                    </div>
 
-                    {% if current_user.role == "admin" %}
-
-                        <details class="closure-admin-edit">
-
-                            <summary>
-                                <i class="bi bi-pencil-square"></i>
-                                Edit Closure Details
-                            </summary>
-
-                            <form
-                                method="POST"
-                                action="{{
-                                    url_for(
-                                        'shipments.close_shipment',
-                                        shipment_id=shipment.id
-                                    )
-                                }}"
-                                class="closure-form"
-                            >
-
-                                <div class="closure-form-grid">
-
-                                    <div class="closure-form-field">
-                                        <label for="closing_status_edit">
-                                            Closing Status
-                                        </label>
-
-                                        <select
-                                            id="closing_status_edit"
-                                            name="closing_status"
-                                            required
-                                        >
-                                            <option value="delivered" {% if shipment_closure.closing_status == "delivered" %}selected{% endif %}>
-                                                Delivered
-                                            </option>
-                                            <option value="completed" {% if shipment_closure.closing_status == "completed" %}selected{% endif %}>
-                                                Completed
-                                            </option>
-                                            <option value="closed" {% if shipment_closure.closing_status == "closed" %}selected{% endif %}>
-                                                Closed
-                                            </option>
-                                        </select>
-                                    </div>
-
-                                    <div class="closure-form-field">
-                                        <label for="client_rating_edit">
-                                            Client Rating
-                                        </label>
-
-                                        <select
-                                            id="client_rating_edit"
-                                            name="client_rating"
-                                        >
-                                            <option value="">Not provided</option>
-                                            {% for rating in range(1, 6) %}
-                                                <option value="{{ rating }}" {% if shipment_closure.client_rating == rating %}selected{% endif %}>
-                                                    {{ rating }} / 5
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-
-                                </div>
-
-                                <div class="closure-form-field">
-                                    <label for="closing_notes_edit">
-                                        Closing Notes
-                                    </label>
-                                    <textarea
-                                        id="closing_notes_edit"
-                                        name="closing_notes"
-                                        rows="3"
-                                        placeholder="Optional closing notes"
-                                    >{{ shipment_closure.closing_notes or "" }}</textarea>
-                                </div>
-
-                                <div class="closure-form-field">
-                                    <label for="client_feedback_edit">
-                                        Client Feedback
-                                    </label>
-                                    <textarea
-                                        id="client_feedback_edit"
-                                        name="client_feedback"
-                                        rows="3"
-                                        placeholder="Optional client feedback"
-                                    >{{ shipment_closure.client_feedback or "" }}</textarea>
-                                </div>
-
-                                <label class="archive-confirmation-box">
-                                    <input
-                                        type="checkbox"
-                                        name="document_archive_confirmed"
-                                        value="yes"
-                                        checked
-                                        required
-                                    >
-                                    <span>
-                                        <i class="bi bi-folder-check"></i>
-                                        <strong>Document Archive Confirmed</strong>
-                                        <small>
-                                            Required confirmation must remain checked.
-                                        </small>
-                                    </span>
-                                </label>
-
-                                <div class="closure-form-actions">
-                                    <button
-                                        type="submit"
-                                        class="close-shipment-btn"
-                                    >
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        Update Closure Details
-                                    </button>
-                                </div>
-
-                            </form>
-
-                        </details>
-
-                    {% else %}
-
-                        <div class="closure-lock-note">
-                            <i class="bi bi-lock-fill"></i>
-                            <span>
-                                This shipment is closed. Further modifications are restricted to Admin users.
-                            </span>
-                        </div>
-
-                    {% endif %}
-
-                {% elif delivered_complete %}
-
-                    <div class="closure-ready-banner">
-                        <i class="bi bi-box-arrow-in-down"></i>
-                        <div>
-                            <strong>Ready for Final Closure</strong>
-                            <span>
-                                Delivered stage is complete. Confirm document archiving to close the shipment.
-                            </span>
-                        </div>
-                    </div>
-
-                    <form
-                        method="POST"
-                        action="{{
-                            url_for(
-                                'shipments.close_shipment',
-                                shipment_id=shipment.id
-                            )
-                        }}"
-                        class="closure-form"
-                        onsubmit="
-                            return confirm(
-                                'Close this shipment and lock further non-Admin edits?'
-                            );
-                        "
-                    >
-
-                        <div class="closure-form-grid">
-
-                            <div class="closure-form-field">
-                                <label for="closing_status">
-                                    Closing Status
-                                </label>
-
-                                <select
-                                    id="closing_status"
-                                    name="closing_status"
-                                    required
-                                >
-                                    <option value="">Select closing status</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="closed">Closed</option>
-                                </select>
+                        <div class="customs-summary-footer">
+                            <div class="customs-saved-meta">
+                                <span><i class="bi bi-info-circle-fill"></i> Current: <strong>{{ customs_clearance.clearance_status | replace("_", " ") | title }}</strong></span>
+                                {% if customs_clearance.updated_by %}
+                                <span><i class="bi bi-person-check-fill"></i> Updated by {{ customs_clearance.updated_by.full_name }}</span>
+                                {% endif %}
                             </div>
-
-                            <div class="closure-form-field">
-                                <label>Closing Date</label>
-
-                                <div class="auto-date-field">
-                                    <i class="bi bi-clock-fill"></i>
-                                    Set automatically on closure
-                                </div>
-                            </div>
-
-                            <div class="closure-form-field">
-                                <label for="client_rating">
-                                    Client Rating
-                                </label>
-
-                                <select
-                                    id="client_rating"
-                                    name="client_rating"
-                                >
-                                    <option value="">Optional</option>
-                                    <option value="1">1 / 5</option>
-                                    <option value="2">2 / 5</option>
-                                    <option value="3">3 / 5</option>
-                                    <option value="4">4 / 5</option>
-                                    <option value="5">5 / 5</option>
-                                </select>
-                            </div>
-
-                        </div>
-
-                        <div class="closure-form-field">
-                            <label for="closing_notes">
-                                Closing Notes
-                            </label>
-
-                            <textarea
-                                id="closing_notes"
-                                name="closing_notes"
-                                rows="3"
-                                placeholder="Optional closing notes"
-                            ></textarea>
-                        </div>
-
-                        <div class="closure-form-field">
-                            <label for="client_feedback">
-                                Client Feedback
-                            </label>
-
-                            <textarea
-                                id="client_feedback"
-                                name="client_feedback"
-                                rows="3"
-                                placeholder="Optional client feedback"
-                            ></textarea>
-                        </div>
-
-                        <label class="archive-confirmation-box">
-                            <input
-                                type="checkbox"
-                                name="document_archive_confirmed"
-                                value="yes"
-                                required
-                            >
-
-                            <span>
-                                <i class="bi bi-folder-check"></i>
-                                <strong>Document Archive Confirmation</strong>
-                                <small>
-                                    I confirm that required shipment documents have been archived.
-                                    This confirmation is mandatory.
-                                </small>
-                            </span>
-                        </label>
-
-                        <div class="closure-form-actions">
-                            <button
-                                type="submit"
-                                class="close-shipment-btn"
-                            >
-                                <i class="bi bi-lock-fill"></i>
-                                Close Shipment
+                            <button type="button" id="editCustomsBtn" class="edit-customs-btn">
+                                <i class="bi bi-pencil-square"></i> Edit Customs Clearance
                             </button>
                         </div>
-
-                    </form>
-
-                {% else %}
-
-                    <div class="closure-locked-panel">
-
-                        <span class="closure-lock-icon">
-                            <i class="bi bi-lock-fill"></i>
-                        </span>
-
-                        <div>
-                            <strong>Closing Locked</strong>
-                            <p>
-                                Complete the <b>Delivered</b> workflow stage first.
-                                Shipment closing will unlock automatically after delivery.
-                            </p>
-                        </div>
-
                     </div>
-
-                {% endif %}
-
-            </div>
-
-</div>
-
-<div id="details" class="tracking-tab">
-
-            <!-- SHIPMENT INFORMATION -->
-
-            <div class="detail-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon">
-                        <i class="bi bi-box-seam-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Shipment Information</h3>
-
-                        <p>
-                            Main shipment reference,
-                            route and transport details.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="info-grid">
-
-                    <div class="info-item">
-                        <span>Shipment Reference</span>
-                        <strong>{{ shipment.shipment_reference }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>HBL / Tracking No.</span>
-                        <strong>{{ shipment.hbl_no or "N/A" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Status</span>
-                        <strong>{{ shipment.shipment_status | replace("_", " ") | title }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Mode of Shipment</span>
-                        <strong>{{ shipment.mode_of_shipment | replace("_", " ") | title }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Shipping Line</span>
-                        <strong>{{ shipment.shipping_line or "N/A" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Vessel / Flight</span>
-                        <strong>{{ shipment.vessel or "N/A" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Container No.</span>
-                        <strong>{{ shipment.container_no or "N/A" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Container Type</span>
-                        <strong>{{ shipment.container_type or "N/A" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Origin</span>
-                        <strong>{{ shipment.origin }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Destination</span>
-                        <strong>{{ shipment.destination }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Estimated Time of Departure (ETD)</span>
-                        <strong>{{ shipment.etd.strftime("%d %b %Y %H:%M") if shipment.etd else "Not scheduled" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Estimated Time of Arrival (ETA)</span>
-                        <strong>{{ shipment.eta.strftime("%d %b %Y %H:%M") if shipment.eta else "Not scheduled" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Volume</span>
-                        <strong>{{ shipment.volume or "N/A" }}</strong>
-                    </div>
-
-                    <div class="info-item">
-                        <span>Handled By</span>
-                        <strong>{{ shipment.handled_by.full_name if shipment.handled_by else "N/A" }}</strong>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ROUTE VISUAL -->
-
-            <div class="detail-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon route-heading-icon">
-                        <i class="bi bi-signpost-split-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Shipment Route</h3>
-
-                        <p>
-                            Origin to destination movement.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="route-visual">
-
-                    <div class="route-point">
-
-                        <span class="route-dot origin-dot">
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </span>
-
-                        <div>
-                            <small>Origin</small>
-
-                            <strong>
-                                {{ shipment.origin }}
-                            </strong>
-                        </div>
-
-                    </div>
-
-
-                    <div class="route-line">
-
-                        {% if shipment.mode_of_shipment == "air_freight" %}
-
-                            <i class="bi bi-airplane-fill"></i>
-
-                        {% elif shipment.mode_of_shipment == "sea_freight" %}
-
-                            <i class="bi bi-water"></i>
-
-                        {% else %}
-
-                            <i class="bi bi-truck"></i>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <div class="route-point">
-
-                        <span class="route-dot destination-dot">
-                            <i class="bi bi-flag-fill"></i>
-                        </span>
-
-                        <div>
-                            <small>Destination</small>
-
-                            <strong>
-                                {{ shipment.destination }}
-                            </strong>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- CARGO DETAILS -->
-
-            <div class="detail-card">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon cargo-heading-icon">
-                        <i class="bi bi-box2-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Cargo Details</h3>
-
-                        <p>
-                            Goods description and
-                            shipment weight or volume.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="cargo-description-box">
-
-                    <span>
-                        Cargo Description
-                    </span>
-
-                    <p>
-                        {{ shipment.cargo_description }}
-                    </p>
-
-                </div>
-
-
-                <div class="cargo-weight-box">
-
-                    <span>
-                        Weight / Volume
-                    </span>
-
-                    <strong>
-                        {{
-                            shipment.cargo_weight_volume
-                            or "Not specified"
-                        }}
-                    </strong>
-
-                </div>
-
-            </div>
-
-</div>
-
-<div id="documents" class="tracking-tab">
-
-            <!-- SHIPMENT DOCUMENT STATUS TRACKING -->
-
-            <div class="detail-card document-tracking-card">
-
-                <div class="card-heading">
-                    <span class="heading-icon document-heading-icon">
-                        <i class="bi bi-folder-check"></i>
-                    </span>
-                    <div>
-                        <h3>Shipment Document Status Tracking</h3>
-                        <p>Track required shipment documents, review status and retain operational remarks.</p>
-                    </div>
-                </div>
-
-                {% if documents %}
-
-                    {% set pending_count = documents | selectattr("status", "equalto", "pending") | list | length %}
-                    {% set received_count = documents | selectattr("status", "equalto", "received") | list | length %}
-                    {% set not_applicable_count = documents | selectattr("status", "equalto", "not_applicable") | list | length %}
-
-                    <div class="document-summary-grid">
-
-                        <div class="document-summary-item summary-total">
-                            <span>Total</span>
-                            <strong>{{ documents | length }}</strong>
-                        </div>
-
-                        <div class="document-summary-item summary-pending">
-                            <span>Pending</span>
-                            <strong>{{ pending_count }}</strong>
-                        </div>
-
-                        <div class="document-summary-item summary-received">
-                            <span>Received</span>
-                            <strong>{{ received_count }}</strong>
-                        </div>
-
-                        <div class="document-summary-item summary-not-applicable">
-                            <span>N/A</span>
-                            <strong>{{ not_applicable_count }}</strong>
-                        </div>
-
-                    </div>
-
-                    <div class="document-checklist">
-
-                        {% for document in documents %}
-
-                            <div class="document-track-item">
-
-                                <div class="document-track-top" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-
-                                    <div class="document-track-identity" style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-
-                                        <span class="document-file-icon">
-                                            <i class="bi bi-file-earmark-text-fill"></i>
-                                        </span>
-
-                                        <div>
-                                            <strong>{{ document.document_name }}</strong>
-                                            <small>{{ document.document_type | replace("_", " ") | title }}</small>
-                                        </div>
-
-                                    </div>
-
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="document-status-badge document-status-{{ document.status }}">
-                                            {{ document.status | replace("_", " ") | title }}
-                                        </span>
-
-                                        {% if document.file_path and document.file_path != '' %}
-                                            <a href="{{ url_for('shipments.download_shipment_document', shipment_id=shipment.id, document_id=document.id) }}" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #047857; color: #fff; border-radius: 6px; font-size: 11px; font-weight: 700; text-decoration: none;">
-                                                <i class="bi bi-download"></i> Download
-                                            </a>
-                                            <form method="POST" action="{{ url_for('shipments.delete_shipment_document_file', shipment_id=shipment.id, document_id=document.id) }}" onsubmit="return confirm('Delete this uploaded file?');" style="display: inline;">
-                                                <button type="submit" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #dc2626; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <button type="button" class="btn btn-sm" onclick="openIndividualUploadModal('{{ document.id }}', '{{ document.document_name }}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #7f1d1d; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
-                                                <i class="bi bi-cloud-arrow-up"></i> Upload
-                                            </button>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-
-                                {% if document.file_path %}
-                                    <div style="margin-top: 8px; font-size: 11px; color: #047857; font-weight: 600;">
-                                        <i class="bi bi-file-earmark-check"></i> Attached File: {{ document.original_filename or 'Uploaded File' }}
-                                    </div>
-                                {% endif %}
-
-                                {% if document.received_at or document.remarks %}
-
-                                    <div class="document-meta-box">
-
-                                        {% if document.received_at %}
-
-                                            <span>
-                                                <i class="bi bi-clock-history"></i>
-                                                Received
-                                                {{ document.received_at.strftime("%d %b %Y %H:%M") }}
-                                            </span>
-
-                                        {% endif %}
-
-                                        {% if document.received_by %}
-
-                                            <span>
-                                                <i class="bi bi-person-check-fill"></i>
-                                                {{ document.received_by.full_name }}
-                                            </span>
-
-                                        {% endif %}
-
-                                        {% if document.remarks %}
-
-                                            <p>
-                                                <i class="bi bi-chat-left-text-fill"></i>
-                                                {{ document.remarks }}
-                                            </p>
-
-                                        {% endif %}
-
-                                    </div>
-
-                                {% endif %}
-
-                                <form
-                                    method="POST"
-                                    action="{{
-                                        url_for(
-                                            'shipments.update_document_status',
-                                            shipment_id=shipment.id,
-                                            document_id=document.id
-                                        )
-                                    }}"
-                                    class="document-status-form"
-                                >
-
-                                    <div class="document-form-grid">
-
-                                        <div class="document-form-field">
-
-                                            <label for="status_{{ document.id }}">
-                                                Status
-                                            </label>
-
-                                            <select
-                                                id="status_{{ document.id }}"
-                                                name="status"
-                                                required
-                                            >
-                                                <option value="pending" {% if document.status == "pending" %}selected{% endif %}>
-                                                    Pending
-                                                </option>
-
-                                                <option value="received" {% if document.status == "received" %}selected{% endif %}>
-                                                    Received
-                                                </option>
-
-                                                <option value="not_applicable" {% if document.status == "not_applicable" %}selected{% endif %}>
-                                                    N/A
-                                                </option>
-                                            </select>
-
-                                        </div>
-
-                                        <div class="document-form-field document-remarks-field">
-
-                                            <label for="remarks_{{ document.id }}">
-                                                Remarks
-                                            </label>
-
-                                            <input
-                                                id="remarks_{{ document.id }}"
-                                                type="text"
-                                                name="remarks"
-                                                value="{{ document.remarks or '' }}"
-                                                maxlength="500"
-                                                placeholder="Optional operational remarks"
-                                            >
-
-                                        </div>
-
-                                        <button
-                                            type="submit"
-                                            class="update-document-btn"
-                                        >
-                                            <i class="bi bi-check2-circle"></i>
-                                            Update
-                                        </button>
-
-                                    </div>
-
-                                </form>
-
-                            </div>
-
-                        {% endfor %}
-
-                    </div>
-
-                {% else %}
-
-                    <div class="document-tracking-empty">
-                        <i class="bi bi-folder-x"></i>
-                        <div>
-                            <strong>No document checklist found</strong>
-                            <span>This shipment does not currently have document tracking records.</span>
-                        </div>
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-</div>
-
-            <!-- SOURCE RECORDS -->
-
-            <div class="detail-card" style="margin-top: 20px;">
-
-                <div class="card-heading">
-
-                    <span class="heading-icon source-heading-icon">
-                        <i class="bi bi-diagram-3-fill"></i>
-                    </span>
-
-                    <div>
-                        <h3>Source Records</h3>
-
-                        <p>
-                            Original enquiry and approved
-                            quotation linked to shipment.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="source-records-grid">
-
-                    <!-- ENQUIRY -->
-
-{% if shipment.enquiry %}
-
-<a
-    href="{{
-        url_for(
-            'enquiries.view_enquiry',
-            enquiry_id=shipment.enquiry.id
-        )
-    }}"
-    class="source-record-card"
->
-
-    <span class="source-icon enquiry-source-icon">
-        <i class="bi bi-inbox-fill"></i>
-    </span>
-
-    <div>
-
-        <small>
-            Original Enquiry
-        </small>
-
-        <strong>
-            {{ shipment.enquiry.enquiry_reference }}
-        </strong>
-
-    </div>
-
-    <i class="bi bi-arrow-up-right"></i>
-
-</a>
-
-{% else %}
-
-<div class="source-record-card">
-
-    <span class="source-icon enquiry-source-icon">
-        <i class="bi bi-dash-circle-fill"></i>
-    </span>
-
-    <div>
-
-        <small>
-            Original Enquiry
-        </small>
-
-        <strong>
-            Direct Quotation
-        </strong>
-
-    </div>
-
-</div>
-
-{% endif %}
-
-                    <!-- QUOTATION -->
-
-                    <a
-                        href="{{
-                            url_for(
-                                'quotations.view_quotation',
-                                quotation_id=shipment.quotation.id
-                            )
-                        }}"
-                        class="source-record-card"
-                    >
-
-                        <span class="source-icon quotation-source-icon">
-                            <i class="bi bi-file-earmark-text-fill"></i>
-                        </span>
-
-                        <div>
-                            <small>
-                                Approved Quotation
-                            </small>
-
-                            <strong>
-                                {{
-                                    shipment
-                                    .quotation
-                                    .quotation_number
-                                }}
-                            </strong>
-                        </div>
-
-                        <i class="bi bi-arrow-up-right"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- ======================================
-             RIGHT COLUMN
-             ====================================== -->
-
-        <div class="shipment-side-column">
-            
-
-            <!-- CLIENT CARD -->
-
-            <div class="side-card">
-
-    <h3>Client</h3>
-
-    <div class="client-summary">
-
-        <span class="client-avatar">
-            <i class="bi bi-building-fill"></i>
-        </span>
-
-        <div>
-
-            <strong>
-
-                {% if shipment.client %}
-
-                    {{ shipment.client.company_name }}
-
-                {% elif shipment.other_client_name %}
-
-                    {{ shipment.other_client_name }}
-
-                {% else %}
-
-                    -
-
-                {% endif %}
-
-            </strong>
-
-            <span>
-                Linked shipment client
-            </span>
-
-        </div>
-
-    </div>
-
-    {% if shipment.client %}
-
-    <a
-        href="{{
-            url_for(
-                'clients.view_client',
-                client_id=shipment.client.id
-            )
-        }}"
-        class="side-link-btn"
-    >
-        View Client
-        <i class="bi bi-arrow-right"></i>
-    </a>
-
-    {% endif %}
-
-</div>
-
-
-            <!-- WORKFLOW STATUS -->
-
-            <div class="side-card">
-
-                <h3>Workflow Status</h3>
-
-                <div
-                    class="
-                        workflow-box
-                        workflow-{{ shipment.shipment_status }}
-                    "
-                >
-
-                    {% if shipment.shipment_status == "active" %}
-
-                        <i class="bi bi-play-circle-fill"></i>
-
-                        <div>
-                            <strong>Active Shipment</strong>
-
-                            <span>
-                                Shipment is active and ready
-                                for operational tracking.
-                            </span>
-                        </div>
-
-                    {% elif shipment.shipment_status == "in_transit" %}
-
-                        <i class="bi bi-truck"></i>
-
-                        <div>
-                            <strong>In Transit</strong>
-
-                            <span>
-                                Cargo is currently moving
-                                toward destination.
-                            </span>
-                        </div>
-
-                    {% elif shipment.shipment_status == "delivered" %}
-
-                        <i class="bi bi-check-circle-fill"></i>
-
-                        <div>
-                            <strong>Delivered</strong>
-
-                            <span>
-                                Cargo delivery has been
-                                completed.
-                            </span>
-                        </div>
-
-                    {% else %}
-
-                        <i class="bi bi-archive-fill"></i>
-
-                        <div>
-                            <strong>Closed</strong>
-
-                            <span>
-                                Shipment workflow is closed.
-                            </span>
-                        </div>
-
                     {% endif %}
 
+                    <form method="POST" action="{{ url_for('shipments.update_customs_clearance', shipment_id=shipment.id) }}" class="customs-clearance-form{% if customs_clearance %} is-edit-hidden{% endif %}" id="customsClearanceForm">
+                        <div class="customs-required-panel">
+                            <div><strong>Clearance Required?</strong><span>Select whether customs processing applies to this shipment.</span></div>
+                            <div class="customs-choice-group">
+                                <label class="customs-choice"><input type="radio" name="clearance_required" value="yes" {% if cr == "yes" %}checked{% endif %} required><span><i class="bi bi-check-circle-fill"></i> Yes</span></label>
+                                <label class="customs-choice"><input type="radio" name="clearance_required" value="no" {% if cr == "no" %}checked{% endif %} required><span><i class="bi bi-x-circle-fill"></i> No</span></label>
+                            </div>
+                        </div>
+                        <div id="customsConditionalFields" class="customs-conditional-fields">
+                            <div class="customs-form-grid">
+                                <div class="customs-form-field"><label for="clearance_status">Clearance Status</label><select id="clearance_status" name="clearance_status">
+                                    <option value="pending" {% if cs == "pending" %}selected{% endif %}>Pending</option>
+                                    <option value="in_process" {% if cs == "in_process" %}selected{% endif %}>In Process</option>
+                                    <option value="cleared" {% if cs == "cleared" %}selected{% endif %}>Cleared</option>
+                                    <option value="held_query" {% if cs == "held_query" %}selected{% endif %}>Held / Query</option>
+                                </select></div>
+                                <div class="customs-form-field"><label for="clearing_agent_name">Clearing Agent Name</label><input id="clearing_agent_name" type="text" name="clearing_agent_name" maxlength="255" value="{{ customs_clearance.clearing_agent_name if customs_clearance and customs_clearance.clearing_agent_name else '' }}" placeholder="Enter clearing agent name"></div>
+                                <div class="customs-form-field"><label for="clearance_date">Clearance Date</label><input id="clearance_date" type="date" name="clearance_date" value="{{ customs_clearance.clearance_date.strftime('%Y-%m-%d') if customs_clearance and customs_clearance.clearance_date else '' }}"><small>Required when status is Cleared.</small></div>
+                            </div>
+                        </div>
+                        <div class="customs-form-field"><label for="customs_remarks">Remarks</label><textarea id="customs_remarks" name="customs_remarks" rows="3" placeholder="Optional customs clearance remarks">{{ customs_clearance.remarks if customs_clearance and customs_clearance.remarks else '' }}</textarea></div>
+                        <div class="customs-form-actions">
+                            {% if customs_clearance %}
+                            <button type="button" id="cancelCustomsBtn" class="cancel-customs-btn">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
+                            {% endif %}
+                            <button type="submit" class="save-customs-btn">
+                                {% if customs_clearance %}
+                                <i class="bi bi-arrow-repeat"></i> Update Customs Clearance
+                                {% else %}
+                                <i class="bi bi-check2-circle"></i> Save Customs Clearance
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- SHIPMENT CLOSING SECTION -->
+                <div class="detail-card" style="margin-top: 16px; border-top: 4px solid #334155;">
+                    {% set delivered_complete = "delivered" in completed_stages %}
+                    {% if shipment_closure %}
+                        <div class="closure-success-banner">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div>
+                                <strong>Shipment Closed Successfully</strong>
+                                <span>Final closure record is saved and the shipment is locked.</span>
+                            </div>
+                        </div>
+                        <div class="closure-summary-grid">
+                            <div class="closure-summary-item">
+                                <span>Closing Status</span>
+                                <strong>{{ shipment_closure.closing_status | replace("_", " ") | title }}</strong>
+                            </div>
+                            <div class="closure-summary-item">
+                                <span>Closing Date</span>
+                                <strong>{{ shipment_closure.closing_date.strftime("%d %b %Y %H:%M") }}</strong>
+                            </div>
+                            <div class="closure-summary-item">
+                                <span>Document Archive</span>
+                                <strong class="archive-confirmed-text"><i class="bi bi-check-circle-fill"></i> Confirmed</strong>
+                            </div>
+                            <div class="closure-summary-item">
+                                <span>Client Rating</span>
+                                <strong>{% if shipment_closure.client_rating %}{{ shipment_closure.client_rating }} / 5{% else %}Not provided{% endif %}</strong>
+                            </div>
+                        </div>
+                        {% if shipment_closure.closing_notes %}
+                            <div class="closure-text-summary">
+                                <span>Closing Notes</span>
+                                <p>{{ shipment_closure.closing_notes }}</p>
+                            </div>
+                        {% endif %}
+                        {% if shipment_closure.client_feedback %}
+                            <div class="closure-text-summary feedback-summary">
+                                <span>Client Feedback</span>
+                                <p>{{ shipment_closure.client_feedback }}</p>
+                            </div>
+                        {% endif %}
+                        <div class="closure-audit-bar">
+                            <span><i class="bi bi-person-check-fill"></i> Closed by {{ shipment_closure.closed_by.full_name }}</span>
+                            {% if shipment_closure.updated_by %}
+                                <span><i class="bi bi-clock-history"></i> Last updated by {{ shipment_closure.updated_by.full_name }}</span>
+                            {% endif %}
+                        </div>
+                        {% if current_user.role == "admin" %}
+                            <details class="closure-admin-edit">
+                                <summary><i class="bi bi-pencil-square"></i> Edit Closure Details</summary>
+                                <form method="POST" action="{{ url_for('shipments.close_shipment', shipment_id=shipment.id) }}" class="closure-form">
+                                    <div class="closure-form-grid">
+                                        <div class="closure-form-field">
+                                            <label for="closing_status_edit">Closing Status</label>
+                                            <select id="closing_status_edit" name="closing_status" required>
+                                                <option value="delivered" {% if shipment_closure.closing_status == "delivered" %}selected{% endif %}>Delivered</option>
+                                                <option value="completed" {% if shipment_closure.closing_status == "completed" %}selected{% endif %}>Completed</option>
+                                                <option value="closed" {% if shipment_closure.closing_status == "closed" %}selected{% endif %}>Closed</option>
+                                            </select>
+                                        </div>
+                                        <div class="closure-form-field">
+                                            <label for="client_rating_edit">Client Rating</label>
+                                            <select id="client_rating_edit" name="client_rating">
+                                                <option value="">Not provided</option>
+                                                {% for rating in range(1, 6) %}
+                                                    <option value="{{ rating }}" {% if shipment_closure.client_rating == rating %}selected{% endif %}>{{ rating }} / 5</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="closure-form-field">
+                                        <label for="closing_notes_edit">Closing Notes</label>
+                                        <textarea id="closing_notes_edit" name="closing_notes" rows="3" placeholder="Optional closing notes">{{ shipment_closure.closing_notes or "" }}</textarea>
+                                    </div>
+                                    <div class="closure-form-field">
+                                        <label for="client_feedback_edit">Client Feedback</label>
+                                        <textarea id="client_feedback_edit" name="client_feedback" rows="3" placeholder="Optional client feedback">{{ shipment_closure.client_feedback or "" }}</textarea>
+                                    </div>
+                                    <label class="archive-confirmation-box">
+                                        <input type="checkbox" name="document_archive_confirmed" value="yes" checked required>
+                                        <span>
+                                            <i class="bi bi-folder-check"></i>
+                                            <strong>Document Archive Confirmed</strong>
+                                            <small>Required confirmation must remain checked.</small>
+                                        </span>
+                                    </label>
+                                    <div class="closure-form-actions">
+                                        <button type="submit" class="close-shipment-btn"><i class="bi bi-arrow-repeat"></i> Update Closure Details</button>
+                                    </div>
+                                </form>
+                            </details>
+                        {% else %}
+                            <div class="closure-lock-note">
+                                <i class="bi bi-lock-fill"></i>
+                                <span>This shipment is closed. Further modifications are restricted to Admin users.</span>
+                            </div>
+                        {% endif %}
+                    {% elif delivered_complete %}
+                        <div class="closure-ready-banner">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                            <div>
+                                <strong>Ready for Final Closure</strong>
+                                <span>Delivered stage is complete. Confirm document archiving to close the shipment.</span>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ url_for('shipments.close_shipment', shipment_id=shipment.id) }}" class="closure-form" onsubmit="return confirm('Close this shipment and lock further non-Admin edits?');">
+                            <div class="closure-form-grid">
+                                <div class="closure-form-field">
+                                    <label for="closing_status">Closing Status</label>
+                                    <select id="closing_status" name="closing_status" required>
+                                        <option value="">Select closing status</option>
+                                        <option value="delivered">Delivered</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                </div>
+                                <div class="closure-form-field">
+                                    <label>Closing Date</label>
+                                    <div class="auto-date-field"><i class="bi bi-clock-fill"></i> Set automatically on closure</div>
+                                </div>
+                                <div class="closure-form-field">
+                                    <label for="client_rating">Client Rating</label>
+                                    <select id="client_rating" name="client_rating">
+                                        <option value="">Optional</option>
+                                        <option value="1">1 / 5</option>
+                                        <option value="2">2 / 5</option>
+                                        <option value="3">3 / 5</option>
+                                        <option value="4">4 / 5</option>
+                                        <option value="5">5 / 5</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="closure-form-field">
+                                <label for="closing_notes">Closing Notes</label>
+                                <textarea id="closing_notes" name="closing_notes" rows="3" placeholder="Optional closing notes"></textarea>
+                            </div>
+                            <div class="closure-form-field">
+                                <label for="client_feedback">Client Feedback</label>
+                                <textarea id="client_feedback" name="client_feedback" rows="3" placeholder="Optional client feedback"></textarea>
+                            </div>
+                            <label class="archive-confirmation-box">
+                                <input type="checkbox" name="document_archive_confirmed" value="yes" required>
+                                <span>
+                                    <i class="bi bi-folder-check"></i>
+                                    <strong>Document Archive Confirmation</strong>
+                                    <small>I confirm that required shipment documents have been archived. This confirmation is mandatory.</small>
+                                </span>
+                            </label>
+                            <div class="closure-form-actions">
+                                <button type="submit" class="close-shipment-btn"><i class="bi bi-lock-fill"></i> Close Shipment</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="closure-locked-panel">
+                            <span class="closure-lock-icon"><i class="bi bi-lock-fill"></i></span>
+                            <div>
+                                <strong>Closing Locked</strong>
+                                <p>Complete the <b>Delivered</b> workflow stage first. Shipment closing will unlock automatically after delivery.</p>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
 
             </div>
 
-
-            <!-- QUOTATION VALUE -->
-
-            <div class="side-card">
-
-                <h3>Approved Value</h3>
-
-                <div class="quotation-value">
-
-                    <span>
-                        {{
-                            shipment
-                            .quotation
-                            .currency
-                        }}
-                    </span>
-
-                    <strong>
-                        {{
-                            "{:,.2f}".format(
-                                shipment
-                                .quotation
-                                .quotation_amount
-                            )
-                        }}
-                    </strong>
-
+            <!-- RIGHT COLUMN: SIDEBAR PANELS -->
+            <div class="detail-sidebar">
+                <!-- CLIENT -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon"><i class="bi bi-building"></i></span>
+                        <div><h3>Client</h3><p>Linked CRM record</p></div>
+                    </div>
+                    <div class="sidebar-value">
+                        <strong>
+                            {% if shipment.client %}
+                                {{ shipment.client.company_name }}
+                            {% elif shipment.other_client_name %}
+                                {{ shipment.other_client_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </strong>
+                        {% if shipment.client %}
+                        <a href="{{ url_for('clients.view_client', client_id=shipment.client.id) }}">
+                            Open Client Profile <i class="bi bi-arrow-up-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <small class="value-note">
-                    Based on approved quotation
-                    {{
-                        shipment
-                        .quotation
-                        .quotation_number
-                    }}
-                </small>
-
-            </div>
-
-
-            <!-- AUDIT -->
-
-            <div class="side-card">
-
-                <h3>Record Information</h3>
-
-                <div class="audit-list">
-
-                    <div class="audit-item">
-                        <span>Created By</span>
-
-                        <strong>
-                            {{ shipment.created_by.full_name }}
-                        </strong>
+                <!-- WORKFLOW STATUS SIDEBAR -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon"><i class="bi bi-clock-history"></i></span>
+                        <div><h3>Workflow Status</h3><p>Current review progress</p></div>
                     </div>
-
-
-                    <div class="audit-item">
-                        <span>Created</span>
-
-                        <strong>
-                            {{
-                                shipment.created_at
-                                .strftime(
-                                    "%d %b %Y %H:%M"
-                                )
-                            }}
-                        </strong>
+                    <div class="workflow-box workflow-{{ shipment.shipment_status }}" style="padding: 12px; border-radius: 8px; display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px;">
+                        {% if shipment.shipment_status == "active" %}
+                            <i class="bi bi-play-circle-fill" style="font-size: 16px;"></i>
+                            <div><strong>Active Shipment</strong><span>Shipment is active and ready for operational tracking.</span></div>
+                        {% elif shipment.shipment_status == "in_transit" %}
+                            <i class="bi bi-truck" style="font-size: 16px;"></i>
+                            <div><strong>In Transit</strong><span>Cargo is currently moving toward destination.</span></div>
+                        {% elif shipment.shipment_status == "delivered" %}
+                            <i class="bi bi-check-circle-fill" style="font-size: 16px;"></i>
+                            <div><strong>Delivered</strong><span>Cargo delivery has been completed.</span></div>
+                        {% else %}
+                            <i class="bi bi-archive-fill" style="font-size: 16px;"></i>
+                            <div><strong>Closed</strong><span>Shipment workflow is closed.</span></div>
+                        {% endif %}
                     </div>
-
-
-                    <div class="audit-item">
-                        <span>Last Updated</span>
-
-                        <strong>
-                            {{
-                                shipment.updated_at
-                                .strftime(
-                                    "%d %b %Y %H:%M"
-                                )
-                            }}
-                        </strong>
-                    </div>
-
                 </div>
 
-            </div>
+                <!-- APPROVED VALUE -->
+                {% if shipment.quotation %}
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon"><i class="bi bi-cash-stack"></i></span>
+                        <div><h3>Approved Value</h3><p>Quotation financial amount</p></div>
+                    </div>
+                    <div class="quotation-value" style="display: flex; align-items: baseline; gap: 6px; padding: 12px; border-radius: 8px; background: #eff6ff;">
+                        <span style="color: #1d4ed8; font-size: 11px; font-weight: 800;">{{ shipment.quotation.currency }}</span>
+                        <strong style="color: #1e3a8a; font-size: 20px; font-weight: 900;">{{ "{:,.2f}".format(shipment.quotation.quotation_amount) }}</strong>
+                    </div>
+                    <small class="value-note" style="display: block; margin-top: 6px; color: var(--text-muted); font-size: 10px;">Based on approved quotation {{ shipment.quotation.quotation_number }}</small>
+                </div>
+                {% endif %}
 
+                <!-- RECORD INFO -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon"><i class="bi bi-info-circle-fill"></i></span>
+                        <div><h3>Record Information</h3><p>Metadata & timestamps</p></div>
+                    </div>
+                    <div class="meta-list">
+                        <div class="meta-item">
+                            <span>Reference</span>
+                            <strong>{{ shipment.shipment_reference }}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Created By</span>
+                            <strong>{{ shipment.created_by.full_name if shipment.created_by else 'N/A' }}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Created At</span>
+                            <strong>{{ shipment.created_at.strftime("%d %b %Y %H:%M") if shipment.created_at else "N/A" }}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <span>Updated At</span>
+                            <strong>{{ shipment.updated_at.strftime("%d %b %Y %H:%M") if shipment.updated_at else "N/A" }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
+    <!-- TAB 2: DETAILS -->
+    <div id="details" class="tracking-tab">
+        <div class="detail-grid">
+            <!-- LEFT COLUMN: SHIPMENT INFO & ROUTE & CARGO -->
+            <div class="detail-main">
+                <!-- SHIPMENT INFORMATION -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon"><i class="bi bi-box-seam-fill"></i></span>
+                        <div><h3>Shipment Information</h3><p>Main shipment reference, route and transport details.</p></div>
+                    </div>
+                    <div class="detail-info-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+                        <div class="detail-item"><span>Shipment Reference</span><strong>{{ shipment.shipment_reference }}</strong></div>
+                        <div class="detail-item"><span>HBL / Tracking No.</span><strong>{{ shipment.hbl_no or "N/A" }}</strong></div>
+                        <div class="detail-item"><span>Status</span><strong>{{ shipment.shipment_status | replace("_", " ") | title }}</strong></div>
+                        <div class="detail-item"><span>Mode of Shipment</span><strong>{{ shipment.mode_of_shipment | replace("_", " ") | title }}</strong></div>
+                        <div class="detail-item"><span>Shipping Line</span><strong>{{ shipment.shipping_line or "N/A" }}</strong></div>
+                        <div class="detail-item"><span>Vessel / Flight</span><strong>{{ shipment.vessel or "N/A" }}</strong></div>
+                        <div class="detail-item"><span>Container No.</span><strong>{{ shipment.container_no or "N/A" }}</strong></div>
+                        <div class="detail-item"><span>Container Type</span><strong>{{ shipment.container_type or "N/A" }}</strong></div>
+                        <div class="detail-item"><span>Origin</span><strong>{{ shipment.origin }}</strong></div>
+                        <div class="detail-item"><span>Destination</span><strong>{{ shipment.destination }}</strong></div>
+                        <div class="detail-item"><span>ETD</span><strong>{{ shipment.etd.strftime("%d %b %Y %H:%M") if shipment.etd else "Not scheduled" }}</strong></div>
+                        <div class="detail-item"><span>ETA</span><strong>{{ shipment.eta.strftime("%d %b %Y %H:%M") if shipment.eta else "Not scheduled" }}</strong></div>
+                        <div class="detail-item"><span>Volume</span><strong>{{ shipment.volume or "N/A" }}</strong></div>
+                        <div class="detail-item"><span>Handled By</span><strong>{{ shipment.handled_by.full_name if shipment.handled_by else "N/A" }}</strong></div>
+                    </div>
+                </div>
+
+                <!-- ROUTE VISUAL -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon route-heading-icon" style="background: #ecfdf5; color: #059669;"><i class="bi bi-signpost-split-fill"></i></span>
+                        <div><h3>Shipment Route</h3><p>Origin to destination movement.</p></div>
+                    </div>
+                    <div class="route-display">
+                        <div class="route-point">
+                            <span class="route-label">Origin</span>
+                            <strong>{{ shipment.origin }}</strong>
+                        </div>
+                        <div class="route-arrow">
+                            {% if shipment.mode_of_shipment == "air_freight" %}
+                                <i class="bi bi-airplane-fill"></i>
+                            {% elif shipment.mode_of_shipment == "sea_freight" %}
+                                <i class="bi bi-water"></i>
+                            {% else %}
+                                <i class="bi bi-truck"></i>
+                            {% endif %}
+                        </div>
+                        <div class="route-point">
+                            <span class="route-label">Destination</span>
+                            <strong>{{ shipment.destination }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARGO DETAILS -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon cargo-heading-icon" style="background: #fff7ed; color: #ea580c;"><i class="bi bi-box2-fill"></i></span>
+                        <div><h3>Cargo Details</h3><p>Goods description and shipment weight or volume.</p></div>
+                    </div>
+                    <div class="cargo-description mb-3">
+                        <span class="info-label">Cargo Description</span>
+                        <p>{{ shipment.cargo_description or "Not specified" }}</p>
+                    </div>
+                    <div class="detail-info-grid">
+                        <div class="detail-item">
+                            <span>Weight / Volume</span>
+                            <strong>{{ shipment.cargo_weight_volume or "Not specified" }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: SIDEBAR -->
+            <div class="detail-sidebar">
+                <!-- CLIENT -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon"><i class="bi bi-building"></i></span>
+                        <div><h3>Client</h3><p>Linked CRM record</p></div>
+                    </div>
+                    <div class="sidebar-value">
+                        <strong>
+                            {% if shipment.client %}
+                                {{ shipment.client.company_name }}
+                            {% elif shipment.other_client_name %}
+                                {{ shipment.other_client_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </strong>
+                        {% if shipment.client %}
+                        <a href="{{ url_for('clients.view_client', client_id=shipment.client.id) }}">
+                            Open Client Profile <i class="bi bi-arrow-up-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- SOURCE RECORDS -->
+                <div class="detail-card">
+                    <div class="card-heading">
+                        <span class="heading-icon" style="background: #f5f3ff; color: #7c3aed;"><i class="bi bi-diagram-3-fill"></i></span>
+                        <div><h3>Source Records</h3><p>Original enquiry and approved quotation</p></div>
+                    </div>
+                    <div class="meta-list">
+                        {% if shipment.enquiry %}
+                        <div class="meta-item">
+                            <span>Enquiry Reference</span>
+                            <strong><a href="{{ url_for('enquiries.view_enquiry', enquiry_id=shipment.enquiry.id) }}" style="color: var(--primary-red); text-decoration: none;">{{ shipment.enquiry.enquiry_reference }}</a></strong>
+                        </div>
+                        {% endif %}
+                        {% if shipment.quotation %}
+                        <div class="meta-item">
+                            <span>Quotation Number</span>
+                            <strong><a href="{{ url_for('quotations.view_quotation', quotation_id=shipment.quotation.id) }}" style="color: var(--primary-red); text-decoration: none;">{{ shipment.quotation.quotation_number }}</a></strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: DOCUMENTS -->
+    <div id="documents" class="tracking-tab">
+        <div class="detail-grid">
+            <!-- LEFT COLUMN: DOCUMENTS TRACKING -->
+            <div class="detail-main" style="width: 100%;">
+                <div class="detail-card document-tracking-card" style="border-top: 4px solid #7c3aed;">
+                    <div class="card-heading">
+                        <span class="heading-icon document-heading-icon" style="background: #f5f3ff; color: #7c3aed;">
+                            <i class="bi bi-folder-check"></i>
+                        </span>
+                        <div>
+                            <h3>Shipment Document Status Tracking</h3>
+                            <p>Track required shipment documents, review status and retain operational remarks.</p>
+                        </div>
+                    </div>
+
+                    {% if documents %}
+                        {% set pending_count = documents | selectattr("status", "equalto", "pending") | list | length %}
+                        {% set received_count = documents | selectattr("status", "equalto", "received") | list | length %}
+                        {% set not_applicable_count = documents | selectattr("status", "equalto", "not_applicable") | list | length %}
+
+                        <div class="document-summary-grid">
+                            <div class="document-summary-item summary-total">
+                                <span>Total</span>
+                                <strong>{{ documents | length }}</strong>
+                            </div>
+                            <div class="document-summary-item summary-pending">
+                                <span>Pending</span>
+                                <strong>{{ pending_count }}</strong>
+                            </div>
+                            <div class="document-summary-item summary-received">
+                                <span>Received</span>
+                                <strong>{{ received_count }}</strong>
+                            </div>
+                            <div class="document-summary-item summary-not-applicable">
+                                <span>N/A</span>
+                                <strong>{{ not_applicable_count }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="document-checklist">
+                            {% for document in documents %}
+                                <div class="document-track-item">
+                                    <div class="document-track-top" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                                        <div class="document-track-identity" style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                            <span class="document-file-icon">
+                                                <i class="bi bi-file-earmark-text-fill"></i>
+                                            </span>
+                                            <div>
+                                                <strong>{{ document.document_name }}</strong>
+                                                <small>{{ document.document_type | replace("_", " ") | title }}</small>
+                                            </div>
+                                        </div>
+
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span class="document-status-badge document-status-{{ document.status }}">
+                                                {{ document.status | replace("_", " ") | title }}
+                                            </span>
+
+                                            {% if document.file_path and document.file_path != '' %}
+                                                <a href="{{ url_for('shipments.download_shipment_document', shipment_id=shipment.id, document_id=document.id) }}" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #047857; color: #fff; border-radius: 6px; font-size: 11px; font-weight: 700; text-decoration: none;">
+                                                    <i class="bi bi-download"></i> Download
+                                                </a>
+                                                <form method="POST" action="{{ url_for('shipments.delete_shipment_document_file', shipment_id=shipment.id, document_id=document.id) }}" onsubmit="return confirm('Delete this uploaded file?');" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #dc2626; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm" onclick="openIndividualUploadModal('{{ document.id }}', '{{ document.document_name }}')" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #7f1d1d; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                                    <i class="bi bi-cloud-arrow-up"></i> Upload
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% if document.file_path %}
+                                        <div style="margin-top: 8px; font-size: 11px; color: #047857; font-weight: 600;">
+                                            <i class="bi bi-file-earmark-check"></i> Attached File: {{ document.original_filename or 'Uploaded File' }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if document.received_at or document.remarks %}
+                                        <div class="document-meta-box">
+                                            {% if document.received_at %}
+                                                <span><i class="bi bi-clock-history"></i> Received {{ document.received_at.strftime("%d %b %Y %H:%M") }}</span>
+                                            {% endif %}
+                                            {% if document.received_by %}
+                                                <span><i class="bi bi-person-check-fill"></i> {{ document.received_by.full_name }}</span>
+                                            {% endif %}
+                                            {% if document.remarks %}
+                                                <p><i class="bi bi-chat-left-text-fill"></i> {{ document.remarks }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+
+                                    <form method="POST" action="{{ url_for('shipments.update_document_status', shipment_id=shipment.id, document_id=document.id) }}" class="document-status-form">
+                                        <div class="document-form-grid">
+                                            <div class="document-form-field">
+                                                <label for="status_{{ document.id }}">Status</label>
+                                                <select id="status_{{ document.id }}" name="status" required>
+                                                    <option value="pending" {% if document.status == "pending" %}selected{% endif %}>Pending</option>
+                                                    <option value="received" {% if document.status == "received" %}selected{% endif %}>Received</option>
+                                                    <option value="not_applicable" {% if document.status == "not_applicable" %}selected{% endif %}>N/A</option>
+                                                </select>
+                                            </div>
+                                            <div class="document-form-field document-remarks-field">
+                                                <label for="remarks_{{ document.id }}">Remarks</label>
+                                                <input id="remarks_{{ document.id }}" type="text" name="remarks" value="{{ document.remarks or '' }}" maxlength="500" placeholder="Optional operational remarks">
+                                            </div>
+                                            <button type="submit" class="update-document-btn">
+                                                <i class="bi bi-check2-circle"></i> Update
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="document-tracking-empty">
+                            <i class="bi bi-folder-x"></i>
+                            <div>
+                                <strong>No document checklist found</strong>
+                                <span>This shipment does not currently have document tracking records.</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -1652,7 +788,6 @@
      ===================================================== -->
 <div class="crm-modal-backdrop" id="individualDocumentModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center;">
     <div class="crm-modal-card" style="background: #fff; width: 100%; max-width: 500px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-
         <div class="crm-modal-header" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #e2e8f0;">
             <div>
                 <span class="panel-eyebrow" style="font-size: 10px; font-weight: 800; color: #7f1d1d; text-transform: uppercase;">UPLOAD DOCUMENT</span>
@@ -1693,1372 +828,471 @@
                 </button>
             </div>
         </form>
-
     </div>
 </div>
 
 {% endblock %}
 
-
 {% block extra_css %}
-
 <style>
-    /* ===========================
-   TRACKING TABS
-=========================== */
+/* ==========================================================================
+   CORPORATE UI REDESIGN - ENQUIRY/SHIPMENT DETAILS VIEW PAGE (ULTRA COMPACT)
+   ================================================================---------- */
 
-.tracking-tabs{
-    display:flex;
-    gap:12px;
-    margin-bottom:25px;
-    border-bottom:1px solid #e5e7eb;
-    padding-bottom:15px;
+:root {
+    --primary-red: #b91c1c;
+    --primary-dark-red: #7f1d1d;
+    --surface-dark: #0f172a;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #cbd5e1;
+    --border-light: #e2e8f0;
+    --bg-canvas: #f8fafc;
+    --bg-card: #ffffff;
+    --radius-lg: 10px;
+    --radius-md: 8px;
+    --shadow-subtle: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    --shadow-card: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
 }
 
-.tab-btn{
-    border:none;
-    background:#f3f4f6;
-    color:#374151;
-    padding:10px 22px;
-    border-radius:8px;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.2s;
+.enquiry-view-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    background: transparent;
+    padding-bottom: 24px;
+    max-width: 1350px;
+    margin: 0 auto;
 }
 
-.tab-btn:hover{
-    background:#e5e7eb;
+/* Hero Section */
+.enquiry-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-dark-red), var(--primary-red));
+    color: #ffffff;
+    box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+}
+.enquiry-hero-copy h2 {
+    margin: 2px 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff !important;
+    letter-spacing: -0.01em;
+}
+.enquiry-hero-copy p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #f1f5f9 !important;
+    opacity: 0.95;
+}
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    color: #fca5a5;
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+.back-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
-.tab-btn.active{
-    background:#7f1d1d;
-    color:#fff;
+.reference-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.tracking-tab{
-    display:none;
+.view-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
-.tracking-tab.active{
-    display:block;
+/* Buttons */
+.btn {
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
 }
-    /* ==========================================
-       PAGE
-       ========================================== */
-
-    .shipment-view-page {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-
-    /* ==========================================
-       HEADER
-       ========================================== */
-
-    .shipment-header {
-        margin-bottom: 22px;
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        margin-bottom: 12px;
-        color: #6b7280;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .back-link:hover {
-        color: #1d4ed8;
-    }
-
-    .reference-row {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .reference-row h1 {
-        margin: 0;
-        color: #111827;
-        font-size: 28px;
-        font-weight: 800;
-    }
-
-    .shipment-header p {
-        margin: 8px 0 0;
-        color: #6b7280;
-        font-size: 14px;
-    }
-
-    .shipment-header p strong {
-        color: #374151;
-    }
-
-
-    /* ==========================================
-       STATUS
-       ========================================== */
-
-    .shipment-status {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 800;
-    }
-
-    .status-active {
-        background: #dbeafe;
-        color: #1d4ed8;
-    }
-
-    .status-in_transit {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-delivered {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .status-closed {
-        background: #f3f4f6;
-        color: #4b5563;
-    }
-
-
-    /* ==========================================
-       MAIN GRID
-       ========================================== */
-
-    .shipment-detail-grid {
-        display: grid;
-        grid-template-columns:
-            minmax(0, 2fr)
-            minmax(280px, 0.85fr);
-        gap: 20px;
-        align-items: start;
-    }
-
-    .shipment-main-column,
-    .shipment-side-column {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-
-    /* ==========================================
-       CARDS
-       ========================================== */
-
-    .detail-card,
-    .side-card {
-        padding: 22px;
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        background: #ffffff;
-        box-shadow:
-            0 6px 18px rgba(15, 23, 42, 0.04);
-    }
-
-    .card-heading {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .heading-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 42px;
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        background: #eff6ff;
-        color: #2563eb;
-        font-size: 18px;
-    }
-
-    .route-heading-icon {
-        background: #ecfdf5;
-        color: #059669;
-    }
-
-    .cargo-heading-icon {
-        background: #fff7ed;
-        color: #ea580c;
-    }
-
-    .source-heading-icon {
-        background: #f5f3ff;
-        color: #7c3aed;
-    }
-
-    .card-heading h3,
-    .side-card h3 {
-        margin: 0 0 4px;
-        color: #111827;
-        font-size: 16px;
-        font-weight: 800;
-    }
-
-    .card-heading p {
-        margin: 0;
-        color: #6b7280;
-        font-size: 13px;
-        line-height: 1.5;
-    }
-
-
-    /* ==========================================
-       INFO GRID
-       ========================================== */
-
-    .info-grid {
-        display: grid;
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .info-item {
-        padding: 14px;
-        border-radius: 11px;
-        background: #f9fafb;
-    }
-
-    .info-item span {
-        display: block;
-        margin-bottom: 5px;
-        color: #9ca3af;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .info-item strong {
-        color: #111827;
-        font-size: 13px;
-        line-height: 1.5;
-    }
-
-
-    /* ==========================================
-       ROUTE VISUAL
-       ========================================== */
-
-    .route-visual {
-        display: grid;
-        grid-template-columns:
-            minmax(0, 1fr)
-            120px
-            minmax(0, 1fr);
-        align-items: center;
-        gap: 15px;
-        padding: 18px;
-        border-radius: 14px;
-        background: #f8fafc;
-    }
-
-    .route-point {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-    }
-
-    .route-dot {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-    }
-
-    .origin-dot {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-
-    .destination-dot {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .route-point small {
-        display: block;
-        margin-bottom: 3px;
-        color: #9ca3af;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .route-point strong {
-        color: #111827;
-        font-size: 13px;
-    }
-
-    .route-line {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 2px;
-        background: #cbd5e1;
-    }
-
-    .route-line i {
-        padding: 7px;
-        border-radius: 50%;
-        background: #ffffff;
-        color: #2563eb;
-        font-size: 15px;
-    }
-
-
-    /* ==========================================
-       CARGO
-       ========================================== */
-
-    .cargo-description-box {
-        padding: 15px;
-        border-radius: 12px;
-        background: #f9fafb;
-    }
-
-    .cargo-description-box span,
-    .cargo-weight-box span {
-        display: block;
-        margin-bottom: 6px;
-        color: #9ca3af;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .cargo-description-box p {
-        margin: 0;
-        color: #374151;
-        font-size: 13px;
-        line-height: 1.7;
-        white-space: pre-wrap;
-    }
-
-    .cargo-weight-box {
-        padding: 14px 15px;
-        margin-top: 12px;
-        border: 1px solid #fed7aa;
-        border-radius: 12px;
-        background: #fff7ed;
-    }
-
-    .cargo-weight-box strong {
-        color: #9a3412;
-        font-size: 14px;
-    }
-
-
-    /* ==========================================
-       SOURCE RECORDS
-       ========================================== */
-
-    .source-records-grid {
-        display: grid;
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .source-record-card {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        padding: 15px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        color: #374151;
-        text-decoration: none;
-        transition: 0.2s ease;
-    }
-
-    .source-record-card:hover {
-        border-color: #c4b5fd;
-        background: #faf5ff;
-        transform: translateY(-1px);
-    }
-
-    .source-record-card > div {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .source-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-    }
-
-    .enquiry-source-icon {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .quotation-source-icon {
-        background: #fef2f2;
-        color: #b91c1c;
-    }
-
-    .source-record-card small {
-        display: block;
-        margin-bottom: 3px;
-        color: #9ca3af;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .source-record-card strong {
-        color: #111827;
-        font-size: 12px;
-    }
-
-
-    /* ==========================================
-       CLIENT
-       ========================================== */
-
-    .side-card h3 {
-        margin-bottom: 15px;
-    }
-
-    .client-summary {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-    }
-
-    .client-avatar {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 42px;
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .client-summary strong {
-        display: block;
-        margin-bottom: 3px;
-        color: #111827;
-        font-size: 13px;
-    }
-
-    .client-summary span {
-        color: #9ca3af;
-        font-size: 11px;
-    }
-
-    .side-link-btn {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 15px;
-        padding: 9px 11px;
-        border-radius: 9px;
-        background: #f9fafb;
-        color: #374151;
-        text-decoration: none;
-        font-size: 11px;
-        font-weight: 800;
-    }
-
-    .side-link-btn:hover {
-        background: #eff6ff;
-        color: #1d4ed8;
-    }
-
-
-    /* ==========================================
-       WORKFLOW
-       ========================================== */
-
-    .workflow-box {
-        display: flex;
-        align-items: flex-start;
-        gap: 11px;
-        padding: 14px;
-        border-radius: 12px;
-    }
-
-    .workflow-box i {
-        font-size: 18px;
-    }
-
-    .workflow-box strong {
-        display: block;
-        margin-bottom: 3px;
-        font-size: 13px;
-    }
-
-    .workflow-box span {
-        display: block;
-        font-size: 11px;
-        line-height: 1.5;
-    }
-
-    .workflow-active {
-        background: #eff6ff;
-        color: #1d4ed8;
-    }
-
-    .workflow-in_transit {
-        background: #fffbeb;
-        color: #92400e;
-    }
-
-    .workflow-delivered {
-        background: #f0fdf4;
-        color: #166534;
-    }
-
-    .workflow-closed {
-        background: #f3f4f6;
-        color: #4b5563;
-    }
-
-
-    /* ==========================================
-       QUOTATION VALUE
-       ========================================== */
-
-    .quotation-value {
-        display: flex;
-        align-items: baseline;
-        gap: 7px;
-        padding: 14px;
-        border-radius: 12px;
-        background: #eff6ff;
-    }
-
-    .quotation-value span {
-        color: #1d4ed8;
-        font-size: 12px;
-        font-weight: 800;
-    }
-
-    .quotation-value strong {
-        color: #1e3a8a;
-        font-size: 24px;
-        font-weight: 900;
-    }
-
-    .value-note {
-        display: block;
-        margin-top: 9px;
-        color: #9ca3af;
-        font-size: 10px;
-        line-height: 1.5;
-    }
-
-
-    /* ==========================================
-       AUDIT
-       ========================================== */
-
-    .audit-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .audit-item {
-        padding-bottom: 12px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .audit-item:last-child {
-        padding-bottom: 0;
-        border-bottom: 0;
-    }
-
-    .audit-item span {
-        display: block;
-        margin-bottom: 4px;
-        color: #9ca3af;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .audit-item strong {
-        color: #374151;
-        font-size: 12px;
-    }
-
-
-
-    /* ==========================================
-       SHIPMENT DOCUMENT STATUS TRACKING
-       ========================================== */
-
-    .document-tracking-card {
-        border-top: 4px solid #7c3aed;
-    }
-
-    .document-heading-icon {
-        background: #f5f3ff;
-        color: #7c3aed;
-    }
-
-    .document-summary-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 9px;
-        margin-bottom: 18px;
-    }
-
-    .document-summary-item {
-        padding: 11px 10px;
-        border-radius: 10px;
-        text-align: center;
-    }
-
-    .document-summary-item span {
-        display: block;
-        margin-bottom: 3px;
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .document-summary-item strong {
-        font-size: 18px;
-        font-weight: 900;
-    }
-
-    .summary-total {
-        background: #f8fafc;
-        color: #475569;
-    }
-
-    .summary-pending {
-        background: #fffbeb;
-        color: #92400e;
-    }
-
-    .summary-received {
-        background: #eff6ff;
-        color: #1d4ed8;
-    }
-
-    .summary-not-applicable {
-        background: #f1f5f9;
-        color: #475569;
-    }
-
-    .document-checklist {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .document-track-item {
-        padding: 15px;
-        border: 1px solid #e5e7eb;
-        border-radius: 13px;
-        background: #ffffff;
-    }
-
-    .document-track-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-    }
-
-    .document-track-identity {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-    }
-
-    .document-file-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        background: #f5f3ff;
-        color: #7c3aed;
-        font-size: 16px;
-    }
-
-    .document-track-identity strong {
-        display: block;
-        margin-bottom: 3px;
-        color: #111827;
-        font-size: 12px;
-        font-weight: 800;
-    }
-
-    .document-track-identity small {
-        display: block;
-        color: #9ca3af;
-        font-size: 9px;
-        line-height: 1.4;
-    }
-
-    .document-status-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        padding: 5px 8px;
-        border-radius: 999px;
-        font-size: 9px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .document-status-pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .document-status-received {
-        background: #dbeafe;
-        color: #1d4ed8;
-    }
-
-    .document-status-not_applicable {
-        background: #e2e8f0;
-        color: #475569;
-    }
-
-    .document-meta-box {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 12px;
-        padding: 10px 11px;
-        margin-top: 11px;
-        border-radius: 9px;
-        background: #f8fafc;
-    }
-
-    .document-meta-box span {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        color: #64748b;
-        font-size: 9px;
-        font-weight: 700;
-    }
-
-    .document-meta-box p {
-        display: flex;
-        align-items: flex-start;
-        gap: 6px;
-        width: 100%;
-        margin: 0;
-        color: #475569;
-        font-size: 10px;
-        line-height: 1.5;
-        word-break: break-word;
-    }
-
-    .document-meta-box i {
-        color: #7c3aed;
-    }
-
-    .document-status-form {
-        margin-top: 12px;
-    }
-
-    .document-form-grid {
-        display: grid;
-        grid-template-columns: 150px minmax(0, 1fr) auto;
-        gap: 9px;
-        align-items: end;
-    }
-
-    .document-form-field {
-        min-width: 0;
-    }
-
-    .document-form-field label {
-        display: block;
-        margin-bottom: 5px;
-        color: #64748b;
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .document-form-field select,
-    .document-form-field input {
-        width: 100%;
-        height: 38px;
-        box-sizing: border-box;
-        padding: 0 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 9px;
-        outline: none;
-        background: #ffffff;
-        color: #111827;
-        font-family: inherit;
-        font-size: 11px;
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .document-form-field select:focus,
-    .document-form-field input:focus {
-        border-color: #8b5cf6;
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.10);
-    }
-
-    .update-document-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        height: 38px;
-        padding: 0 12px;
-        border: 0;
-        border-radius: 9px;
-        background: #7c3aed;
-        color: #ffffff;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 10px;
-        font-weight: 800;
-        white-space: nowrap;
-        transition:
-            background 0.2s ease,
-            transform 0.2s ease;
-    }
-
-    .update-document-btn:hover {
-        background: #6d28d9;
-        transform: translateY(-1px);
-    }
-
-    .document-tracking-empty {
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        padding: 15px;
-        border-radius: 12px;
-        background: #f8fafc;
-        color: #94a3b8;
-    }
-
-    .document-tracking-empty > i {
-        font-size: 22px;
-    }
-
-    .document-tracking-empty strong {
-        display: block;
-        margin-bottom: 3px;
-        color: #475569;
-        font-size: 12px;
-    }
-
-    .document-tracking-empty span {
-        display: block;
-        font-size: 10px;
-        line-height: 1.5;
-    }
-
-    @media (max-width: 760px) {
-
-        .document-summary-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .summary-total {
-            grid-column: 1 / -1;
-        }
-
-        .document-form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .update-document-btn {
-            width: 100%;
-        }
-
-    }
-
-    @media (max-width: 480px) {
-
-        .document-track-top {
-            flex-direction: column;
-        }
-
-        .document-status-badge {
-            margin-left: 48px;
-        }
-
-    }
-
-
-    /* CUSTOMS CLEARANCE */
-    .customs-clearance-card{border-top:4px solid #0f766e}.customs-heading-icon{background:#f0fdfa;color:#0f766e}
-    .customs-clearance-form{display:flex;flex-direction:column;gap:16px}
-    .customs-required-panel{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px;border:1px solid #ccfbf1;border-radius:12px;background:#f0fdfa}
-    .customs-required-panel strong{display:block;margin-bottom:4px;color:#134e4a;font-size:12px;font-weight:800}.customs-required-panel span{color:#64748b;font-size:10px}
-    .customs-choice-group{display:flex;gap:8px}.customs-choice{cursor:pointer}.customs-choice input{position:absolute;opacity:0}
-    .customs-choice span{display:inline-flex;align-items:center;gap:6px;min-width:70px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-weight:800}
-    .customs-choice input:checked+span{border-color:#14b8a6;background:#ccfbf1;color:#115e59}
-    .customs-conditional-fields.is-hidden{display:none}.customs-form-grid{display:grid;grid-template-columns:.9fr 1.3fr .9fr;gap:12px}
-    .customs-form-field label{display:block;margin-bottom:6px;color:#64748b;font-size:9px;font-weight:800;text-transform:uppercase}
-    .customs-form-field input,.customs-form-field select,.customs-form-field textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:9px;background:#fff;color:#111827;font-family:inherit;font-size:11px}
-    .customs-form-field input,.customs-form-field select{height:40px;padding:0 10px}.customs-form-field textarea{padding:10px;resize:vertical}.customs-form-field small{display:block;margin-top:5px;color:#94a3b8;font-size:9px}
-    .customs-saved-meta{display:flex;flex-wrap:wrap;gap:8px 14px;padding:10px 12px;border-radius:9px;background:#f8fafc;font-size:9px;color:#64748b}
-    .customs-form-actions{display:flex;justify-content:flex-end}.save-customs-btn{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 14px;border:0;border-radius:9px;background:#0f766e;color:#fff;cursor:pointer;font-weight:800}
-    @media(max-width:760px){.customs-required-panel{align-items:stretch;flex-direction:column}.customs-choice-group{width:100%}.customs-choice{flex:1}.customs-choice span{width:100%;box-sizing:border-box;justify-content:center}.customs-form-grid{grid-template-columns:1fr}.customs-form-actions{display:block}.save-customs-btn{width:100%;justify-content:center}}
-
-
-    .customs-clearance-form.is-edit-hidden{display:none}
-    .customs-summary-view{display:flex;flex-direction:column;gap:14px}
-    .customs-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .customs-summary-item{padding:13px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc}
-    .customs-summary-item span,.customs-summary-remarks span{display:block;margin-bottom:5px;color:#64748b;font-size:9px;font-weight:800;text-transform:uppercase}
-    .customs-summary-item strong{color:#0f172a;font-size:12px}
-    .customs-summary-remarks{padding:13px;border-radius:10px;background:#f8fafc}
-    .customs-summary-remarks p{margin:0;color:#334155;font-size:11px;line-height:1.55}
-    .customs-summary-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .edit-customs-btn,.cancel-customs-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:10px;font-weight:800}
-    .edit-customs-btn{border:0;background:#0f766e;color:#fff}
-    .cancel-customs-btn{border:1px solid #cbd5e1;background:#fff;color:#475569}
-    .customs-form-actions{gap:8px}
-    @media(max-width:760px){
-        .customs-summary-grid{grid-template-columns:1fr}
-        .customs-summary-footer{align-items:stretch;flex-direction:column}
-        .edit-customs-btn,.cancel-customs-btn{width:100%}
-    }
-
-
-    /* ==========================================
-       SHIPMENT CLOSING - SECTION 4.8
-       ========================================== */
-
-    .shipment-closing-card {
-        border-top: 4px solid #334155;
-    }
-
-    .closing-heading-icon {
-        background: #f1f5f9;
-        color: #334155;
-    }
-
-    .closure-locked-panel,
-    .closure-ready-banner,
-    .closure-success-banner {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 15px;
-        border-radius: 12px;
-    }
-
-    .closure-locked-panel {
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-    }
-
-    .closure-lock-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 38px;
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        background: #e2e8f0;
-        color: #64748b;
-    }
-
-    .closure-locked-panel strong,
-    .closure-ready-banner strong,
-    .closure-success-banner strong {
-        display: block;
-        margin-bottom: 4px;
-        font-size: 12px;
-        font-weight: 800;
-    }
-
-    .closure-locked-panel p {
-        margin: 0;
-        color: #64748b;
-        font-size: 10px;
-        line-height: 1.6;
-    }
-
-    .closure-ready-banner {
-        margin-bottom: 16px;
-        border: 1px solid #bfdbfe;
-        background: #eff6ff;
-        color: #1d4ed8;
-    }
-
-    .closure-success-banner {
-        margin-bottom: 16px;
-        border: 1px solid #bbf7d0;
-        background: #f0fdf4;
-        color: #166534;
-    }
-
-    .closure-ready-banner > i,
-    .closure-success-banner > i {
-        margin-top: 1px;
-        font-size: 18px;
-    }
-
-    .closure-ready-banner span,
-    .closure-success-banner span {
-        display: block;
-        font-size: 10px;
-        line-height: 1.5;
-    }
-
-    .closure-form {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .closure-form-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .closure-admin-edit .closure-form-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .closure-form-field label {
-        display: block;
-        margin-bottom: 6px;
-        color: #64748b;
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .closure-form-field select,
-    .closure-form-field textarea {
-        width: 100%;
-        box-sizing: border-box;
-        border: 1px solid #d1d5db;
-        border-radius: 9px;
-        background: #ffffff;
-        color: #111827;
-        font-family: inherit;
-        font-size: 11px;
-        outline: none;
-    }
-
-    .closure-form-field select {
-        height: 40px;
-        padding: 0 10px;
-    }
-
-    .closure-form-field textarea {
-        padding: 10px;
-        resize: vertical;
-    }
-
-    .closure-form-field select:focus,
-    .closure-form-field textarea:focus {
-        border-color: #64748b;
-        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.12);
-    }
-
-    .auto-date-field {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        height: 40px;
-        box-sizing: border-box;
-        padding: 0 10px;
-        border: 1px dashed #cbd5e1;
-        border-radius: 9px;
-        background: #f8fafc;
-        color: #64748b;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .archive-confirmation-box {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 14px;
-        border: 1px solid #fbbf24;
-        border-radius: 11px;
-        background: #fffbeb;
-        cursor: pointer;
-    }
-
-    .archive-confirmation-box input {
-        width: 17px;
-        height: 17px;
-        margin: 2px 0 0;
-        accent-color: #d97706;
-    }
-
-    .archive-confirmation-box > span {
-        display: block;
-        min-width: 0;
-    }
-
-    .archive-confirmation-box i {
-        margin-right: 5px;
-        color: #d97706;
-    }
-
-    .archive-confirmation-box strong {
-        color: #92400e;
-        font-size: 11px;
-    }
-
-    .archive-confirmation-box small {
-        display: block;
-        margin-top: 4px;
-        color: #78716c;
-        font-size: 9px;
-        line-height: 1.5;
-    }
-
-    .closure-form-actions {
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .close-shipment-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        min-height: 40px;
-        padding: 0 15px;
-        border: 0;
-        border-radius: 9px;
-        background: #334155;
-        color: #ffffff;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 10px;
-        font-weight: 800;
-    }
-
-    .close-shipment-btn:hover {
-        background: #1e293b;
-    }
-
-    .closure-summary-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .closure-summary-item {
-        padding: 13px;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        background: #f8fafc;
-    }
-
-    .closure-summary-item span,
-    .closure-text-summary span {
-        display: block;
-        margin-bottom: 5px;
-        color: #64748b;
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-
-    .closure-summary-item strong {
-        color: #0f172a;
-        font-size: 12px;
-    }
-
-    .archive-confirmed-text {
-        color: #166534 !important;
-    }
-
-    .closure-text-summary {
-        padding: 13px;
-        margin-top: 10px;
-        border-radius: 10px;
-        background: #f8fafc;
-    }
-
-    .feedback-summary {
-        background: #eff6ff;
-    }
-
-    .closure-text-summary p {
-        margin: 0;
-        color: #334155;
-        font-size: 11px;
-        line-height: 1.6;
-        white-space: pre-wrap;
-    }
-
-    .closure-audit-bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 14px;
-        padding: 10px 12px;
-        margin-top: 12px;
-        border-radius: 9px;
-        background: #f8fafc;
-        color: #64748b;
-        font-size: 9px;
-        font-weight: 700;
-    }
-
-    .closure-audit-bar i {
-        color: #16a34a;
-    }
-
-    .closure-lock-note {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 12px;
-        margin-top: 12px;
-        border-radius: 9px;
-        background: #f1f5f9;
-        color: #64748b;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .closure-admin-edit {
-        margin-top: 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 11px;
-        overflow: hidden;
-    }
-
-    .closure-admin-edit summary {
-        padding: 12px 14px;
-        background: #f8fafc;
-        color: #334155;
-        cursor: pointer;
-        font-size: 10px;
-        font-weight: 800;
-    }
-
-    .closure-admin-edit .closure-form {
-        padding: 14px;
-    }
-
-    @media (max-width: 760px) {
-        .closure-form-grid,
-        .closure-admin-edit .closure-form-grid,
-        .closure-summary-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .closure-form-actions {
-            display: block;
-        }
-
-        .close-shipment-btn {
-            width: 100%;
-        }
-    }
-
-
-    /* ==========================================
-       TABLET
-       ========================================== */
-
-    @media (max-width: 900px) {
-
-        .shipment-detail-grid {
-            grid-template-columns: 1fr;
-        }
-
-    }
-
-
-    /* ==========================================
-       MOBILE
-       ========================================== */
-
-    @media (max-width: 640px) {
-
-        .reference-row {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .info-grid,
-        .source-records-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .route-visual {
-            grid-template-columns: 1fr;
-            gap: 18px;
-        }
-
-        .route-line {
-            width: 2px;
-            height: 50px;
-            margin-left: 18px;
-        }
-
-        .detail-card,
-        .side-card {
-            padding: 18px 16px;
-        }
-
-    }
-    /* ==========================================
-   OPERATIONAL WORKFLOW TIMELINE
-   ========================================== */
-
-.workflow-timeline-card {
-    border-top: 4px solid #2563eb;
+.btn-primary-red {
+    background: var(--primary-red);
+    color: #ffffff;
+}
+.btn-primary-red:hover {
+    background: var(--primary-dark-red);
+    color: #ffffff;
+}
+.btn-secondary-soft {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+}
+.btn-secondary-soft:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #ffffff;
 }
 
-.workflow-heading-icon {
-    background: #eff6ff;
-    color: #2563eb;
+/* Status Badges */
+.enquiry-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.status-active { background: #dbeafe; color: #1d4ed8; }
+.status-active .status-dot { background: #2563eb; }
+
+.status-in_transit { background: #fef3c7; color: #92400e; }
+.status-in_transit .status-dot { background: #d97706; }
+
+.status-delivered { background: #dcfce7; color: #166534; }
+.status-delivered .status-dot { background: #15803d; }
+
+.status-closed { background: #f3f4f6; color: #4b5563; }
+.status-closed .status-dot { background: #64748b; }
+
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-cancelled .status-dot { background: #dc2626; }
+
+/* Grid Structure */
+.detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 0.9fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.detail-main,
+.detail-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Cards */
+.detail-card {
+    padding: 20px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-subtle);
+    transition: all 0.15s ease;
+}
+
+.detail-card:hover {
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-card);
+}
+
+.card-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.heading-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: #fee2e2;
+    color: var(--primary-red);
+    font-size: 16px;
+}
+
+.card-heading h3 {
+    margin: 0 0 2px;
+    color: var(--surface-dark);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.card-heading p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Route Display */
+.route-display {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    margin-bottom: 14px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    border: 1px solid var(--border-light);
+}
+
+.route-point {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.route-label,
+.info-label {
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.route-point strong {
+    color: var(--surface-dark);
+    font-size: 13.5px;
+}
+
+.route-arrow {
+    color: var(--primary-red);
+    font-size: 16px;
+}
+
+.cargo-description p {
+    margin: 6px 0 0;
+    color: var(--text-main);
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* Info Grids & Items */
+.detail-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.detail-item {
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    border: 1px solid var(--border-light);
+}
+
+.detail-item span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.detail-item strong {
+    color: var(--surface-dark);
+    font-size: 13px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* Sidebar Components */
+.sidebar-value {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-value strong {
+    color: var(--surface-dark);
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.sidebar-value a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    color: var(--primary-red);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sidebar-value a:hover {
+    text-decoration: underline;
+}
+
+/* Meta list */
+.meta-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.meta-item:last-child {
+    border-bottom: 0;
+}
+
+.meta-item span {
+    color: var(--text-muted);
+    font-size: 11.5px;
+}
+
+.meta-item strong {
+    color: var(--text-main);
+    font-size: 11.5px;
+    text-align: right;
+    font-weight: 600;
+}
+
+/* Tracking Tabs CSS */
+.tracking-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 12px;
+}
+
+.tab-btn {
+    border: none;
+    background: var(--bg-canvas);
+    color: var(--text-muted);
+    padding: 8px 18px;
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+    background: var(--border-light);
+    color: var(--text-main);
+}
+
+.tab-btn.active {
+    background: var(--primary-red);
+    color: #fff;
+}
+
+.tracking-tab {
+    display: none;
+}
+
+.tracking-tab.active {
+    display: block;
+}
+
+/* Workflow Timeline & Action Styles */
+.workflow-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border: 1px solid #fed7aa;
+    border-radius: var(--radius-md);
+    background: #fff7ed;
+}
+
+.undo-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.undo-info > i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-md);
+    background: #ffedd5;
+    color: #ea580c;
+    font-size: 15px;
+}
+
+.undo-info strong {
+    display: block;
+    margin-bottom: 2px;
+    color: #9a3412;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.undo-info span {
+    display: block;
+    color: #78716c;
+    font-size: 9px;
+}
+
+.undo-stage-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid #fdba74;
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    color: #c2410c;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.undo-stage-btn:hover {
+    background: #ffedd5;
 }
 
 .shipment-timeline {
@@ -3071,7 +1305,7 @@
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
     gap: 13px;
-    min-height: 86px;
+    min-height: 80px;
 }
 
 .timeline-stage:not(:last-child)::before {
@@ -3091,16 +1325,12 @@
 .timeline-marker {
     position: relative;
     z-index: 2;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 38px;
     height: 38px;
-
     border-radius: 50%;
-
     font-size: 12px;
     font-weight: 900;
 }
@@ -3123,7 +1353,7 @@
 
 .timeline-content {
     min-width: 0;
-    padding: 2px 0 22px;
+    padding: 2px 0 16px;
 }
 
 .timeline-title-row {
@@ -3136,17 +1366,14 @@
 .timeline-title-row small {
     display: block;
     margin-bottom: 3px;
-
-    color: #9ca3af;
-
+    color: var(--text-muted);
     font-size: 9px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .timeline-title-row strong {
-    color: #111827;
+    color: var(--surface-dark);
     font-size: 13px;
     font-weight: 800;
 }
@@ -3155,53 +1382,31 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    padding: 5px 8px;
-
+    padding: 4px 8px;
     border-radius: 999px;
-
     font-size: 9px;
     font-weight: 800;
-
     white-space: nowrap;
 }
 
-.completed-state {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.current-state {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.locked-state {
-    background: #f3f4f6;
-    color: #6b7280;
-}
+.completed-state { background: #dcfce7; color: #166534; }
+.current-state { background: #dbeafe; color: #1d4ed8; }
+.locked-state { background: #f3f4f6; color: #6b7280; }
 
 .milestone-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 .milestone-meta span {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-
-    color: #6b7280;
-
+    color: var(--text-muted);
     font-size: 10px;
     font-weight: 600;
-}
-
-.milestone-meta i {
-    color: #16a34a;
 }
 
 .complete-stage-btn {
@@ -3209,279 +1414,468 @@
     align-items: center;
     justify-content: center;
     gap: 7px;
-
-    margin-top: 10px;
-    padding: 8px 11px;
-
+    margin-top: 8px;
+    padding: 8px 12px;
     border: 0;
-    border-radius: 9px;
-
+    border-radius: var(--radius-md);
     background: #2563eb;
     color: #ffffff;
-
     cursor: pointer;
-
-    font-family: inherit;
     font-size: 11px;
     font-weight: 800;
-
-    transition:
-        background 0.2s ease,
-        transform 0.2s ease;
-}
-
-.complete-stage-btn:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
 }
 
 .locked-message {
-    margin: 7px 0 0;
-
-    color: #9ca3af;
-
+    margin: 6px 0 0;
+    color: var(--text-muted);
     font-size: 10px;
     font-style: italic;
 }
 
-
-/* ==========================================
-   WORKFLOW MOBILE
-   ========================================== */
-
-@media (max-width: 640px) {
-
-    .timeline-title-row {
-        flex-direction: column;
-        gap: 7px;
-    }
-
-    .complete-stage-btn {
-        width: 100%;
-    }
-
-}
-/* ==========================================
-   SHIPMENT HEADER ACTIONS
-   ========================================== */
-
-.shipment-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
+/* Document Tracking Styles */
+.document-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 16px;
 }
 
-.tracking-overview {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 14px;
-    margin-top: 14px;
-    color: #475569;
-    font-size: 10px;
+.document-summary-item {
+    padding: 10px;
+    border-radius: var(--radius-md);
+    text-align: center;
 }
 
-.tracking-overview > span:not(.tracking-mode-badge) {
-    display: inline-flex;
-    gap: 5px;
-    padding-left: 14px;
-    border-left: 1px solid #dbe3ee;
-}
-
-.tracking-overview strong {
-    color: #64748b;
+.document-summary-item span {
+    display: block;
+    margin-bottom: 2px;
     font-size: 9px;
+    font-weight: 800;
     text-transform: uppercase;
 }
 
-.tracking-mode-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 9px;
-    border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-weight: 800;
+.document-summary-item strong {
+    font-size: 16px;
+    font-weight: 900;
 }
 
-.shipment-header-actions {
+.summary-total { background: var(--bg-canvas); color: var(--text-muted); }
+.summary-pending { background: #fffbeb; color: #92400e; }
+.summary-received { background: #eff6ff; color: #1d4ed8; }
+.summary-not-applicable { background: #f1f5f9; color: var(--text-muted); }
+
+.document-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.document-track-item {
+    padding: 14px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+}
+
+.document-file-icon {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: #f5f3ff;
+    color: #7c3aed;
+    font-size: 15px;
 }
 
-.edit-shipment-btn {
+.document-status-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-
-    padding: 10px 14px;
-
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-
-    background: #eff6ff;
-    color: #1d4ed8;
-
-    text-decoration: none;
-
-    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 9px;
     font-weight: 800;
-
     white-space: nowrap;
-
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.2s ease;
 }
 
-.edit-shipment-btn:hover {
-    border-color: #93c5fd;
-    background: #dbeafe;
-    color: #1e40af;
-    transform: translateY(-1px);
+.document-status-pending { background: #fef3c7; color: #92400e; }
+.document-status-received { background: #dbeafe; color: #1d4ed8; }
+.document-status-not_applicable { background: #e2e8f0; color: #475569; }
+
+.document-meta-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    margin-top: 10px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
 }
 
-@media (max-width: 640px) {
-
-    .shipment-header {
-        flex-direction: column;
-    }
-
-    .shipment-header-actions {
-        width: 100%;
-    }
-
-    .edit-shipment-btn {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
+.document-meta-box span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
 }
-/* ==========================================
-   WORKFLOW UNDO ACTION
-   ========================================== */
 
-.workflow-actions-bar {
+.document-meta-box p {
+    margin: 0;
+    width: 100%;
+    color: var(--text-main);
+    font-size: 10px;
+}
+
+.document-form-grid {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+    margin-top: 10px;
+}
+
+.document-form-field label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.document-form-field select,
+.document-form-field input {
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-size: 11px;
+    outline: none;
+}
+
+.update-document-btn {
+    height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: #7c3aed;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* Customs & Closure Shared Styles */
+.customs-clearance-form, .closure-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.customs-required-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 14px;
-
     padding: 12px 14px;
-    margin-bottom: 20px;
-
-    border: 1px solid #fed7aa;
-    border-radius: 12px;
-
-    background: #fff7ed;
+    border: 1px solid #ccfbf1;
+    border-radius: var(--radius-md);
+    background: #f0fdfa;
 }
 
-.undo-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-}
-
-.undo-info > i {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 0 0 34px;
-    width: 34px;
-    height: 34px;
-
-    border-radius: 9px;
-
-    background: #ffedd5;
-    color: #ea580c;
-
-    font-size: 15px;
-}
-
-.undo-info strong {
+.customs-required-panel strong {
     display: block;
     margin-bottom: 2px;
-
-    color: #9a3412;
-
-    font-size: 11px;
+    color: #134e4a;
+    font-size: 12px;
     font-weight: 800;
 }
 
-.undo-info span {
-    display: block;
-
-    color: #78716c;
-
-    font-size: 9px;
-    line-height: 1.4;
+.customs-required-panel span {
+    color: var(--text-muted);
+    font-size: 10px;
 }
 
-.undo-stage-btn {
+.customs-choice-group {
+    display: flex;
+    gap: 8px;
+}
+
+.customs-choice {
+    cursor: pointer;
+}
+
+.customs-choice input {
+    position: absolute;
+    opacity: 0;
+}
+
+.customs-choice span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-weight: 800;
+    font-size: 11px;
+}
+
+.customs-choice input:checked + span {
+    border-color: #14b8a6;
+    background: #ccfbf1;
+    color: #115e59;
+}
+
+.customs-form-grid, .closure-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.customs-form-field label, .closure-form-field label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.customs-form-field input, .customs-form-field select, .customs-form-field textarea,
+.closure-form-field select, .closure-form-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-size: 11px;
+    padding: 8px 10px;
+    outline: none;
+}
+
+.customs-form-field select, .closure-form-field select {
+    height: 38px;
+    padding: 0 10px;
+}
+
+.customs-form-field small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+.customs-summary-view, .customs-clearance-form.is-edit-hidden {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.customs-clearance-form.is-edit-hidden {
+    display: none;
+}
+
+.customs-summary-grid, .closure-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.customs-summary-item, .closure-summary-item {
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+}
+
+.customs-summary-item span, .closure-summary-item span, .customs-summary-remarks span, .closure-text-summary span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.customs-summary-item strong, .closure-summary-item strong {
+    color: var(--surface-dark);
+    font-size: 12px;
+}
+
+.customs-summary-remarks, .closure-text-summary {
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+}
+
+.customs-summary-remarks p, .closure-text-summary p {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.customs-summary-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.customs-saved-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.edit-customs-btn, .cancel-customs-btn, .save-customs-btn, .close-shipment-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-
-    padding: 8px 11px;
-
-    border: 1px solid #fdba74;
-    border-radius: 9px;
-
-    background: #ffffff;
-    color: #c2410c;
-
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-
-    font-family: inherit;
     font-size: 10px;
     font-weight: 800;
-
-    white-space: nowrap;
-
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.2s ease;
+    border: 0;
 }
 
-.undo-stage-btn:hover {
-    border-color: #fb923c;
-    background: #ffedd5;
-    color: #9a3412;
-    transform: translateY(-1px);
+.edit-customs-btn, .save-customs-btn { background: #0f766e; color: #fff; }
+.cancel-customs-btn { border: 1px solid var(--border-color); background: #fff; color: var(--text-muted); }
+.close-shipment-btn { background: #334155; color: #fff; }
+
+.closure-success-banner, .closure-ready-banner, .closure-locked-panel {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    font-size: 11px;
+}
+.closure-success-banner { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.closure-ready-banner { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.closure-locked-panel { background: #f8fafc; color: var(--text-muted); border: 1px solid var(--border-light); }
+
+.archive-confirmation-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #fbbf24;
+    border-radius: var(--radius-md);
+    background: #fffbeb;
+    cursor: pointer;
+}
+.archive-confirmation-box input {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: #d97706;
+}
+.archive-confirmation-box strong { color: #92400e; font-size: 11px; }
+.archive-confirmation-box small { display: block; margin-top: 2px; color: #78716c; font-size: 9px; }
+
+.auto-date-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
 }
 
+.closure-audit-bar, .closure-lock-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    margin-top: 10px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+}
 
-/* ==========================================
-   UNDO MOBILE
-   ========================================== */
+.closure-admin-edit {
+    margin-top: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.closure-admin-edit summary {
+    padding: 10px 12px;
+    background: var(--bg-canvas);
+    color: var(--surface-dark);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 800;
+}
+.closure-admin-edit .closure-form { padding: 12px; }
+
+/* Responsive Media Queries */
+@media (max-width: 992px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
 @media (max-width: 640px) {
-
-    .workflow-actions-bar {
+    .enquiry-hero {
         flex-direction: column;
         align-items: stretch;
     }
-
-    .workflow-actions-bar form {
+    .view-header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    .view-header-actions .btn, .view-header-actions form {
         width: 100%;
     }
-
-    .undo-stage-btn {
+    .view-header-actions button {
         width: 100%;
     }
-
+    .route-display {
+        grid-template-columns: 1fr;
+    }
+    .route-arrow {
+        transform: rotate(90deg);
+        width: fit-content;
+    }
+    .document-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .document-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .customs-form-grid, .closure-form-grid, .customs-summary-grid, .closure-summary-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -3552,7 +1946,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (cancelButton && customsForm) {
         cancelButton.addEventListener("click", () => {
-            customsForm.classList.add("is-fixed-hidden"); // fixed class name toggle
             customsForm.classList.add("is-edit-hidden");
             if (customsSummary) customsSummary.style.display = "";
         });
@@ -3566,7 +1959,7 @@ function openIndividualUploadModal(docId, docName) {
     const title = document.getElementById("modalDocTitle");
     const form = document.getElementById("individualUploadForm");
     
-    if (modal && title && form) { // Fixed typo capital 'I' to lowercase 'if'
+    if (modal && title && form) { 
         title.textContent = "Upload: " + docName;
         form.action = "/shipments/{{ shipment.id }}/documents/" + docId + "/upload-individual";
         modal.style.display = "flex";
