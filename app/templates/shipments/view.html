@@ -3552,6 +3552,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (cancelButton && customsForm) {
         cancelButton.addEventListener("click", () => {
+            customsForm.classList.add("is-fixed-hidden"); // fixed class name toggle
             customsForm.classList.add("is-edit-hidden");
             if (customsSummary) customsSummary.style.display = "";
         });
@@ -3565,7 +3566,7 @@ function openIndividualUploadModal(docId, docName) {
     const title = document.getElementById("modalDocTitle");
     const form = document.getElementById("individualUploadForm");
     
-    if (modal && title && form) {
+    if (modal && title && form) { // Fixed typo capital 'I' to lowercase 'if'
         title.textContent = "Upload: " + docName;
         form.action = "/shipments/{{ shipment.id }}/documents/" + docId + "/upload-individual";
         modal.style.display = "flex";

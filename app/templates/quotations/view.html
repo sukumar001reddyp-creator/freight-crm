@@ -12,18 +12,17 @@
          PAGE HEADER
          ========================================== -->
 
-    <div class="quotation-view-header">
-
-        <div class="quotation-header-left">
-
+    <section class="quotation-hero">
+        <div class="quotation-hero-copy">
             <a href="{{ url_for('quotations.quotation_list') }}" class="back-link">
                 <i class="bi bi-arrow-left"></i>
                 Back to Quotations
             </a>
 
             <div class="quotation-reference-row">
-                <h1>{{ quotation.quotation_number }}</h1>
+                <h2>{{ quotation.quotation_number }}</h2>
                 <span class="quotation-status status-{{ quotation.status }}">
+                    <span class="status-dot"></span>
                     {{ quotation.status | replace("_", " ") | title }}
                 </span>
             </div>
@@ -38,21 +37,19 @@
             {% else %}
             <p>Direct quotation created without an enquiry.</p>
             {% endif %}
-
         </div>
 
         <!-- EDIT BUTTON -->
         {% if quotation.status != "approved" %}
-        <div class="header-actions">
+        <div class="view-header-actions">
             <a href="{{ url_for('quotations.edit_quotation', quotation_id=quotation.id) }}" 
-               class="edit-btn">
+               class="btn btn-secondary-soft">
                 <i class="bi bi-pencil-square"></i>
                 Edit Quotation
             </a>
         </div>
         {% endif %}
-
-    </div>
+    </section>
 
     <!-- ==========================================
          MAIN GRID
@@ -65,7 +62,7 @@
 
             <!-- 1. GENERAL INFORMATION -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-info-circle"></i>
                     </span>
@@ -96,7 +93,7 @@
 
             <!-- 2. CLIENT INFORMATION -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-building"></i>
                     </span>
@@ -127,7 +124,7 @@
 
             <!-- 3. SHIPMENT & ROUTING INFORMATION -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-truck"></i>
                     </span>
@@ -162,7 +159,7 @@
 
             <!-- 4. CARGO DETAILS -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-box-seam"></i>
                     </span>
@@ -197,7 +194,7 @@
 
             <!-- 5. SCHEDULE & TRANSIT DETAILS -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-calendar-event"></i>
                     </span>
@@ -240,7 +237,7 @@
 
             <!-- 6. COST BREAKDOWN -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-cash-stack"></i>
                     </span>
@@ -284,7 +281,7 @@
 
             <!-- 7. PAYMENT & REMARKS -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-chat-left-text"></i>
                     </span>
@@ -304,14 +301,14 @@
                     </div>
                     <div class="detail-item full-width">
                         <span>Remarks & Terms</span>
-                        <strong class="remarks-text">{{ quotation.remarks_terms or "No remarks provided." }}</strong>
+                        <strong class="remarks-text" style="font-weight: 500; font-size: 12.5px;">{{ quotation.remarks_terms or "No remarks provided." }}</strong>
                     </div>
                 </div>
             </div>
 
             <!-- 8. ATTACHED DOCUMENTS & AUDIT TRAIL -->
             <div class="detail-card">
-                <div class="detail-card-heading">
+                <div class="card-heading">
                     <span class="heading-icon">
                         <i class="bi bi-shield-check"></i>
                     </span>
@@ -360,8 +357,16 @@
         <div class="quotation-side-column">
 
             <!-- WORKFLOW STATUS -->
-            <div class="side-card">
-                <h3>Workflow Status</h3>
+            <div class="detail-card">
+                <div class="card-heading" style="margin-bottom: 12px;">
+                    <span class="heading-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </span>
+                    <div>
+                        <h3>Workflow Status</h3>
+                        <p>Current review progress</p>
+                    </div>
+                </div>
                 <div class="workflow-status-box workflow-{{ quotation.status }}">
                     {% if quotation.status in ["pending", "draft"] %}
                         <i class="bi bi-hourglass-split"></i>
@@ -386,11 +391,20 @@
             </div>
 
             <!-- ACTIONS -->
-            <div class="side-card">
-                <h3>Quotation Actions</h3>
+            <div class="detail-card">
+                <div class="card-heading" style="margin-bottom: 12px;">
+                    <span class="heading-icon">
+                        <i class="bi bi-sliders"></i>
+                    </span>
+                    <div>
+                        <h3>Quotation Actions</h3>
+                        <p>Manage documents or records</p>
+                    </div>
+                </div>
                 
                 <a href="{{ url_for('quotations.download_quotation_pdf', quotation_id=quotation.id) }}" 
-                   class="btn-download-pdf w-100" 
+                   class="btn btn-secondary-soft w-100" 
+                   style="background: #047857; border: none; width: 100%; margin-bottom: 8px;"
                    target="_blank">
                     <i class="bi bi-download"></i>
                     Download Quotation PDF
@@ -401,7 +415,7 @@
                       action="{{ url_for('quotations.delete_quotation', quotation_id=quotation.id) }}" 
                       class="delete-form"
                       onsubmit="return confirm('Are you sure you want to delete this quotation?');">
-                    <button type="submit" class="delete-quotation-btn">
+                    <button type="submit" class="btn" style="background: #dc2626; color: white; width: 100%; border: none;">
                         <i class="bi bi-trash"></i>
                         Delete Quotation
                     </button>
@@ -411,16 +425,23 @@
 
             <!-- CLIENT DECISION -->
             {% if quotation.status in ["pending", "draft"] %}
-            <div class="side-card decision-action-card">
-                <h3>Client Decision</h3>
-                <p class="decision-help-text">Record whether the client approved or rejected this quotation.</p>
+            <div class="detail-card" style="border-top: 3px solid #d97706;">
+                <div class="card-heading" style="margin-bottom: 10px;">
+                    <span class="heading-icon" style="background: #fffbeb; color: #d97706;">
+                        <i class="bi bi-patch-question-fill"></i>
+                    </span>
+                    <div>
+                        <h3>Client Decision</h3>
+                        <p>Record status update</p>
+                    </div>
+                </div>
 
                 <!-- APPROVE -->
                 <form method="POST" 
                       action="{{ url_for('quotations.approve_quotation', quotation_id=quotation.id) }}" 
                       class="approve-form"
                       onsubmit="return confirm('Approve this quotation?');">
-                    <button type="submit" class="approve-quotation-btn">
+                    <button type="submit" class="btn" style="background: #16a34a; color: white; width: 100%; border: none;">
                         <i class="bi bi-check-circle-fill"></i>
                         Approve Quotation
                     </button>
@@ -435,7 +456,7 @@
                     <label for="rejection_reason">Rejection Reason <span>*</span></label>
                     <textarea id="rejection_reason" name="rejection_reason" rows="3" 
                               placeholder="Enter why the client rejected this quotation..." required></textarea>
-                    <button type="submit" class="reject-quotation-btn"
+                    <button type="submit" class="btn" style="background: #dc2626; color: white; width: 100%; border: none; margin-top: 8px;"
                             onclick="return confirm('Reject this quotation?');">
                         <i class="bi bi-x-circle-fill"></i>
                         Reject Quotation
@@ -446,11 +467,19 @@
 
             <!-- CONVERT TO SHIPMENT -->
             {% if quotation.status == "approved" %}
-            <div class="side-card">
-                <h3>Shipment Workflow</h3>
+            <div class="detail-card">
+                <div class="card-heading" style="margin-bottom: 12px;">
+                    <span class="heading-icon" style="background: #dcfce7; color: #166534;">
+                        <i class="bi bi-truck"></i>
+                    </span>
+                    <div>
+                        <h3>Shipment Workflow</h3>
+                        <p>Convert accepted quote</p>
+                    </div>
+                </div>
                 <form action="{{ url_for('shipments.convert_from_quotation', quotation_id=quotation.id) }}" 
                       method="POST">
-                    <button type="submit" class="convert-shipment-btn">
+                    <button type="submit" class="btn btn-primary-red" style="width: 100%; background: #166534;">
                         <i class="bi bi-truck"></i>
                         Convert to Shipment
                     </button>
@@ -466,393 +495,367 @@
 
 {% block extra_css %}
 <style>
-    /* ==================== RESET & BASE ==================== */
-    .quotation-view-page {
-        max-width: 1350px;
-        margin: 0 auto;
-        padding: 0 10px 40px 10px;
-    }
+/* ==========================================================================
+   CORPORATE UI REDESIGN - QUOTATION DETAILS VIEW PAGE (ULTRA COMPACT)
+   ================================================================---------- */
 
-    /* ==================== HEADER ==================== */
-    .quotation-view-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 15px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
+:root {
+    --primary-red: #b91c1c;
+    --primary-dark-red: #7f1d1d;
+    --surface-dark: #0f172a;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #cbd5e1;
+    --border-light: #e2e8f0;
+    --bg-canvas: #f8fafc;
+    --bg-card: #ffffff;
+    --radius-lg: 10px;
+    --radius-md: 8px;
+    --shadow-subtle: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    --shadow-card: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+}
 
-    .quotation-header-left {
-        flex: 1;
-        min-width: 260px;
-    }
+.quotation-view-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    background: transparent;
+    padding-bottom: 24px;
+    max-width: 1350px;
+    margin: 0 auto;
+}
 
-    .header-actions {
-        flex-shrink: 0;
-        margin-top: 4px;
-    }
+/* Hero Section */
+.quotation-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-dark-red), var(--primary-red));
+    color: #ffffff;
+    box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+}
+.quotation-hero-copy h2 {
+    margin: 2px 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff !important;
+    letter-spacing: -0.01em;
+}
+.quotation-hero-copy p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #f1f5f9 !important;
+    opacity: 0.95;
+}
+.quotation-hero-copy p a {
+    color: #fca5a5 !important;
+    font-weight: 700;
+    text-decoration: underline;
+}
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    color: #fca5a5;
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+.back-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
 
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
-        color: #6b7280;
-        text-decoration: none;
-        font-size: 12px;
-        font-weight: 700;
-    }
+.quotation-reference-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
 
-    .back-link:hover { color: #4f46e5; }
+.quotation-reference-row h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+}
 
-    .quotation-reference-row {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
+.view-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
 
-    .quotation-reference-row h1 {
-        margin: 0;
-        color: #111827;
-        font-size: 24px;
-        font-weight: 800;
-    }
+/* Buttons */
+.btn {
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
+}
+.btn-primary-red {
+    background: var(--primary-red);
+    color: #ffffff;
+}
+.btn-primary-red:hover {
+    background: var(--primary-dark-red);
+    color: #ffffff;
+}
+.btn-secondary-soft {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+}
+.btn-secondary-soft:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+}
 
-    .quotation-header-left p {
-        margin: 6px 0 0;
-        color: #6b7280;
-        font-size: 13px;
-    }
+/* Status Badges */
+.quotation-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-    .quotation-header-left p a {
-        color: #4f46e5;
-        font-weight: 800;
-    }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-pending .status-dot { background: #d97706; }
 
-    /* ==================== STATUS ==================== */
-    .quotation-status {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 12px;
-        font-weight: 800;
-        white-space: nowrap;
-    }
+.status-approved { background: #dcfce7; color: #166534; }
+.status-approved .status-dot { background: #15803d; }
 
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-approved { background: #dcfce7; color: #166534; }
-    .status-rejected { background: #fee2e2; color: #991b1b; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+.status-rejected .status-dot { background: #dc2626; }
 
-    /* ==================== GRID ==================== */
+/* Grid Structure */
+.quotation-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 0.9fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.quotation-main-column,
+.quotation-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Cards */
+.detail-card {
+    padding: 20px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-subtle);
+    transition: all 0.15s ease;
+}
+
+.detail-card:hover {
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-card);
+}
+
+.card-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.heading-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: #fee2e2;
+    color: var(--primary-red);
+    font-size: 16px;
+}
+
+.card-heading h3 {
+    margin: 0 0 2px;
+    color: var(--surface-dark);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.card-heading p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Info Grids & Items */
+.detail-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.detail-item {
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-canvas);
+    border: 1px solid var(--border-light);
+}
+
+.detail-item span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.detail-item strong {
+    color: var(--surface-dark);
+    font-size: 13px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Amount Box */
+.quotation-amount-box {
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid #a7f3d0;
+    border-radius: var(--radius-md);
+    background: #ecfdf5;
+    text-align: center;
+}
+
+.quotation-amount-box span {
+    display: block;
+    color: #047857;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 3px;
+}
+
+.quotation-amount-box strong {
+    font-size: 21px;
+    font-weight: 800;
+    color: #065f46;
+}
+
+/* Workflow Box */
+.workflow-status-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+}
+.workflow-status-box i { font-size: 16px; margin-top: 1px; }
+
+.workflow-pending { background: #fffbeb; color: #92400e; }
+.workflow-approved { background: #f0fdf4; color: #166534; }
+.workflow-rejected { background: #fef2f2; color: #991b1b; }
+
+/* Decision Elements */
+.decision-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+}
+.decision-divider::before,
+.decision-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+}
+
+.reject-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.reject-form label {
+    font-weight: 700;
+    font-size: 11.5px;
+    color: var(--text-main);
+}
+.reject-form textarea {
+    resize: vertical;
+    min-height: 75px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+.reject-form textarea:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.08);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 992px) {
     .quotation-detail-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(320px, 0.9fr);
-        gap: 20px;
-        align-items: start;
+        grid-template-columns: 1fr;
     }
-
-    .quotation-main-column,
-    .quotation-side-column {
-        display: flex;
+}
+@media (max-width: 640px) {
+    .quotation-hero {
         flex-direction: column;
-        gap: 20px;
+        align-items: stretch;
     }
-
-    /* ==================== CARDS ==================== */
-    .detail-card,
-    .side-card {
-        padding: 20px;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        background: #ffffff;
-        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
-        transition: all 0.2s ease;
-    }
-
-    .detail-card:hover,
-    .side-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
-    }
-
-    .detail-card-heading {
-        display: flex;
-        align-items: flex-start;
-        gap: 14px;
-        margin-bottom: 16px;
-    }
-
-    .heading-icon {
-        flex: 0 0 40px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        background: #eef2ff;
-        color: #4f46e5;
-        font-size: 18px;
-    }
-
-    .detail-card-heading h3,
-    .side-card h3 {
-        margin: 0 0 4px;
-        color: #0f172a;
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-    .detail-card-heading p {
-        margin: 0;
-        color: #64748b;
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    /* ==================== INFO GRID ==================== */
-    .detail-info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-        gap: 12px;
-    }
-
-    .detail-item {
-        padding: 12px 14px;
-        border-radius: 10px;
-        background: #f8fafc;
-        border: 1px solid #f1f5f9;
-    }
-
-    .detail-item span {
-        display: block;
-        margin-bottom: 4px;
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .detail-item strong {
-        color: #0f172a;
-        font-size: 13.5px;
-        font-weight: 600;
-        line-height: 1.4;
-        word-break: break-word;
-    }
-
-    .detail-item.full-width {
-        grid-column: 1 / -1;
-    }
-
-    /* ==================== AMOUNT BOX ==================== */
-    .quotation-amount-box {
-        margin-top: 16px;
-        padding: 16px;
-        border: 1px solid #a7f3d0;
-        border-radius: 10px;
-        background: #ecfdf5;
-        text-align: center;
-    }
-
-    .quotation-amount-box span {
-        display: block;
-        color: #047857;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin-bottom: 4px;
-    }
-
-    .quotation-amount-box strong {
-        font-size: 22px;
-        font-weight: 800;
-        color: #065f46;
-    }
-
-    /* ==================== SIDE CARDS & BUTTONS ==================== */
-    .side-card h3 { margin-bottom: 14px; }
-
-    .workflow-status-box {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 14px;
-        border-radius: 10px;
-        font-size: 13px;
-    }
-
-    .workflow-status-box i { font-size: 18px; margin-top: 1px; }
-
-    .workflow-pending { background: #fffbeb; color: #92400e; }
-    .workflow-approved { background: #f0fdf4; color: #166534; }
-    .workflow-rejected { background: #fef2f2; color: #991b1b; }
-
-    .btn-download-pdf {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
+    .view-header-actions {
         width: 100%;
-        padding: 10px 14px;
-        background: #047857;
-        color: white;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 13px;
-        transition: all 0.2s ease;
     }
-
-    .btn-download-pdf:hover {
-        background: #065f46;
-        transform: translateY(-1px);
-    }
-
-    .delete-form { margin-top: 12px; }
-
-    .delete-quotation-btn {
+    .view-header-actions .btn {
         width: 100%;
-        padding: 10px 14px;
-        background: #dc2626;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s ease;
     }
-
-    .delete-quotation-btn:hover {
-        background: #b91c1c;
-        transform: translateY(-1px);
-    }
-
-    /* Decision Actions */
-    .decision-action-card {
-        border-top: 3px solid #d97706;
-    }
-
-    .decision-help-text {
-        margin: 0 0 12px;
-        color: #64748b;
-        font-size: 12px;
-    }
-
-    .approve-quotation-btn,
-    .reject-quotation-btn,
-    .convert-shipment-btn {
-        width: 100%;
-        padding: 10px 14px;
-        border: none;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        transition: all 0.2s ease;
-    }
-
-    .approve-quotation-btn {
-        background: #16a34a;
-        color: white;
-    }
-    .approve-quotation-btn:hover { background: #15803d; transform: translateY(-1px); }
-
-    .reject-quotation-btn {
-        background: #dc2626;
-        color: white;
-    }
-    .reject-quotation-btn:hover { background: #b91c1c; transform: translateY(-1px); }
-
-    .convert-shipment-btn {
-        background: #4f46e5;
-        color: white;
-    }
-    .convert-shipment-btn:hover { background: #4338ca; transform: translateY(-1px); }
-
-    .decision-divider {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 14px 0;
-        color: #94a3b8;
-        font-size: 10px;
-        font-weight: 700;
-    }
-
-    .decision-divider::before,
-    .decision-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: #e2e8f0;
-    }
-
-    .reject-form {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .reject-form label {
-        font-weight: 700;
-        font-size: 12px;
-        color: #334155;
-    }
-
-    .reject-form textarea {
-        resize: vertical;
-        min-height: 80px;
-        padding: 10px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 13px;
-    }
-
-    /* Edit Button */
-    .edit-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 9px 16px;
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        color: #334155;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 13px;
-        transition: all 0.2s ease;
-    }
-
-    .edit-btn:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-        transform: translateY(-1px);
-    }
-
-    /* ==================== RESPONSIVE ==================== */
-    @media (max-width: 992px) {
-        .quotation-detail-grid {
-            grid-template-columns: 1fr;
-        }
-        .quotation-view-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .header-actions { text-align: right; }
-    }
+}
 </style>
 {% endblock %}
