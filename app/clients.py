@@ -1528,3 +1528,15 @@ def restore_client(client_id):
     flash("Index restored to main dynamic lookup grids.", "success")
     return redirect(url_for("clients.view_client", client_id=client.id))
 
+@clients_bp.route('/client/<int:client_id>/portal-account', methods=['GET', 'POST'])
+@login_required
+def client_portal_account(client_id):
+    client = Client.query.get_or_404(client_id)
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        # Ikkada portal user create chese logic rayandi
+        flash('Client portal account successfully created!', 'success')
+        return redirect(url_for('clients.client_portal_account', client_id=client.id))
+        
+    return render_template('clients/client_portal_account.html', client=client)

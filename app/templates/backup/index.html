@@ -1,212 +1,300 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Database Backup & Restore{% endblock %}
-
-{% block page_title %}Database Tools{% endblock %}
-
-{% block page_subtitle %}
-Download manual JSON snapshots or restore your application data instantly.
-{% endblock %}
-
-{% block extra_css %}
-<style>
-.tools-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 10px;
-}
-
-.backup-header {
-    margin-bottom: 30px;
-}
-
-.backup-title h2 {
-    font-size: 26px;
-    font-weight: 800;
-    color: #111827;
-    margin: 0;
-}
-
-.backup-title p {
-    margin-top: 6px;
-    color: #6b7280;
-    font-size: 14px;
-}
-
-/* Grid Layout for Action Cards */
-.tools-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    margin-top: 20px;
-}
-
-.action-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 28px;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
-    border: 1px solid #e5e7eb;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.action-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-}
-
-.card-icon {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-.backup-zone .card-icon {
-    background: #eff6ff;
-    color: #2563eb;
-}
-
-.restore-zone .card-icon {
-    background: #fff7ed;
-    color: #ea580c;
-}
-
-.card-details h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 10px 0;
-}
-
-.card-details p {
-    color: #6b7280;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 24px;
-}
-
-/* Styled Action Buttons */
-.action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 15px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-primary-download {
-    background: #2563eb;
-    color: #fff;
-}
-
-.btn-primary-download:hover {
-    background: #1d4ed8;
-    color: #fff;
-}
-
-.btn-warning-restore {
-    background: #ea580c;
-    color: #fff;
-}
-
-.btn-warning-restore:hover {
-    background: #c2410c;
-    color: #fff;
-}
-
-/* Dynamic File Input Styling */
-.file-wrapper {
-    margin-bottom: 16px;
-    position: relative;
-}
-
-.custom-file-input {
-    width: 100%;
-    padding: 10px;
-    border: 2px dashed #cbd5e1;
-    border-radius: 10px;
-    background: #f8fafc;
-    color: #475569;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.custom-file-input:focus {
-    outline: none;
-    border-color: #ea580c;
-}
-
-@media(max-width: 768px) {
-    .tools-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-{% endblock %}
+{% block title %}Database Backup & Restore | Freight CRM{% endblock %}
 
 {% block content %}
-<div class="tools-container">
 
-    <div class="backup-header">
-        <div class="backup-title">
-            <h2>Database Infrastructure Control</h2>
-            <p>Manage live production environments using secure object state streams.</p>
+<div class="backup-page">
+
+    <!-- ==========================================
+         PAGE HEADER (EXACT CRIMSON RED STRIP)
+         ========================================== -->
+
+    <section class="tools-hero">
+        <div class="tools-hero-copy">
+            <span class="page-eyebrow">
+                INFRASTRUCTURE • DATABASE TOOLS
+            </span>
+
+            <h2>Database Backup & Restore</h2>
+
+            <p>
+                Download manual JSON snapshots or restore your application data instantly.
+            </p>
         </div>
-    </div>
+    </section>
 
-    <div class="tools-grid">
+    <!-- ==========================================
+         ACTION CARDS GRID CONTAINER
+         ========================================== -->
+
+    <div class="tools-container-box">
         
-        <!-- Card 1: Live Download Area -->
-        <div class="action-card backup-zone">
-            <div class="card-details">
-                <div class="card-icon">
-                    <i class="bi bi-cloud-arrow-down-fill"></i>
-                </div>
-                <h3>Instant JSON Export</h3>
-                <p>Generates a dynamic real-time structural archive of all active database nodes and streams a compiled JSON payload directly into your storage ecosystem.</p>
+        <div class="backup-header">
+            <div class="backup-title">
+                <h2>Database Infrastructure Control</h2>
+                <p>Manage live production environments using secure object state streams.</p>
             </div>
-            <a href="{{ url_for('backup.create') }}" class="action-btn btn-primary-download">
-                <i class="bi bi-download"></i> Trigger JSON Backup
-            </a>
         </div>
 
-        <!-- Card 2: Safe Recovery Upload Area -->
-        <div class="action-card restore-zone">
-            <div class="card-details">
-                <div class="card-icon">
-                    <i class="bi bi-shield-fill-exclamation"></i>
-                </div>
-                <h3>Disaster Data Restoration</h3>
-                <p>Injects an encrypted structural object map directly into your application model context. Current storage datasets will be purged and overwritten cleanly.</p>
-            </div>
+        <div class="tools-grid">
             
-            <form action="{{ url_for('backup.restore') }}" method="POST" enctype="multipart/form-data">
-                <div class="file-wrapper">
-                    <input class="custom-file-input" type="file" name="backup_file" accept=".json" required>
+            <!-- Card 1: Live Download Area -->
+            <div class="action-card backup-zone">
+                <div class="card-details">
+                    <div class="card-icon">
+                        <i class="bi bi-cloud-arrow-down-fill"></i>
+                    </div>
+                    <h3>Instant JSON Export</h3>
+                    <p>Generates a dynamic real-time structural archive of all active database nodes and streams a compiled JSON payload directly into your storage ecosystem.</p>
                 </div>
-                <button type="submit" class="action-btn btn-warning-restore" onclick="return confirm('CRITICAL CONFIRMATION REQUIRED: Proceeding will drop and overwrite active database models. Do you wish to proceed?');">
-                    <i class="bi bi-arrow-counterclockwise"></i> Upload & Rebuild Nodes
-                </button>
-            </form>
+                <a href="{{ url_for('backup.create') }}" class="action-btn btn-primary-download">
+                    <i class="bi bi-download"></i> Trigger JSON Backup
+                </a>
+            </div>
+
+            <!-- Card 2: Safe Recovery Upload Area -->
+            <div class="action-card restore-zone">
+                <div class="card-details">
+                    <div class="card-icon">
+                        <i class="bi bi-shield-fill-exclamation"></i>
+                    </div>
+                    <h3>Disaster Data Restoration</h3>
+                    <p>Injects an encrypted structural object map directly into your application model context. Current storage datasets will be purged and overwritten cleanly.</p>
+                </div>
+                
+                <form action="{{ url_for('backup.restore') }}" method="POST" enctype="multipart/form-data" style="margin: 0;">
+                    <div class="file-wrapper">
+                        <input class="custom-file-input" type="file" name="backup_file" accept=".json" required>
+                    </div>
+                    <button type="submit" class="action-btn btn-warning-restore" onclick="return confirm('CRITICAL CONFIRMATION REQUIRED: Proceeding will drop and overwrite active database models. Do you wish to proceed?');">
+                        <i class="bi bi-arrow-counterclockwise"></i> Upload & Rebuild Nodes
+                    </button>
+                </form>
+            </div>
+
         </div>
 
     </div>
 
 </div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CORPORATE UI REDESIGN - DATABASE BACKUP & RESTORE PAGE
+       ========================================================================== */
+
+    .backup-page {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        background: transparent;
+        padding-bottom: 24px;
+        max-width: 1350px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .tools-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 24px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+        color: #ffffff;
+        box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+    }
+
+    .page-eyebrow {
+        display: inline-block;
+        margin-bottom: 6px;
+        color: #fca5a5;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .tools-hero-copy h2 {
+        margin: 2px 0 4px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: -0.01em;
+    }
+
+    .tools-hero-copy p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #f1f5f9 !important;
+        opacity: 0.95;
+    }
+
+    /* Container Box Card */
+    .tools-container-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .backup-header {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+
+    .backup-title h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 2px 0;
+    }
+
+    .backup-title p {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    /* Grid Layout for Action Cards */
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-top: 10px;
+    }
+
+    .action-card {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .action-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    .card-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-bottom: 14px;
+    }
+
+    .backup-zone .card-icon {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .restore-zone .card-icon {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .card-details h3 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 6px 0;
+    }
+
+    .card-details p {
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 18px;
+    }
+
+    /* Styled Action Buttons */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12.5px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .btn-primary-download {
+        background: #b91c1c;
+        color: #fff;
+    }
+
+    .btn-primary-download:hover {
+        background: #7f1d1d;
+        color: #fff;
+    }
+
+    .btn-warning-restore {
+        background: #ea580c;
+        color: #fff;
+    }
+
+    .btn-warning-restore:hover {
+        background: #c2410c;
+        color: #fff;
+    }
+
+    /* Dynamic File Input Styling */
+    .file-wrapper {
+        margin-bottom: 12px;
+        position: relative;
+    }
+
+    .custom-file-input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .custom-file-input:focus {
+        outline: none;
+        border-color: #ea580c;
+        box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.08);
+    }
+
+    @media(max-width: 768px) {
+        .tools-grid {
+            grid-template-columns: 1fr;
+        }
+        .tools-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
 {% endblock %}

@@ -1,53 +1,379 @@
 {% extends "layouts/base.html" %}
+
 {% block title %}Users & Roles | Freight CRM{% endblock %}
 
 {% block content %}
+
+<div class="users-page">
+
+    <!-- ==========================================
+         PAGE HEADER (EXACT CRIMSON RED STRIP)
+         ========================================== -->
+
+    <section class="users-hero">
+        <div class="users-hero-copy">
+            <span class="page-eyebrow">
+                ACCESS CONTROL • SECURITY MANAGEMENT
+            </span>
+
+            <h2>Users & Roles</h2>
+
+            <p>
+                Create staff logins and control role access.
+            </p>
+        </div>
+
+        <div class="view-header-actions">
+            <a href="{{ url_for('users.create_user') }}" class="btn btn-secondary-soft">
+                <i class="bi bi-person-plus-fill"></i> Create User
+            </a>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         USERS TABLE CARD
+         ========================================== -->
+
+    <div class="users-card">
+
+        <div class="users-card-header">
+            <div>
+                <h2>System Users</h2>
+                <p>Manage staff accounts, permissions, and credentials</p>
+            </div>
+        </div>
+
+        <div class="table-responsive-box">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email / Login ID</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.full_name }}</strong>
+                            {% if user.id == current_user.id %}
+                                <br><small style="color: #b91c1c; font-weight: 700;">(You)</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ user.email }}
+                        </td>
+                        <td>
+                            <span class="role-badge">{{ user.role_label }}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge {{ 'active' if user.is_active_user else 'inactive' }}">
+                                {{ 'Active' if user.is_active_user else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a class="small-btn" href="{{ url_for('users.edit_user', user_id=user.id) }}">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+
+                                <form method="post" action="{{ url_for('users.toggle_user_active', user_id=user.id) }}" style="margin: 0;">
+                                    <button class="small-btn" type="submit" {% if user.id == current_user.id %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+                                        {{ 'Deactivate' if user.is_active_user else 'Activate' }}
+                                    </button>
+                                </form>
+
+                                <form class="reset-box" method="post" action="{{ url_for('users.reset_password', user_id=user.id) }}" style="margin: 0;">
+                                    <input type="password" name="new_password" minlength="8" placeholder="New password" required>
+                                    <button class="small-btn reset-btn" type="submit">Reset</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #64748b;">
+                            <i class="bi bi-people" style="display: block; font-size: 2rem; margin-bottom: 8px; color: #cbd5e1;"></i>
+                            No users found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
 <style>
-.users-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:22px}
-.users-head h1{margin:0;font-size:26px}.users-head p{margin:5px 0 0;color:#64748b}
-.primary-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:10px;background:#0f172a;color:#fff;text-decoration:none;font-weight:700}
-.users-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden}
-.users-table{width:100%;border-collapse:collapse}.users-table th,.users-table td{padding:14px 16px;text-align:left;border-bottom:1px solid #eef2f7}
-.users-table th{font-size:12px;text-transform:uppercase;color:#64748b;background:#f8fafc}
-.role-badge,.status-badge{display:inline-flex;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700}
-.role-badge{background:#eef2ff;color:#3730a3}.active{background:#dcfce7;color:#166534}.inactive{background:#fee2e2;color:#991b1b}
-.actions{display:flex;gap:7px;flex-wrap:wrap}.small-btn{border:1px solid #cbd5e1;background:#fff;padding:7px 9px;border-radius:8px;text-decoration:none;color:#0f172a;font-weight:650;cursor:pointer}
-.reset-box{display:flex;gap:6px}.reset-box input{width:130px;border:1px solid #cbd5e1;border-radius:8px;padding:7px}
-@media(max-width:900px){.users-card{overflow-x:auto}.users-table{min-width:850px}.users-head{align-items:flex-start;flex-direction:column}}
+    /* ==========================================================================
+       CORPORATE UI REDESIGN - USERS & ROLES PAGE
+       ========================================================================== */
+
+    .users-page {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        background: transparent;
+        padding-bottom: 24px;
+        max-width: 1350px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .users-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 24px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+        color: #ffffff;
+        box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+    }
+
+    .page-eyebrow {
+        display: inline-block;
+        margin-bottom: 6px;
+        color: #fca5a5;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .users-hero-copy h2 {
+        margin: 2px 0 4px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: -0.01em;
+    }
+
+    .users-hero-copy p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #f1f5f9 !important;
+        opacity: 0.95;
+    }
+
+    .view-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+
+    /* Buttons */
+    .btn {
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .btn-secondary-soft {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: #ffffff;
+    }
+
+    .btn-secondary-soft:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.6);
+        color: #ffffff;
+    }
+
+    /* Users Card & Table */
+    .users-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .users-card-header {
+        padding: 17px 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .users-card-header h2 {
+        margin: 0 0 2px;
+        color: #0f172a;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .users-card-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .table-responsive-box {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 12.5px;
+    }
+
+    .users-table th,
+    .users-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
+
+    .users-table th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 10.5px;
+        letter-spacing: 0.03em;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .users-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .users-table tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Badges */
+    .role-badge,
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .role-badge {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Actions & Forms */
+    .actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .small-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 32px;
+        padding: 0 12px;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #1e293b;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .small-btn:hover {
+        background: #f1f5f9;
+        color: #b91c1c;
+        border-color: #94a3b8;
+    }
+
+    .reset-box {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .reset-box input {
+        width: 130px;
+        height: 32px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 0 10px;
+        font-size: 11.5px;
+        outline: none;
+        background: #ffffff;
+        color: #1e293b;
+    }
+
+    .reset-box input:focus {
+        border-color: #b91c1c;
+        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.08);
+    }
+
+    .reset-btn {
+        background: #0f172a;
+        color: #ffffff;
+        border: none;
+    }
+
+    .reset-btn:hover {
+        background: #1e293b;
+        color: #ffffff;
+        border-color: transparent;
+    }
+
+    /* Responsive */
+    @media (max-width: 950px) {
+        .users-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .view-header-actions {
+            width: 100%;
+        }
+        .view-header-actions .btn {
+            width: 100%;
+        }
+    }
 </style>
-
-<div class="users-head">
-  <div><h1>Users & Roles</h1><p>Create staff logins and control role access.</p></div>
-  <a class="primary-btn" href="{{ url_for('users.create_user') }}"><i class="bi bi-person-plus-fill"></i> Create User</a>
-</div>
-
-<div class="users-card">
-<table class="users-table">
-<thead><tr><th>User</th><th>Email / Login ID</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
-<tbody>
-{% for user in users %}
-<tr>
-<td><strong>{{ user.full_name }}</strong>{% if user.id == current_user.id %}<br><small>You</small>{% endif %}</td>
-<td>{{ user.email }}</td>
-<td><span class="role-badge">{{ user.role_label }}</span></td>
-<td><span class="status-badge {{ 'active' if user.is_active_user else 'inactive' }}">{{ 'Active' if user.is_active_user else 'Inactive' }}</span></td>
-<td>
-<div class="actions">
-<a class="small-btn" href="{{ url_for('users.edit_user', user_id=user.id) }}">Edit</a>
-<form method="post" action="{{ url_for('users.toggle_user_active', user_id=user.id) }}">
-<button class="small-btn" type="submit" {% if user.id == current_user.id %}disabled{% endif %}>{{ 'Deactivate' if user.is_active_user else 'Activate' }}</button>
-</form>
-<form class="reset-box" method="post" action="{{ url_for('users.reset_password', user_id=user.id) }}">
-<input type="password" name="new_password" minlength="8" placeholder="New password" required>
-<button class="small-btn" type="submit">Reset</button>
-</form>
-</div>
-</td>
-</tr>
-{% else %}
-<tr><td colspan="5">No users found.</td></tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
 {% endblock %}
