@@ -1,368 +1,418 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Support Ticket #{{ ticket.id }}{% endblock %}
+{% block title %}Support Ticket #{{ ticket.id }} | Freight CRM{% endblock %}
 
 {% block content %}
 
-<style>
-body {
-    background: #f8fafc;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
+<div class="ticket-view-page">
 
-.ticket-wrapper {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 0 24px;
-}
+    <!-- ==========================================
+         PAGE HEADER (EXACT CRIMSON RED STRIP)
+         ========================================== -->
 
-/* Premium Navigation Link */
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-    font-weight: 600;
-    font-size: 14px;
-    text-decoration: none;
-    color: #64748b;
-    transition: all 0.2s ease;
-}
+    <section class="ticket-hero">
+        <div class="ticket-hero-copy">
+            <a href="{{ url_for('support.admin_list') }}" class="back-link">
+                <i class="bi bi-arrow-left"></i>
+                Back to Support Tickets
+            </a>
 
-.back-link:hover {
-    color: #7f1d1d;
-    transform: translateX(-4px);
-}
+            <div class="ticket-reference-row">
+                <h2>Ticket #{{ ticket.id }}</h2>
+                
+                {% if ticket.status == "waiting_admin" %}
+                    <span class="ticket-status status-admin">Waiting for Admin</span>
+                {% elif ticket.status == "waiting_client" %}
+                    <span class="ticket-status status-client">Waiting for Client</span>
+                {% else %}
+                    <span class="ticket-status status-closed">Closed</span>
+                {% endif %}
+            </div>
 
-/* Container Card Layout */
-.ticket-card {
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02), 0 15px 45px rgba(15, 23, 42, 0.05);
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    overflow: hidden;
-}
+            <p>{{ ticket.subject }}</p>
+        </div>
+    </section>
 
-/* Dynamic Top Header Block */
-.ticket-header {
-    padding: 32px 40px;
-    background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.ticket-title {
-    font-size: 26px;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.5px;
-    margin: 0;
-}
-
-.ticket-sub {
-    color: #64748b;
-    font-size: 15px;
-    margin: 6px 0 0;
-    font-weight: 400;
-}
-
-/* Clean Dynamic Badges */
-.status {
-    padding: 8px 18px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: -0.1px;
-    display: inline-block;
-}
-
-.status-admin { background: rgba(239, 68, 68, 0.09); color: #991b1b; }
-.status-client { background: rgba(245, 158, 11, 0.09); color: #92400e; }
-.status-closed { background: rgba(34, 197, 94, 0.09); color: #166534; }
-
-.ticket-body {
-    padding: 40px;
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 24px;
-    color: #0f172a;
-    letter-spacing: -0.3px;
-}
-
-/* Standardized Elegant Chat Window */
-.chat-box {
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    border-radius: 20px;
-    padding: 32px;
-    max-height: 520px;
-    overflow-y: auto;
-    margin-bottom: 35px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-.message {
-    display: flex;
-    width: 100%;
-}
-
-.message.client { justify-content: flex-start; }
-.message.admin { justify-content: flex-end; }
-
-.bubble {
-    max-width: 70%;
-    padding: 16px 20px;
-    border-radius: 18px;
-    font-size: 15px;
-    line-height: 1.6;
-    position: relative;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
-}
-
-.client .bubble {
-    background: #ffffff;
-    color: #334155;
-    border-bottom-left-radius: 4px;
-    border: 1px solid #e2e8f0;
-}
-
-.admin .bubble {
-    background: #eff6ff;
-    color: #1e3a8a;
-    border-bottom-right-radius: 4px;
-    border: 1px solid #dbeafe;
-}
-
-.sender {
-    font-weight: 700;
-    margin-bottom: 6px;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.sender.client { color: #16a34a; }
-.sender.admin { color: #2563eb; }
-
-.message-text {
-    word-break: break-word;
-}
-
-.message-time {
-    margin-top: 10px;
-    font-size: 11px;
-    color: #94a3b8;
-    text-align: right;
-    font-weight: 500;
-}
-
-/* Premium Reply Editor Frame */
-.reply-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
-}
-
-.reply-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 16px;
-}
-
-textarea {
-    width: 100%;
-    min-height: 130px;
-    border: 1px solid #cbd5e1;
-    border-radius: 14px;
-    padding: 16px;
-    resize: vertical;
-    outline: none;
-    font-size: 15px;
-    color: #334155;
-    transition: all 0.2s ease;
-    background: #f8fafc;
-}
-
-textarea:focus {
-    background: #fff;
-    border-color: #7f1d1d;
-    box-shadow: 0 0 0 4px rgba(127, 29, 29, 0.08);
-}
-
-.action-row {
-    display: flex;
-    justify-content: flex-end;
-    gap: 14px;
-    margin-top: 20px;
-}
-
-/* Functional Buttons Upgrade */
-.btn-send, .btn-close {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 26px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    border: none;
-    text-decoration: none;
-}
-
-.btn-send {
-    background: #7f1d1d;
-    color: #fff;
-}
-
-.btn-send:hover {
-    background: #651818;
-    transform: translateY(-1px);
-}
-
-.btn-close {
-    background: #16a34a;
-    color: #fff;
-}
-
-.btn-close:hover {
-    background: #15803d;
-    color: #fff;
-    transform: translateY(-1px);
-}
-
-.closed-alert {
-    margin-top: 30px;
-    padding: 20px 24px;
-    background: rgba(22, 163, 74, 0.06);
-    border: 1px solid rgba(22, 163, 74, 0.15);
-    border-radius: 14px;
-    text-align: center;
-    font-weight: 600;
-    color: #15803d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 15px;
-}
-
-@media (max-width: 768px) {
-    .ticket-header {
-        padding: 24px;
-    }
-    .ticket-body {
-        padding: 24px;
-    }
-    .chat-box {
-        padding: 16px;
-    }
-    .bubble { 
-        max-width: 85%; 
-    }
-    .action-row {
-        flex-direction: column-reverse;
-    }
-    .btn-send, .btn-close {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
-
-<div class="ticket-wrapper">
-
-    <a href="{{ url_for('support.admin_list') }}" class="back-link">
-        ← Back to Tickets
-    </a>
+    <!-- ==========================================
+         MAIN CONTENT CONTAINER
+         ========================================== -->
 
     <div class="ticket-card">
 
-        <div class="ticket-header">
+        <div class="card-heading">
+            <span class="heading-icon">
+                <i class="bi bi-chat-dots-fill"></i>
+            </span>
             <div>
-                <div class="ticket-title">Ticket #{{ ticket.id }}</div>
-                <div class="ticket-sub">{{ ticket.subject }}</div>
-            </div>
-
-            <div>
-                {% if ticket.status == "waiting_admin" %}
-                    <span class="status status-admin">Waiting for Admin</span>
-                {% elif ticket.status == "waiting_client" %}
-                    <span class="status status-client">Waiting for Client</span>
-                {% else %}
-                    <span class="status status-closed">Closed</span>
-                {% endif %}
+                <h3>Conversation History</h3>
+                <p>Client and support team message exchange</p>
             </div>
         </div>
 
-        <div class="ticket-body">
-
-            <div class="section-title">Conversation</div>
-
-            <div class="chat-box">
-                {% for msg in messages %}
-                <div class="message {{ msg.sender }}">
-                    <div class="bubble">
-                        <div class="sender {{ msg.sender }}">
-                            {% if msg.sender == "admin" %}Admin{% else %}Client{% endif %}
-                        </div>
-                        <div class="message-text">{{ msg.message }}</div>
-                        <div class="message-time">
-                            {{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}
-                        </div>
+        <div class="chat-box">
+            {% for msg in messages %}
+            <div class="message {{ msg.sender }}">
+                <div class="bubble">
+                    <div class="sender {{ msg.sender }}">
+                        {% if msg.sender == "admin" %}Admin{% else %}Client{% endif %}
+                    </div>
+                    <div class="message-text">{{ msg.message }}</div>
+                    <div class="message-time">
+                        {{ msg.created_at.strftime("%d %b %Y %I:%M %p") }}
                     </div>
                 </div>
-                {% endfor %}
-
-                {% if not messages %}
-                <div style="text-align:center; padding:80px 20px; color:#94a3b8; font-size:15px;">
-                    No messages yet. Start the conversation.
-                </div>
-                {% endif %}
             </div>
+            {% endfor %}
 
-            {% if ticket.status != "closed" %}
-            <div class="reply-card">
-                <div class="reply-title">Reply to Client</div>
-                <form method="POST">
-                    <textarea 
-                        name="admin_reply" 
-                        placeholder="Type your reply here..." 
-                        required></textarea>
-                    
-                    <div class="action-row">
-                        <a href="{{ url_for('support.close_ticket', ticket_id=ticket.id) }}" 
-                           class="btn-close">
-                            <i class="bi bi-check-circle-fill"></i> Close Ticket
-                        </a>
-                        
-                        <button type="submit" class="btn-send">
-                            <i class="bi bi-send-fill"></i> Send Reply
-                        </button>
-                    </div>
-                </form>
-            </div>
-            {% else %}
-            <div class="closed-alert">
-                <i class="bi bi-check-circle-fill"></i> This ticket has been closed.
+            {% if not messages %}
+            <div style="text-align:center; padding:40px; color:#64748b; font-size:12.5px;">
+                No messages yet. Start the conversation.
             </div>
             {% endif %}
-
         </div>
+
+        {% if ticket.status != "closed" %}
+        <div class="reply-card">
+            <div class="reply-title">Reply to Client</div>
+            <form method="POST">
+                <textarea 
+                    name="admin_reply" 
+                    placeholder="Type your reply here..." 
+                    required></textarea>
+                
+                <div class="action-row">
+                    <a href="{{ url_for('support.close_ticket', ticket_id=ticket.id) }}" 
+                       class="btn btn-close"
+                       onclick="return confirm('Close this ticket?');">
+                        <i class="bi bi-check-circle-fill"></i> Close Ticket
+                    </a>
+                    
+                    <button type="submit" class="btn btn-primary-red">
+                        <i class="bi bi-send-fill"></i> Send Reply
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="closed-alert">
+            <i class="bi bi-check-circle-fill"></i> This ticket has been closed.
+        </div>
+        {% endif %}
+
     </div>
+
 </div>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CORPORATE UI REDESIGN - SUPPORT TICKET DETAIL VIEW PAGE
+       ========================================================================== */
+
+    .ticket-view-page {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        background: transparent;
+        padding-bottom: 24px;
+        max-width: 1350px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .ticket-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 24px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+        color: #ffffff;
+        box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+    }
+
+    .ticket-hero-copy h2 {
+        margin: 2px 0 4px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: -0.01em;
+    }
+
+    .ticket-hero-copy p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #f1f5f9 !important;
+        opacity: 0.95;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+        color: #fca5a5;
+        text-decoration: none;
+        font-size: 11.5px;
+        font-weight: 700;
+    }
+
+    .back-link:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    .ticket-reference-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* Status Badges */
+    .ticket-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .status-admin { background: #fee2e2; color: #991b1b; }
+    .status-client { background: #fef3c7; color: #92400e; }
+    .status-closed { background: #dcfce7; color: #166534; }
+
+    /* Main Container Card */
+    .ticket-card {
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+
+    .heading-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 16px;
+    }
+
+    .card-heading h3 {
+        margin: 0 0 2px;
+        color: #0f172a;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .card-heading p {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    /* Chat Window */
+    .chat-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+        max-height: 450px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .message {
+        display: flex;
+        width: 100%;
+    }
+
+    .message.client { justify-content: flex-start; }
+    .message.admin { justify-content: flex-end; }
+
+    .bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .client .bubble {
+        background: #ffffff;
+        color: #1e293b;
+        border-bottom-left-radius: 2px;
+        border: 1px solid #cbd5e1;
+    }
+
+    .admin .bubble {
+        background: #eff6ff;
+        color: #1e3a8a;
+        border-bottom-right-radius: 2px;
+        border: 1px solid #bfdbfe;
+    }
+
+    .sender {
+        font-weight: 700;
+        margin-bottom: 4px;
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .sender.client { color: #047857; }
+    .sender.admin { color: #2563eb; }
+
+    .message-text {
+        word-break: break-word;
+    }
+
+    .message-time {
+        margin-top: 6px;
+        font-size: 10px;
+        color: #64748b;
+        text-align: right;
+        font-weight: 500;
+    }
+
+    /* Reply Card */
+    .reply-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    .reply-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 100px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 12px;
+        resize: vertical;
+        outline: none;
+        font-size: 12.5px;
+        color: #1e293b;
+        background: #ffffff;
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+
+    textarea:focus {
+        border-color: #b91c1c;
+        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.08);
+    }
+
+    .action-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    /* Buttons */
+    .btn {
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .btn-primary-red {
+        background: #b91c1c;
+        color: #ffffff;
+    }
+    .btn-primary-red:hover {
+        background: #7f1d1d;
+        color: #ffffff;
+    }
+
+    .btn-close {
+        background: #047857;
+        color: #ffffff;
+    }
+    .btn-close:hover {
+        background: #065f46;
+        color: #ffffff;
+    }
+
+    .closed-alert {
+        margin-top: 16px;
+        padding: 14px 18px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+        color: #047857;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 12.5px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .ticket-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .bubble { 
+            max-width: 85%; 
+        }
+        .action-row {
+            flex-direction: column-reverse;
+        }
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
 {% endblock %}

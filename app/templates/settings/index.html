@@ -1,206 +1,623 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}Settings - System Configuration{% endblock %}
+{% block title %}Settings - System Configuration | Freight CRM{% endblock %}
 
 {% block content %}
-<div style="background:#f5f6f8; min-height:100vh; font-family:system-ui,-apple-system,sans-serif; padding:32px;">
-  <div style="max-width:960px; margin:0 auto;">
 
-    <div style="margin-bottom:28px;">
-      <h1 style="font-size:22px; font-weight:600; color:#1a1a2e; margin:0;">System Settings</h1>
-      <p style="font-size:13px; color:#6b7280; margin:4px 0 0 0;">Configure and manage your system environment.</p>
+<div class="settings-page">
+
+    <!-- ==========================================
+         PAGE HEADER (EXACT CRIMSON RED STRIP)
+         ========================================== -->
+
+    <section class="settings-hero">
+        <div class="settings-hero-copy">
+            <span class="page-eyebrow">
+                SYSTEM • CONFIGURATION & ENVIRONMENT
+            </span>
+
+            <h2>System Settings</h2>
+
+            <p>
+                Configure and manage your system environment, workflow pipelines, and access controls.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         MAIN LAYOUT (SIDEBAR + CONTENT)
+         ========================================== -->
+
+    <div class="settings-layout-grid">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="settings-sidebar">
+            <a href="{{ url_for('settings.index') }}" class="settings-nav-item {% if active_tab=='general' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                General
+            </a>
+            <a href="{{ url_for('settings.workflow') }}" class="settings-nav-item {% if active_tab=='workflow' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Workflow
+            </a>
+            <a href="{{ url_for('settings.roles') }}" class="settings-nav-item {% if active_tab=='roles' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Access Control
+            </a>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="settings-content-area">
+
+            <!-- ========== GENERAL TAB ========== -->
+            {% if active_tab == "general" %}
+            <div class="settings-card">
+                <h2>Maintenance & Environment</h2>
+                <form method="POST" action="{{ url_for('settings.update_maintenance') }}">
+                    <div class="maintenance-box">
+                        <div>
+                            <div class="m-title">Enable Maintenance Mode</div>
+                            <div class="m-desc">Disables public access for maintenance work.</div>
+                        </div>
+                        <label class="switch-label">
+                            <input type="checkbox" name="maintenance_mode" id="mSwitch" {% if settings.maintenance %}checked{% endif %} onchange="this.form.submit()" class="switch-input">
+                            <span class="switch-slider {% if settings.maintenance %}active{% endif %}">
+                                <span class="switch-knob {% if settings.maintenance %}active{% endif %}"></span>
+                            </span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+
+            <div class="settings-card">
+                <h2>App Configurations</h2>
+                <form method="POST" action="{{ url_for('settings.general') }}">
+                    <div class="form-grid-2">
+                        <div class="field">
+                            <label>Alert Email</label>
+                            <input type="email" name="alert_email" value="alerts@crm.com" class="form-control-custom">
+                        </div>
+                        <div class="field">
+                            <label>Backup Schedule</label>
+                            <select name="backup" class="form-control-custom">
+                                <option value="daily" selected>Daily</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-action-row">
+                        <button type="submit" class="btn btn-primary-red">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- ========== WORKFLOW TAB ========== -->
+            {% if active_tab == "workflow" %}
+            <div class="settings-card">
+                <h2>Pipeline Stages</h2>
+                <div class="pipeline-list">
+                    <div class="pipeline-item">
+                        <div class="pipeline-num active">1</div>
+                        <div class="pipeline-info">
+                            <div class="p-title">Lead Capture</div>
+                            <div class="p-desc">Auto-import from forms & API</div>
+                        </div>
+                        <label class="switch-label">
+                            <input type="checkbox" checked class="switch-input" disabled>
+                            <span class="switch-slider active"><span class="switch-knob active"></span></span>
+                        </label>
+                    </div>
+                    <div class="pipeline-item">
+                        <div class="pipeline-num active">2</div>
+                        <div class="pipeline-info">
+                            <div class="p-title">Qualification</div>
+                            <div class="p-desc">Score and assign to reps</div>
+                        </div>
+                        <label class="switch-label">
+                            <input type="checkbox" checked class="switch-input" disabled>
+                            <span class="switch-slider active"><span class="switch-knob active"></span></span>
+                        </label>
+                    </div>
+                    <div class="pipeline-item">
+                        <div class="pipeline-num active">3</div>
+                        <div class="pipeline-info">
+                            <div class="p-title">Proposal</div>
+                            <div class="p-desc">Generate and send quotes</div>
+                        </div>
+                        <label class="switch-label">
+                            <input type="checkbox" checked class="switch-input" disabled>
+                            <span class="switch-slider active"><span class="switch-knob active"></span></span>
+                        </label>
+                    </div>
+                    <div class="pipeline-item last">
+                        <div class="pipeline-num inactive">4</div>
+                        <div class="pipeline-info">
+                            <div class="p-title">Closure</div>
+                            <div class="p-desc">Contract signing & onboarding</div>
+                        </div>
+                        <label class="switch-label">
+                            <input type="checkbox" class="switch-input" disabled>
+                            <span class="switch-slider"><span class="switch-knob"></span></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Automation Rules</h2>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label>Auto-assign leads after (hours)</label>
+                        <input type="number" value="2" class="form-control-custom">
+                    </div>
+                    <div class="field">
+                        <label>Escalation email</label>
+                        <input type="email" value="escalation@crm.com" class="form-control-custom">
+                    </div>
+                </div>
+                <div class="form-action-row">
+                    <button type="button" class="btn btn-primary-red">Save Workflow</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ========== ACCESS CONTROL TAB ========== -->
+            {% if active_tab == "roles" %}
+            <div class="settings-card">
+                <h2>Role Permissions</h2>
+                <div class="permissions-table-wrap">
+                    <div class="perm-header">
+                        <div>Role</div>
+                        <div style="text-align:center;">View</div>
+                        <div style="text-align:center;">Create</div>
+                        <div style="text-align:center;">Edit</div>
+                        <div style="text-align:center;">Delete</div>
+                    </div>
+                    <div class="perm-row">
+                        <div class="role-name">Administrator</div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                    </div>
+                    <div class="perm-row">
+                        <div class="role-name">Manager</div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" class="perm-checkbox"></div>
+                    </div>
+                    <div class="perm-row">
+                        <div class="role-name">Sales Rep</div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" class="perm-checkbox"></div>
+                    </div>
+                    <div class="perm-row last">
+                        <div class="role-name">Viewer</div>
+                        <div style="text-align:center;"><input type="checkbox" checked class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" class="perm-checkbox"></div>
+                        <div style="text-align:center;"><input type="checkbox" class="perm-checkbox"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Add New Role</h2>
+                <div class="add-role-row">
+                    <div class="field" style="flex:1;">
+                        <label>Role Name</label>
+                        <input type="text" placeholder="e.g. Support Agent" class="form-control-custom">
+                    </div>
+                    <button type="button" class="btn btn-primary-red" style="height:38px;">Add Role</button>
+                </div>
+            </div>
+            {% endif %}
+
+        </main>
     </div>
 
-    <div style="display:flex; gap:24px;">
-      <!-- Sidebar -->
-      <nav style="width:200px; flex-shrink:0;">
-        <a href="{{ url_for('settings.index') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:500; {% if active_tab=='general' %}color:#7f1d1d; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04);{% else %}color:#6b7280; margin-top:2px;{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          General
-        </a>
-        <a href="{{ url_for('settings.workflow') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:500; {% if active_tab=='workflow' %}color:#7f1d1d; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04);{% else %}color:#6b7280; margin-top:2px;{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          Workflow
-        </a>
-        <a href="{{ url_for('settings.roles') }}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:500; {% if active_tab=='roles' %}color:#7f1d1d; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04);{% else %}color:#6b7280; margin-top:2px;{% endif %}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Access Control
-        </a>
-      </nav>
-
-      <!-- Main Content -->
-      <main style="flex:1; min-width:0;">
-
-        <!-- ========== GENERAL TAB ========== -->
-        {% if active_tab == "general" %}
-        <div style="background:#fff; border-radius:10px; padding:24px; margin-bottom:16px;">
-          <h2 style="font-size:14px; font-weight:600; color:#1a1a2e; margin:0 0 16px 0;">Maintenance & Environment</h2>
-          <form method="POST" action="{{ url_for('settings.update_maintenance') }}">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:#fafafa; border-radius:8px; border:1px solid #e5e7eb;">
-              <div>
-                <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Enable Maintenance Mode</div>
-                <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Disables public access for maintenance work.</div>
-              </div>
-              <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
-                <input type="checkbox" name="maintenance_mode" id="mSwitch" {% if settings.maintenance %}checked{% endif %} onchange="this.form.submit()" style="opacity:0; width:0; height:0; position:absolute;">
-                <span style="width:36px; height:20px; background:{% if settings.maintenance %}#7f1d1d{% else %}#d1d5db{% endif %}; border-radius:999px; position:relative; transition:0.2s;">
-                  <span style="position:absolute; top:2px; left:{% if settings.maintenance %}18px{% else %}2px{% endif %}; width:16px; height:16px; background:#fff; border-radius:50%; transition:0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
-                </span>
-              </label>
-            </div>
-          </form>
-        </div>
-
-        <div style="background:#fff; border-radius:10px; padding:24px;">
-          <h2 style="font-size:14px; font-weight:600; color:#1a1a2e; margin:0 0 16px 0;">App Configurations</h2>
-          <form method="POST" action="{{ url_for('settings.general') }}">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-              <div>
-                <label style="display:block; font-size:12px; font-weight:500; color:#374151; margin-bottom:6px;">Alert Email</label>
-                <input type="email" name="alert_email" value="alerts@crm.com" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #d1d5db; border-radius:7px; background:#fff; color:#1a1a2e; outline:none; box-sizing:border-box;">
-              </div>
-              <div>
-                <label style="display:block; font-size:12px; font-weight:500; color:#374151; margin-bottom:6px;">Backup Schedule</label>
-                <select name="backup" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #d1d5db; border-radius:7px; background:#fff; color:#1a1a2e; outline:none; box-sizing:border-box; cursor:pointer;">
-                  <option value="daily" selected>Daily</option>
-                  <option value="weekly">Weekly</option>
-                </select>
-              </div>
-            </div>
-            <div style="margin-top:20px; display:flex; justify-content:flex-end;">
-              <button type="submit" style="padding:9px 20px; font-size:13px; font-weight:500; color:#fff; background:#7f1d1d; border:none; border-radius:7px; cursor:pointer;">Save Changes</button>
-            </div>
-          </form>
-        </div>
-        {% endif %}
-
-        <!-- ========== WORKFLOW TAB ========== -->
-        {% if active_tab == "workflow" %}
-        <div style="background:#fff; border-radius:10px; padding:24px; margin-bottom:16px;">
-          <h2 style="font-size:14px; font-weight:600; color:#1a1a2e; margin:0 0 16px 0;">Pipeline Stages</h2>
-          <div style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
-            <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #e5e7eb; background:#fafafa;">
-              <div style="width:28px; height:28px; border-radius:6px; background:#7f1d1d; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; margin-right:12px;">1</div>
-              <div style="flex:1;">
-                <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Lead Capture</div>
-                <div style="font-size:11px; color:#9ca3af;">Auto-import from forms & API</div>
-              </div>
-              <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
-                <input type="checkbox" style="opacity:0; width:0; height:0; position:absolute;" checked>
-                <span style="width:32px; height:18px; background:#7f1d1d; border-radius:999px; position:relative;"><span style="position:absolute; top:2px; left:16px; width:14px; height:14px; background:#fff; border-radius:50%; box-shadow:0 1px 2px rgba(0,0,0,0.2);"></span></span>
-              </label>
-            </div>
-            <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #e5e7eb;">
-              <div style="width:28px; height:28px; border-radius:6px; background:#7f1d1d; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; margin-right:12px;">2</div>
-              <div style="flex:1;">
-                <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Qualification</div>
-                <div style="font-size:11px; color:#9ca3af;">Score and assign to reps</div>
-              </div>
-              <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
-                <input type="checkbox" style="opacity:0; width:0; height:0; position:absolute;" checked>
-                <span style="width:32px; height:18px; background:#7f1d1d; border-radius:999px; position:relative;"><span style="position:absolute; top:2px; left:16px; width:14px; height:14px; background:#fff; border-radius:50%; box-shadow:0 1px 2px rgba(0,0,0,0.2);"></span></span>
-              </label>
-            </div>
-            <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #e5e7eb;">
-              <div style="width:28px; height:28px; border-radius:6px; background:#7f1d1d; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; margin-right:12px;">3</div>
-              <div style="flex:1;">
-                <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Proposal</div>
-                <div style="font-size:11px; color:#9ca3af;">Generate and send quotes</div>
-              </div>
-              <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
-                <input type="checkbox" style="opacity:0; width:0; height:0; position:absolute;" checked>
-                <span style="width:32px; height:18px; background:#7f1d1d; border-radius:999px; position:relative;"><span style="position:absolute; top:2px; left:16px; width:14px; height:14px; background:#fff; border-radius:50%; box-shadow:0 1px 2px rgba(0,0,0,0.2);"></span></span>
-              </label>
-            </div>
-            <div style="display:flex; align-items:center; padding:12px 16px;">
-              <div style="width:28px; height:28px; border-radius:6px; background:#d1d5db; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; margin-right:12px;">4</div>
-              <div style="flex:1;">
-                <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Closure</div>
-                <div style="font-size:11px; color:#9ca3af;">Contract signing & onboarding</div>
-              </div>
-              <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
-                <input type="checkbox" style="opacity:0; width:0; height:0; position:absolute;">
-                <span style="width:32px; height:18px; background:#d1d5db; border-radius:999px; position:relative;"><span style="position:absolute; top:2px; left:2px; width:14px; height:14px; background:#fff; border-radius:50%; box-shadow:0 1px 2px rgba(0,0,0,0.2);"></span></span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div style="background:#fff; border-radius:10px; padding:24px;">
-          <h2 style="font-size:14px; font-weight:600; color:#1a1a2e; margin:0 0 16px 0;">Automation Rules</h2>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div>
-              <label style="display:block; font-size:12px; font-weight:500; color:#374151; margin-bottom:6px;">Auto-assign leads after (hours)</label>
-              <input type="number" value="2" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #d1d5db; border-radius:7px; background:#fff; color:#1a1a2e; outline:none; box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="display:block; font-size:12px; font-weight:500; color:#374151; margin-bottom:6px;">Escalation email</label>
-              <input type="email" value="escalation@crm.com" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #d1d5db; border-radius:7px; background:#fff; color:#1a1a2e; outline:none; box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="margin-top:20px; display:flex; justify-content:flex-end;">
-            <button style="padding:9px 20px; font-size:13px; font-weight:500; color:#fff; background:#7f1d1d; border:none; border-radius:7px; cursor:pointer;">Save Workflow</button>
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- ========== ACCESS CONTROL TAB ========== -->
-        {% if active_tab == "roles" %}
-        <div style="background:#fff; border-radius:10px; padding:24px; margin-bottom:16px;">
-          <h2 style="font-size:14px; font-weight:600; color:#1a1a2e; margin:0 0 16px 0;">Role Permissions</h2>
-          <div style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
-            <div style="display:grid; grid-template-columns:180px repeat(4,1fr); align-items:center; padding:10px 16px; background:#fafafa; border-bottom:1px solid #e5e7eb; font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.3px;">
-              <div>Role</div>
-              <div style="text-align:center;">View</div>
-              <div style="text-align:center;">Create</div>
-              <div style="text-align:center;">Edit</div>
-              <div style="text-align:center;">Delete</div>
-            </div>
-            <div style="display:grid; grid-template-columns:180px repeat(4,1fr); align-items:center; padding:12px 16px; border-bottom:1px solid #e5e7eb;">
-              <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Administrator</div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-            </div>
-            <div style="display:grid; grid-template-columns:180px repeat(4,1fr); align-items:center; padding:12px 16px; border-bottom:1px solid #e5e7eb;">
-              <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Manager</div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-            </div>
-            <div style="display:grid; grid-template-columns:180px repeat(4,1fr); align-items:center; padding:12px 16px; border-bottom:1px solid #e5e7eb;">
-              <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Sales Rep</div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-            </div>
-            <div style="display:grid; grid-template-columns:180px repeat(4,1fr); align-items:center; padding:12px 16px;">
-              <div style="font-size:13px; font-weight:500; color:#1a1a2e;">Viewer</div>
-              <div style="text-align:center;"><input type="checkbox" checked style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-              <div style="text-align:center;"><input type="checkbox" style="accent-color:#7f1d1d; width:14px; height:14px;"></div>
-            </div>
-          </div>
-        </div>
-
-        <div style="background:#fff; border-radius:10px; padding:24px;">
-          <h2 style="font-size:14px; font-weight:600; color:#1a1a2e; margin:0 0 16px 0;">Add New Role</h2>
-          <div style="display:flex; gap:12px; align-items:flex-end;">
-            <div style="flex:1;">
-              <label style="display:block; font-size:12px; font-weight:500; color:#374151; margin-bottom:6px;">Role Name</label>
-              <input type="text" placeholder="e.g. Support Agent" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #d1d5db; border-radius:7px; background:#fff; color:#1a1a2e; outline:none; box-sizing:border-box;">
-            </div>
-            <button style="padding:9px 20px; font-size:13px; font-weight:500; color:#fff; background:#7f1d1d; border:none; border-radius:7px; cursor:pointer; white-space:nowrap;">Add Role</button>
-          </div>
-        </div>
-        {% endif %}
-
-      </main>
-    </div>
-  </div>
 </div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       CORPORATE UI REDESIGN - SYSTEM SETTINGS PAGE
+       ========================================================================== */
+
+    .settings-page {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        background: transparent;
+        padding-bottom: 24px;
+        max-width: 1350px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .settings-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 24px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+        color: #ffffff;
+        box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+    }
+
+    .page-eyebrow {
+        display: inline-block;
+        margin-bottom: 6px;
+        color: #fca5a5;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .settings-hero-copy h2 {
+        margin: 2px 0 4px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: -0.01em;
+    }
+
+    .settings-hero-copy p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #f1f5f9 !important;
+        opacity: 0.95;
+    }
+
+    /* Layout Grid */
+    .settings-layout-grid {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    /* Sidebar Navigation */
+    .settings-sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .settings-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #64748b;
+        transition: all 0.15s ease;
+    }
+
+    .settings-nav-item:hover {
+        background: #f8fafc;
+        color: #0f172a;
+    }
+
+    .settings-nav-item.active {
+        color: #b91c1c;
+        background: #fef2f2;
+        font-weight: 700;
+    }
+
+    /* Content Area */
+    .settings-content-area {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Cards */
+    .settings-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .settings-card h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 16px 0;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 10px;
+    }
+
+    /* Maintenance Box */
+    .maintenance-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .m-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .m-desc {
+        font-size: 11.5px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* Switches */
+    .switch-label {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .switch-input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+
+    .switch-slider {
+        width: 36px;
+        height: 20px;
+        background: #cbd5e1;
+        border-radius: 999px;
+        position: relative;
+        transition: background 0.15s ease;
+    }
+
+    .switch-slider.active {
+        background: #b91c1c;
+    }
+
+    .switch-knob {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border-radius: 50%;
+        transition: left 0.15s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .switch-knob.active {
+        left: 18px;
+    }
+
+    /* Form Fields */
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .field label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        height: 38px;
+        padding: 0 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 12.5px;
+        color: #1e293b;
+        background: #ffffff;
+        outline: none;
+        font-family: inherit;
+        transition: all 0.15s ease;
+        box-sizing: border-box;
+    }
+
+    .form-control-custom:focus {
+        border-color: #b91c1c;
+        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.08);
+    }
+
+    .form-action-row {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* Buttons */
+    .btn {
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .btn-primary-red {
+        background: #b91c1c;
+        color: #ffffff;
+    }
+
+    .btn-primary-red:hover {
+        background: #7f1d1d;
+        color: #ffffff;
+    }
+
+    /* Pipeline Stages */
+    .pipeline-list {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .pipeline-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #ffffff;
+    }
+
+    .pipeline-item.last {
+        border-bottom: none;
+    }
+
+    .pipeline-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        margin-right: 12px;
+    }
+
+    .pipeline-num.active {
+        background: #b91c1c;
+    }
+
+    .pipeline-num.inactive {
+        background: #cbd5e1;
+    }
+
+    .pipeline-info {
+        flex: 1;
+    }
+
+    .p-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .p-desc {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* Permissions Table */
+    .permissions-table-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .perm-header {
+        display: grid;
+        grid-template-columns: 180px repeat(4, 1fr);
+        align-items: center;
+        padding: 10px 16px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .perm-row {
+        display: grid;
+        grid-template-columns: 180px repeat(4, 1fr);
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #ffffff;
+    }
+
+    .perm-row.last {
+        border-bottom: none;
+    }
+
+    .role-name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .perm-checkbox {
+        accent-color: #b91c1c;
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+    }
+
+    .add-role-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    /* Responsive */
+    @media (max-width: 850px) {
+        .settings-layout-grid {
+            flex-direction: column;
+        }
+        .settings-sidebar {
+            width: 100%;
+            flex-direction: row;
+            overflow-x: auto;
+        }
+        .settings-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
 {% endblock %}

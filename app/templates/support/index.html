@@ -1,245 +1,312 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Support Tickets{% endblock %}
+{% block title %}
+    Support Tickets | Freight CRM
+{% endblock %}
 
 {% block content %}
 
-<style>
+<div class="support-page">
 
-.support-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:22px;
-}
-
-.support-head h1{
-    margin:0;
-    font-size:28px;
-}
-
-.support-head p{
-    margin:6px 0 0;
-    color:#64748b;
-}
-
-.support-card{
-    background:#fff;
-    border:1px solid #e2e8f0;
-    border-radius:16px;
-    overflow:hidden;
-}
-
-.support-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-.support-table th,
-.support-table td{
-    padding:15px 18px;
-    border-bottom:1px solid #eef2f7;
-    text-align:left;
-}
-
-.support-table th{
-    background:#f8fafc;
-    font-size:12px;
-    text-transform:uppercase;
-    color:#64748b;
-}
-
-.badge-open,
-.badge-progress,
-.badge-closed{
-    display:inline-block;
-    padding:6px 10px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:700;
-}
-
-.badge-open{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.badge-progress{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.badge-closed{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.small-btn{
-    display:inline-block;
-    padding:8px 12px;
-    background:#7f1d1d;
-    color:#fff;
-    text-decoration:none;
-    border-radius:8px;
-    font-size:13px;
-    font-weight:600;
-}
-
-.small-btn:hover{
-    color:#fff;
-    background:#651818;
-}
-
-</style>
-
-<div class="support-head">
-
-    <div>
-        <h1>
-            Support Tickets
-            
-            {% if open_count > 0 %}
-            <span style="
-                display:inline-block;
-                margin-left:10px;
-                background:#dc2626;
-                color:white;
-                padding:4px 10px;
-                border-radius:999px;
-                font-size:14px;
-                vertical-align:middle;
-            ">
-                {{ open_count }}
+    <!-- PAGE HEADER (EXACT CRIMSON RED STRIP BANNER) -->
+    <section class="support-hero">
+        <div class="support-hero-copy">
+            <span class="page-eyebrow">
+                HELP DESK • CLIENT ASSISTANCE
             </span>
-            {% endif %}
-        </h1>
 
-        <p>
-            View all client support requests.
-        </p>
+            <h2>
+                Support Tickets
+                {% if open_count > 0 %}
+                <span class="hero-count-badge">
+                    {{ open_count }}
+                </span>
+                {% endif %}
+            </h2>
+
+            <p>
+                View all client support requests.
+            </p>
+        </div>
+    </section>
+
+    <!-- SUPPORT TICKETS CARD & TABLE -->
+    <div class="support-card">
+
+        <div class="support-card-header">
+            <div>
+                <h2>Ticket Records</h2>
+                <p>Manage and respond to incoming client issues</p>
+            </div>
+        </div>
+
+        <div class="table-responsive-box">
+            <table class="support-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Client</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td style="font-weight: 700; color: #b91c1c;">
+                            #{{ ticket.id }}
+                        </td>
+                        <td>
+                            {{ ticket.client.company_name }}
+                        </td>
+                        <td>
+                            {{ ticket.subject }}
+                        </td>
+                        <td>
+                            {% if ticket.status == "waiting_admin" %}
+                                <span class="badge-open">Waiting for Admin Reply</span>
+                            {% elif ticket.status == "waiting_client" %}
+                                <span class="badge-progress">Waiting for Client Reply</span>
+                            {% elif ticket.status == "closed" %}
+                                <span class="badge-closed">Closed</span>
+                            {% else %}
+                                <span class="badge-open">{{ ticket.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ ticket.created_at.strftime("%d %b %Y") }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('support.view_ticket', ticket_id=ticket.id) }}" class="small-btn">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
+                            <i class="bi bi-inbox" style="display: block; font-size: 2rem; margin-bottom: 8px; color: #cbd5e1;"></i>
+                            No support tickets found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
 </div>
 
-<div class="support-card">
+{% endblock %}
 
-<table class="support-table">
+{% block extra_css %}
+<style>
+    /* ==========================================
+       PAGE CONTAINER
+       ========================================== */
 
-<thead>
+    .support-page {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-width: 1350px;
+        margin: 0 auto;
+        padding-bottom: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-<tr>
+    /* ==========================================
+       EXACT CRIMSON RED STRIP BANNER
+       ========================================== */
 
-<th>ID</th>
-<th>Client</th>
-<th>Subject</th>
-<th>Status</th>
-<th>Date</th>
-<th>Action</th>
+    .support-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 24px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+        color: #ffffff;
+        box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);
+    }
 
-</tr>
+    .page-eyebrow {
+        display: inline-block;
+        margin-bottom: 6px;
+        color: #fca5a5;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
 
-</thead>
+    .support-hero-copy h2 {
+        margin: 2px 0 4px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: -0.01em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-<tbody>
+    .support-hero-copy p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #f1f5f9 !important;
+        opacity: 0.95;
+    }
 
-{% for ticket in tickets %}
+    .hero-count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        color: #b91c1c;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        vertical-align: middle;
+    }
 
-<tr>
+    /* ==========================================
+       SUPPORT CARD & TABLE
+       ========================================== */
 
-<td>
+    .support-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    }
 
-#{{ ticket.id }}
+    .support-card-header {
+        padding: 17px 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
 
-</td>
+    .support-card-header h2 {
+        margin: 0 0 2px;
+        color: #0f172a;
+        font-size: 15px;
+        font-weight: 700;
+    }
 
-<td>
+    .support-card-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+    }
 
-{{ ticket.client.company_name }}
+    .table-responsive-box {
+        overflow-x: auto;
+        width: 100%;
+    }
 
-</td>
+    .support-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 12.5px;
+    }
 
-<td>
+    .support-table th,
+    .support-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
 
-{{ ticket.subject }}
+    .support-table th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 10.5px;
+        letter-spacing: 0.03em;
+        border-bottom: 1px solid #e2e8f0;
+    }
 
-</td>
+    .support-table tr:last-child td {
+        border-bottom: none;
+    }
 
-<td>
+    .support-table tr:hover {
+        background-color: #f8fafc;
+    }
 
-{% if ticket.status=="waiting_admin" %}
+    /* ==========================================
+       STATUS BADGES
+       ========================================== */
 
-<span class="badge-open">
+    .badge-open,
+    .badge-progress,
+    .badge-closed {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+    }
 
-Waiting for Admin Reply
+    .badge-open {
+        background: #fee2e2;
+        color: #991b1b;
+    }
 
-</span>
+    .badge-progress {
+        background: #fef3c7;
+        color: #92400e;
+    }
 
-{% elif ticket.status=="waiting_client" %}
+    .badge-closed {
+        background: #dcfce7;
+        color: #166534;
+    }
 
-<span class="badge-progress">
+    /* ==========================================
+       ACTION BUTTON
+       ========================================== */
 
-Waiting for Client Reply
+    .small-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #1e293b;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+    }
 
-</span>
+    .small-btn:hover {
+        background: #f1f5f9;
+        color: #b91c1c;
+        border-color: #94a3b8;
+    }
 
-{% elif ticket.status=="closed" %}
+    /* ==========================================
+       RESPONSIVE
+       ========================================== */
 
-<span class="badge-closed">
-
-Closed
-
-</span>
-
-{% else %}
-
-<span class="badge-open">
-
-{{ ticket.status }}
-
-</span>
-
-{% endif %}
-
-</td>
-
-<td>
-
-{{ ticket.created_at.strftime("%d %b %Y") }}
-
-</td>
-
-<td>
-
-<a
-href="{{ url_for('support.view_ticket', ticket_id=ticket.id) }}"
-class="small-btn">
-
-View
-
-</a>
-
-</td>
-
-</tr>
-
-{% else %}
-
-<tr>
-
-<td colspan="6">
-
-No support tickets found.
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
+    @media (max-width: 640px) {
+        .support-hero {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
 {% endblock %}
