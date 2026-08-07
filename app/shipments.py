@@ -7,7 +7,7 @@
 
 from datetime import datetime, date
 
-from app.pdf_generator import generate_shipment_pdf
+
 from decimal import Decimal
 
 from flask import (
@@ -677,89 +677,6 @@ def view_shipment(shipment_id):
         documents=documents,
         customs_clearance=customs_clearance,
         shipment_closure=shipment_closure,
-    )
-
-
-
-
-# =========================================================
-# DOWNLOAD SHIPMENT PDF
-# URL: /shipments/<shipment_id>/download-pdf
-# =========================================================
-
-@shipments_bp.route(
-    "/<int:shipment_id>/download-pdf"
-)
-@login_required
-def download_shipment_pdf(shipment_id):
-
-    shipment = get_visible_shipment_or_404(
-        shipment_id
-    )
-
-    milestones = (
-        db.session.execute(
-            db.select(ShipmentMilestone)
-            .where(
-                ShipmentMilestone.shipment_id == shipment.id
-            )
-            .order_by(
-                ShipmentMilestone.completed_at.asc()
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    documents = (
-        db.session.execute(
-            db.select(ShipmentDocument)
-            .where(
-                ShipmentDocument.shipment_id == shipment.id
-            )
-            .order_by(
-                ShipmentDocument.id.asc()
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    customs = (
-        db.session.execute(
-            db.select(ShipmentCustomsClearance)
-            .where(
-                ShipmentCustomsClearance.shipment_id == shipment.id
-            )
-        )
-        .scalars()
-        .first()
-    )
-
-    closure = (
-        db.session.execute(
-            db.select(ShipmentClosure)
-            .where(
-                ShipmentClosure.shipment_id == shipment.id
-            )
-        )
-        .scalars()
-        .first()
-    )
-
-    pdf_buffer = generate_shipment_pdf(
-        shipment=shipment,
-        milestones=milestones,
-        documents=documents,
-        customs=customs,
-        closure=closure,
-    )
-
-    return send_file(
-        pdf_buffer,
-        as_attachment=True,
-        download_name=f"{shipment.shipment_reference}.pdf",
-        mimetype="application/pdf",
     )
 
 
@@ -2345,3 +2262,68 @@ def delete_shipment(shipment_id):
         flash("Unable to delete shipment.", "danger")
         
     return redirect(url_for("shipments.shipment_list"))
+
+import os
+import pdfkit
+from flask import render_template, make_response, url_for, current_app
+from datetime import datetime, timezone
+from flask_login import login_required
+from app.models import Shipment
+
+@shipments_bp.route('/<int:shipment_id>/download-pdf')
+@login_required
+def download_shipment_pdf(shipment_id):
+    shipment = Shipment.query.get_or_404(shipment_id)
+    
+    # మైలురాళ్లు (milestones) కరెక్ట్‌గా ఫెచ్ చేయడం
+    from app.models import ShipmentMilestone
+    milestones = ShipmentMilestone.query.filter_by(shipment_id=shipment.id).all()
+    
+    documents = getattr(shipment, 'documents', [])
+    customs = getattr(shipment, 'customs_clearance', None)
+    closure = getattr(shipment, 'closure', None) or getattr(shipment, 'shipment_closure', None)
+
+    logo_path = os.path.join(current_app.root_path, 'static', 'images', 'logo.png')
+    logo_url = f"file:///{logo_path.replace('\\', '/')}"
+
+    logo2_path = os.path.join(current_app.root_path, 'static', 'images', 'logo2.png')
+    logo2_url = f"file:///{logo2_path.replace('\\', '/')}"
+
+    current_time = datetime.now(timezone.utc)
+
+    html_content = render_template(
+        "shipments/pdf_template.html",
+        shipment=shipment,
+        milestones=milestones,
+        documents=documents,
+        customs=customs,
+        closure=closure,
+        logo_url=logo_url,
+        logo2_url=logo2_url,
+        now=current_time
+    )
+
+    options = {
+        'page-size': 'A4',
+        'margin-top': '10mm',
+        'margin-right': '10mm',
+        'margin-bottom': '10mm',
+        'margin-left': '10mm',
+        'enable-local-file-access': None,
+        'encoding': 'UTF-8',
+        'no-outline': None
+    }
+
+    if os.name == "nt":
+        config = pdfkit.configuration(
+            wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+        )
+        pdf = pdfkit.from_string(html_content, False, configuration=config, options=options)
+    else:
+        pdf = pdfkit.from_string(html_content, False, options=options)
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f'attachment; filename=Shipment_{shipment.shipment_reference}.pdf'
+
+    return response

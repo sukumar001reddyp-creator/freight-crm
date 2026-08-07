@@ -107,7 +107,7 @@
                         </div>
                     </div>
 
-                    {% if milestones %}
+                    {% if milestones and shipment.shipment_status not in ["closed", "completed"] %}
                     <div class="workflow-actions-bar">
                         <div class="undo-info">
                             <i class="bi bi-arrow-counterclockwise"></i>

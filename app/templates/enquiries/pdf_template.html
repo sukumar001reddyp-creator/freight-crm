@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+@page {
+    size: A4;
+    margin: 18mm;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px; /* ఫోన్ సైజ్ కొంచెం పెంచడం జరిగింది */
+    color: #222;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Page container to separate pages and keep layout clean */
+.page-container {
+    page-break-after: always;
+    position: relative;
+    min-height: 250mm;
+}
+
+/* Center Logo (logo2.png) fixed at the exact same middle position for all pages */
+.page-center-watermark {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    width: 450px;
+    height: auto;
+    margin-left: -225px;
+    opacity: 0.7; 
+    z-index: 1; 
+    pointer-events: none;
+    display: block;
+}
+
+.company-header{
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.company-header img {
+    max-height: 65px;
+    margin-bottom: 5px;
+}
+
+.company-header h2{
+    margin: 0;
+    color: #7f1d1d;
+    font-size: 22px;
+}
+
+.company-header p{
+    margin-top: -2px;
+    color: #333;
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.header{
+    border: 1px solid #7f1d1d;
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+h1{
+    margin: 0 0 10px;
+    color: #7f1d1d;
+    font-size: 20px;
+}
+
+h3{
+    background: #7f1d1d;
+    color: #fff;
+    padding: 8px;
+    margin: 20px 0 0;
+    font-size: 14px;
+}
+
+table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,td{
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-size: 12.5px;
+}
+
+th{
+    background: #fff;
+    color: #7f1d1d;
+    border-bottom: 2px solid #7f1d1d;
+}
+
+.avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.details-box{
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 12.5px;
+}
+
+.amount-bold{
+    font-weight: bold;
+    color: #7f1d1d;
+    font-size: 15px;
+}
+</style>
+</head>
+
+<body>
+
+    <!-- ================= PAGE 1 ================= -->
+    <div class="page-container">
+        <!-- Center Logo for Page 1 -->
+        <img src="{{ logo2_url }}" class="page-center-watermark" alt="Logo2 Watermark">
+
+        <!-- COMPANY HEADER -->
+        <div class="company-header">
+            <img src="{{ logo_url }}" alt="Company Logo">
+            <h2>AL QABANDI & PARTNERS CO. W.L.L.</h2>
+            <p><span style="font-size: 15px; font-weight: bold;">(Shipping & Forwarding)</span><br>
+            Fahad Al Salem St., Al Dawliah Comm. Centre, P.O. Box 10808, Office #5, Block 2, First Floor, Safat 13114, Kuwait.<br>
+            Tel: (+965) 22406262 (10 Lines) | Fax: (+965) 22406211</p>
+        </div>
+
+        <!-- ENQUIRY HEADER -->
+        <div class="header">
+            <h1>Enquiry Reference: {{ enquiry.enquiry_reference }}</h1>
+            <p><strong>Client Company:</strong> {{ enquiry.client.company_name if enquiry.client else 'N/A' }}</p>
+            <p><strong>Enquiry Date:</strong> {{ enquiry.enquiry_date.strftime('%d %b %Y') if enquiry.enquiry_date else 'N/A' }}</p>
+            <p><strong>Status:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #7f1d1d;">{{ enquiry.status|replace('_',' ') }}</span></p>
+            <p><strong>Handled By:</strong> {{ enquiry.handled_by.full_name if enquiry.handled_by else 'N/A' }}</p>
+        </div>
+
+        <!-- SHIPMENT REQUIREMENT -->
+        <h3>Shipment Requirement</h3>
+        <table>
+            <tr><th width="40%">Field</th><th>Value</th></tr>
+            <tr><td>Origin</td><td>{{ enquiry.origin or 'N/A' }}</td></tr>
+            <tr><td>Destination</td><td>{{ enquiry.destination or 'N/A' }}</td></tr>
+            <tr><td>Origin Port (POL)</td><td>{{ enquiry.origin_port or 'N/A' }}</td></tr>
+            <tr><td>Destination Port (POD)</td><td>{{ enquiry.destination_port or 'N/A' }}</td></tr>
+            <tr><td>Mode of Shipment</td><td>{{ enquiry.mode_of_shipment|replace('_',' ')|title if enquiry.mode_of_shipment else 'N/A' }}</td></tr>
+            <tr><td>Equipment Type</td><td>{{ enquiry.equipment_type or 'N/A' }}</td></tr>
+        </table>
+        
+        <!-- CARGO SPECIFICATIONS -->
+        <h3>Cargo Specifications</h3>
+        <table>
+            <tr><th width="40%">Field</th><th>Value</th></tr>
+            <tr><td>Cargo Description</td><td>{{ enquiry.cargo_description or 'N/A' }}</td></tr>
+            <tr><td>Total Pieces</td><td>{{ enquiry.total_pieces or 'N/A' }}</td></tr>
+            <tr><td>Weight (KG)</td><td>{{ enquiry.weight_kg ~ " KG" if enquiry.weight_kg else 'N/A' }}</td></tr>
+            <tr><td>Volume (CBM)</td><td>{{ enquiry.volume_cbm ~ " CBM" if enquiry.volume_cbm else 'N/A' }}</td></tr>
+            <tr><td>Combined Weight / Volume</td><td>{{ enquiry.cargo_weight_volume or 'N/A' }}</td></tr>
+        </table>
+    </div>
+
+    <!-- ================= PAGE 2 ================= -->
+    <div class="page-container">
+        <!-- Center Logo for Page 2 -->
+        <img src="{{ logo2_url }}" class="page-center-watermark" alt="Logo2 Watermark">
+
+        <!-- COMMERCIAL & TIMELINE -->
+        <h3>Commercial Terms & Timeline</h3>
+        <table>
+            <tr><th width="40%">Field</th><th>Value</th></tr>
+            <tr><td>Expected Timeline</td><td>{{ enquiry.expected_timeline or 'N/A' }}</td></tr>
+            <tr><td>Incoterms</td><td>{{ enquiry.incoterms or 'N/A' }}</td></tr>
+            <tr><td>Sales Coordinator</td><td>{{ enquiry.sales_coordinator.full_name if enquiry.sales_coordinator else 'N/A' }}</td></tr>
+        </table>
+
+        <!-- ADDITIONAL INSTRUCTIONS -->
+        <h3>Additional Instructions & Notes</h3>
+        <div class="details-box">
+            <p><strong>Instructions:</strong><br>{{ enquiry.additional_instructions or 'No additional instructions provided.' }}</p>
+        </div>
+
+        <!-- FOOTER SIGNATURE -->
+        <br><br>
+        <table>
+            <tr>
+                <td width="50%" style="border:none;vertical-align:top;">
+                    <strong>Handled By / Representative</strong><br><br>
+                    {{ enquiry.handled_by.full_name if enquiry.handled_by else 'System' }}
+                </td>
+                <td width="50%" style="border:none;text-align:right;vertical-align:top;">
+                    <strong>Authorized Signature</strong><br><br><br>
+                    _________________________
+                </td>
+            </tr>
+        </table>
+
+        <p style="text-align:center;color:#6b7280;font-size:12px;margin-top:25px;">
+        This is a computer-generated enquiry document from Freight CRM.
+        </p>
+
+        <hr style="margin-top:20px; border:0; border-top:1px solid #ccc;">
+        <p style="text-align:center;font-size:11px;color:#777;margin:5px 0;">
+        Generated on {{ now.strftime('%d %b %Y %H:%M') if now else 'N/A' }}
+        | Enquiry Ref: {{ enquiry.enquiry_reference }}
+        | Status: {{ enquiry.status|replace('_',' ')|title }}
+        </p>
+        <p style="text-align:center;font-size:10px;color:#999;margin:0;">
+        Thank you for choosing Al Qabandi & Partners Co. W.L.L.
+        </p>
+    </div>
+
+</body>
+</html>

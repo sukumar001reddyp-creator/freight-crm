@@ -432,111 +432,7 @@ def view_enquiry(enquiry_id):
         enquiry=enquiry
     )
 
-@enquiries_bp.route("/<int:enquiry_id>/pdf")
-@login_required
-def download_enquiry_pdf(enquiry_id):
 
-    enquiry = get_enquiry_or_404(enquiry_id)
-
-    buffer = BytesIO()
-
-    # పేజ్ మార్జిన్స్ సెట్ చేయడం (A4)
-    doc = SimpleDocTemplate(buffer, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
-
-    styles = getSampleStyleSheet()
-
-    title_style = styles["Heading1"]
-    title_style.alignment = TA_CENTER
-
-    elements = []
-
-    company_title = styles["Title"]
-    company_title.alignment = TA_CENTER
-    company_title.textColor = colors.HexColor("#7f1d1d")
-
-    elements.append(
-        Paragraph(
-            "<b>ABC FREIGHT LOGISTICS LLC</b>",
-            company_title
-        )
-    )
-
-    company_style = styles["Normal"]
-    company_style.alignment = TA_CENTER
-
-    elements.append(
-        Paragraph(
-            "M-15, Industrial Area, Shuwaikh, Kuwait<br/>"
-            "Phone: +965 2222 3333 | Mobile: +965 9999 8888<br/>"
-            "Email: info@abcfreight.com | Website: www.abcfreight.com",
-            company_style
-        )
-    )
-
-    elements.append(Spacer(1, 15))
-
-    elements.append(
-        Paragraph("ENQUIRY COMPREHENSIVE REPORT", title_style)
-    )
-
-    elements.append(Spacer(1, 15))
-
-    # అన్ని ఫీల్డ్స్‌ని పీడీఎఫ్ టేబుల్ లోకి మ్యాప్ చేయడం
-    data = [
-        ["Enquiry Reference", enquiry.enquiry_reference],
-        ["Client Company", enquiry.client.company_name if enquiry.client else "N/A"],
-        ["Origin", enquiry.origin],
-        ["Destination", enquiry.destination],
-        ["Origin Port (POL)", enquiry.origin_port or "N/A"],
-        ["Destination Port (POD)", enquiry.destination_port or "N/A"],
-        ["Mode of Shipment", enquiry.mode_of_shipment.replace("_", " ").title() if enquiry.mode_of_shipment else "N/A"],
-        ["Equipment Type", enquiry.equipment_type or "N/A"],
-        ["Cargo Description", enquiry.cargo_description or "N/A"],
-        ["Total Pieces", str(enquiry.total_pieces) if enquiry.total_pieces else "N/A"],
-        ["Weight (KG)", str(enquiry.weight_kg) if enquiry.weight_kg else "N/A"],
-        ["Volume (CBM)", str(enquiry.volume_cbm) if enquiry.volume_cbm else "N/A"],
-        ["Cargo Weight / Volume", enquiry.cargo_weight_volume or "N/A"],
-        ["Expected Timeline", enquiry.expected_timeline or "N/A"],
-        ["Incoterms", enquiry.incoterms or "N/A"],
-        ["Additional Instructions", enquiry.additional_instructions or "N/A"],
-        ["Enquiry Status", enquiry.status.replace("_", " ").title()],
-        ["Handled By", enquiry.handled_by.full_name if enquiry.handled_by else "N/A"],
-        ["Sales Coordinator", enquiry.sales_coordinator.full_name if enquiry.sales_coordinator else "N/A"],
-        ["Enquiry Date", enquiry.enquiry_date.strftime("%d %b %Y") if enquiry.enquiry_date else "N/A"],
-        ["Created At", enquiry.created_at.strftime("%d %b %Y %H:%M") if enquiry.created_at else "N/A"],
-        ["Updated At", enquiry.updated_at.strftime("%d %b %Y %H:%M") if enquiry.updated_at else "N/A"],
-    ]
-
-    table = Table(
-        data,
-        colWidths=[180, 360]
-    )
-
-    table.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#7f1d1d")),
-            ("TEXTCOLOR", (0, 0), (0, -1), colors.white),
-            ("BACKGROUND", (1, 0), (1, -1), colors.HexColor("#f9fafb")),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d1d5db")),
-            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9.5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-        ])
-    )
-
-    elements.append(table)
-
-    doc.build(elements)
-
-    buffer.seek(0)
-
-    return send_file(
-        buffer,
-        as_attachment=True,
-        download_name=f"Enquiry_{enquiry.enquiry_reference}.pdf",
-        mimetype="application/pdf"
-    )
 # =========================================================
 # UPDATE ENQUIRY STATUS
 # URL: /enquiries/<enquiry_id>/status
@@ -894,3 +790,62 @@ def edit_enquiry(enquiry_id):
         clients=clients,
         users=users
     )
+
+
+import os
+import pdfkit
+from flask import render_template, make_response, url_for, current_app
+from flask_login import login_required
+from datetime import datetime, timezone
+from app.models import Enquiry
+
+@enquiries_bp.route('/enquiries/<int:enquiry_id>/download-pdf')
+@login_required
+def download_enquiry_pdf(enquiry_id):
+    enquiry = Enquiry.query.get_or_404(enquiry_id)
+
+    # Quotation మోడ్యూల్ లాగే లోగోల కోసం అబ్సల్యూట్ ఫైల్ పాత్స్ సెట్ చేయడం
+    logo_path = os.path.join(current_app.root_path, 'static', 'images', 'logo.png')
+    logo_url = f"file:///{logo_path.replace('\\', '/')}"
+
+    logo2_path = os.path.join(current_app.root_path, 'static', 'images', 'logo2.png')
+    logo2_url = f"file:///{logo2_path.replace('\\', '/')}"
+
+    current_time = datetime.now(timezone.utc)
+
+    # టెంప్లేట్‌కి డేటాను రెండర్ చేయడం
+    html_content = render_template(
+        "enquiries/pdf_template.html",
+        enquiry=enquiry,
+        logo_url=logo_url,
+        logo2_url=logo2_url,
+        now=current_time
+    )
+
+    # 4 వైపులా 10mm (1 cm) మార్జిన్‌లతో సింగిల్ పేజీ PDF ఆప్షన్స్
+    options = {
+        'page-size': 'A4',
+        'margin-top': '10mm',
+        'margin-right': '10mm',
+        'margin-bottom': '10mm',
+        'margin-left': '10mm',
+        'enable-local-file-access': None,
+        'encoding': 'UTF-8',
+        'no-outline': None
+    }
+
+    # విండోస్ / లైనక్స్ సిస్టమ్ బట్టి pdfkit కాన్ఫిగరేషన్
+    if os.name == "nt":
+        config = pdfkit.configuration(
+            wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+        )
+        pdf = pdfkit.from_string(html_content, False, configuration=config, options=options)
+    else:
+        pdf = pdfkit.from_string(html_content, False, options=options)
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    # ఒకవేళ డైరెక్ట్ బ్రౌజర్‌లో ఓపెన్ అవ్వాలంటే 'attachment' బదులుగా 'inline' వాడవచ్చు
+    response.headers["Content-Disposition"] = f'attachment; filename=Enquiry_{enquiry.enquiry_reference}.pdf'
+
+    return response
