@@ -1165,7 +1165,7 @@ def delete_task(client_id, task_id):
 
 
 # =========================================================
-# EXPORT CLIENT RECORD - PDF (UPDATED WITH COMPLETE DETAILS)
+# EXPORT CLIENT RECORD - PDF (UPDATED: PORTRAIT & DYNAMIC LOGO)
 # =========================================================
 
 @clients_bp.route("/<int:client_id>/export/pdf")
@@ -1175,93 +1175,162 @@ def export_client_pdf(client_id):
     data = get_client_export_data(client)
 
     buffer = io.BytesIO()
+    # పేజీ సైజు A4 Portrait కి మార్చాము (నిలువుగా)
     document = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(A4),
+        pagesize=A4,
         rightMargin=12 * mm,
         leftMargin=12 * mm,
-        topMargin=12 * mm,
-        bottomMargin=12 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
         title=f"Client Record - {client.company_name}",
-        author="Freight CRM",
+        author="Freight CRM System",
     )
 
     styles = getSampleStyleSheet()
 
-    title_style = ParagraphStyle(
-        "ExportTitle",
-        parent=styles["Title"],
+    # హెడర్ స్టైల్ (కంపెనీ లోగో కోసం పెద్దది)
+    header_main_style = ParagraphStyle(
+        "HeaderMain",
+        parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=18,
-        leading=22,
-        alignment=TA_CENTER,
+        fontSize=14,
+        leading=16,
         textColor=colors.HexColor("#0F172A"),
-        spaceAfter=8,
+        spaceAfter=1,
     )
 
+    # చిన్న మెటా డేటా స్టైల్
+    small_meta_style = ParagraphStyle(
+        "SmallMeta",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=7,
+        leading=9,
+        textColor=colors.HexColor("#64748B"),
+    )
+
+    # ప్రధాన సెక్షన్ హెడ్డింగ్ స్టైల్
     section_style = ParagraphStyle(
         "ExportSection",
         parent=styles["Heading2"],
         fontName="Helvetica-Bold",
         fontSize=11,
-        leading=14,
-        textColor=colors.HexColor("#B91C1C"),
-        spaceBefore=12,
-        spaceAfter=6,
+        leading=13,
+        textColor=colors.HexColor("#B91C1C"), # Red
+        spaceBefore=10,
+        spaceAfter=5,
     )
 
+    # టేబుల్ బాడీ టెక్స్ట్ స్టైల్ (Portrait కి సరిపడా చిన్న సైజు)
     body_style = ParagraphStyle(
         "ExportBody",
         parent=styles["BodyText"],
         fontName="Helvetica",
         fontSize=8,
-        leading=11,
+        leading=10.5,
         textColor=colors.HexColor("#334155"),
     )
 
-    small_style = ParagraphStyle(
-        "ExportSmall",
-        parent=body_style,
-        fontSize=7,
-        leading=10,
-        alignment=TA_CENTER,
-        textColor=colors.HexColor("#64748B"),
-    )
+    # --- హెడర్ బిల్డింగ్ (లోగో మరియు టైటిల్) ---
 
-    story = [
-        Paragraph("FREIGHT CRM - COMPLETE CLIENT RECORD", title_style),
-        Paragraph(
-            f"<b>{client.company_name}</b> &nbsp; | &nbsp; Reference: {client.client_reference or 'N/A'} &nbsp; | &nbsp; Exported: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-            small_style
-        ),
-        Spacer(1, 5 * mm),
-        Paragraph("Client Profile Details", section_style),
-    ]
+    # మీ లోగో ఫైల్ యొక్క పూర్తి పాత్ ఇక్కడ ఇవ్వండి
+    # ఉదాహరణ: LOGO_PATH = os.path.join(current_app.root_path, 'static', 'img', 'my_logo.png')
+    LOGO_PATH = "PATH_TO_YOUR_COMPANY_LOGO_IMAGE_FILE"
+    
+    story = []
+    
+    # లోగో మరియు టైటిల్ టేబుల్ (ఎడమవైపు లోగో, కుడివైపు టైటిల్ - Portrait కోసం)
+    try:
+        if os.path.exists(LOGO_PATH):
+            logo_img = Image(LOGO_PATH, width=35 * mm, height=18 * mm) # సైజు అడ్జస్ట్ చేసుకోండి
+            logo_img.hAlign = 'LEFT'
+            
+            # టైటిల్ స్టైల్ ఫర్ లోగో
+            title_for_logo_style = ParagraphStyle(
+                "TitleForLogo",
+                parent=styles["Normal"],
+                fontName="Helvetica-Bold",
+                fontSize=12,
+                leading=14,
+                alignment=TA_RIGHT,
+                textColor=colors.HexColor("#1E293B"),
+            )
 
-    # Render All Profile Fields safely into Table Rows
-    profile_rows = [["Field Parameter", "Configured Value Data"]]
+            header_data = [[
+                logo_img,
+                Paragraph("CLIENT PROFILE REPORT", title_for_logo_style)
+            ]]
+            header_table = Table(header_data, colWidths=[105 * mm, 80 * mm])
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            story.append(header_table)
+            story.append(Spacer(1, 3 * mm))
+        else:
+            # లోగో ఫైల్ దొరకకపోతే కేవలం టైటిల్
+            story.append(Paragraph("CLIENT PROFILE REPORT", ParagraphStyle(
+                "TitleSimple", parent=styles["Heading1"], alignment=TA_CENTER, fontName="Helvetica-Bold"
+            )))
+            story.append(Spacer(1, 5 * mm))
+
+    except Exception:
+        # ఏదైనా లోపం వస్తే డిఫాల్ట్ టైటిల్
+        story.append(Paragraph("CLIENT PROFILE REPORT", ParagraphStyle(
+            "TitleSimple", parent=styles["Heading1"], alignment=TA_CENTER, fontName="Helvetica-Bold"
+        )))
+        story.append(Spacer(1, 5 * mm))
+
+
+    # క్లయింట్ బేసిక్ వివరాలు (హెడర్ కింద)
+    story.append(Paragraph(
+        f"Company Name: <b>{client.company_name}</b> &nbsp;|&nbsp; ID: <b>{client.client_reference or 'N/A'}</b>",
+        small_meta_style
+    ))
+    story.append(Paragraph(
+        f"Report generated on: <b>{datetime.now().strftime('%Y-%m-%d %H:%M')}</b>",
+        small_meta_style
+    ))
+    story.append(Spacer(1, 5 * mm))
+
+
+    # 1. ప్రొఫైల్ డేటా
+    story.append(Paragraph("1. Master Profile Information", section_style))
+
+    profile_rows = [["Parameter Field", "Configured Value Data"]]
     for label, value in data["profile"]:
         profile_rows.append([label, export_text(value)])
 
-    story.append(pdf_table(profile_rows, [60 * mm, 195 * mm], body_style))
+    # ప్రొఫైల్ టేబుల్ వెడల్పులు (Portrait కి తగినట్లుగా)
+    col_widths = [65 * mm, 120 * mm]
+    story.append(pdf_table(profile_rows, col_widths, body_style))
 
-    # Render Associated Audit Log History summary mapping 
+    # 2. ఆడిట్ లాగ్స్ (ఉంటే కొత్త పేజీలో)
     if data["audit_logs"]:
-        story.append(Paragraph("System Audit Trail Summary", section_style))
-        audit_rows = [["Date", "Action Type", "Action performed", "Performed By"]]
-        for audit in data["audit_logs"][:10]: # Limit to latest 10 for clean layout fit
+        story.append(PageBreak())
+        story.append(Paragraph("2. System Audit Trail Log (Latest 20)", section_style))
+        
+        audit_rows = [["Date Stamp", "Log Title", "User"]]
+        for audit in data["audit_logs"][:20]: # Portrait లో ఎక్కువ లాగ్స్ పట్టవచ్చు
             audit_rows.append([
                 export_date(audit.created_at),
-                export_label(audit.action_type),
                 audit.title,
                 audit.performed_by.full_name if audit.performed_by else "System"
             ])
-        story.append(pdf_table(audit_rows, [40 * mm, 50 * mm, 115 * mm, 50 * mm], body_style))
+        
+        # ఆడిట్ లాగ్ టేబుల్ వెడల్పులు (Portrait)
+        audit_col_widths = [40 * mm, 105 * mm, 40 * mm]
+        story.append(pdf_table(audit_rows, audit_col_widths, body_style))
 
+    # డాక్యుమెంట్ బిల్డ్
     document.build(story)
     buffer.seek(0)
 
-    filename = f"{export_safe_filename(client.company_name)}_complete_profile.pdf"
+    filename = f"{export_safe_filename(client.company_name)}_client_record.pdf"
     return send_file(
         buffer,
         mimetype="application/pdf",
@@ -1269,8 +1338,6 @@ def export_client_pdf(client_id):
         download_name=filename,
         max_age=0,
     )
-
-
 # =========================================================
 # EXPORT CLIENT RECORD - EXCEL (UPDATED WITH COMPLETE DETAILS)
 # =========================================================

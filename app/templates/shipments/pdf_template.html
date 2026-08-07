@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@page {
+    size: A4;
+    margin: 12mm;
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #222;
+    line-height: 1.45;
+    margin: 0;
+    padding: 0;
+}
+.page-container {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+}
+/* వాటర్‌మార్క్ లోగో సెంటర్‌లో పర్ఫెక్ట్‌గా మరియు ఎక్కడ కట్ అవ్వకుండా ఉండటానికి */
+.page-center-watermark {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    width: 450px;
+    height: auto;
+    margin-left: -225px;
+    opacity: 0.7; 
+    z-index: 1; /* Text కింద లేదా పైన పర్ఫెక్ట్ గా కనిపించడానికి */
+    pointer-events: none;
+    display: block;
+}
+.company-header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+.company-header img {
+    max-height: 55px;
+    margin-bottom: 4px;
+}
+.company-header h2 {
+    margin: 0;
+    color: #7f1d1d;
+    font-size: 20px;
+}
+.company-header p {
+    margin-top: -2px;
+    color: #333;
+    font-size: 10.5px;
+    line-height: 1.35;
+}
+.header {
+    border: 1px solid #7f1d1d;
+    background: #fff;
+    padding: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+h1 {
+    margin: 0 0 4px;
+    color: #7f1d1d;
+    font-size: 16px;
+    text-transform: uppercase;
+}
+h3 {
+    background: #7f1d1d;
+    color: #fff;
+    padding: 6px 10px;
+    margin: 12px 0 6px;
+    font-size: 12px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    font-size: 11px;
+}
+th {
+    background: #f9f9f9;
+    color: #7f1d1d;
+    border-bottom: 2px solid #7f1d1d;
+    text-align: left;
+}
+.badge-completed { 
+    color: #16a34a; 
+    font-weight: bold; 
+    background: #dcfce7; 
+    padding: 3px 8px; 
+    border-radius: 4px; 
+}
+.badge-pending { 
+    color: #ea580c; 
+    font-weight: bold; 
+    background: #ffedd5; 
+    padding: 3px 8px; 
+    border-radius: 4px; 
+}
+</style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Watermark Logo -->
+        <img src="{{ logo2_url }}" class="page-center-watermark" alt="Logo2 Watermark">
+
+        <!-- COMPANY HEADER -->
+        <div class="company-header">
+            <img src="{{ logo_url }}" alt="Company Logo">
+            <h2>AL QABANDI & PARTNERS CO. W.L.L.</h2>
+            <p><span style="font-size: 13px; font-weight: bold;">(Shipping & Forwarding)</span><br>
+            Fahad Al Salem St., Al Dawliah Comm. Centre, P.O. Box 10808, Office #5, Block 2, First Floor, Safat 13114, Kuwait.<br>
+            Tel: (+965) 22406262 (10 Lines) | Fax: (+965) 22406211</p>
+        </div>
+
+        <!-- SHIPMENT HEADER (పెద్దదిగా & బోల్డ్‌గా ఉండేలా అప్‌డేట్ చేయబడింది) -->
+        <div class="header">
+            <h1>Shipment Report</h1>
+            <p style="margin: 4px 0; font-size: 14px;">
+                <strong>Shipment Reference:</strong> <span style="font-size: 16px; color: #7f1d1d; font-weight: bold;">{{ shipment.shipment_reference }}</span>
+            </p>
+            <p style="margin: 4px 0; font-size: 13px;">
+                <strong>Client:</strong> <span style="font-size: 15px; font-weight: bold; color: #111;">{{ shipment.client.company_name if shipment.client else 'N/A' }}</span>
+            </p>
+            <p style="margin: 4px 0; font-size: 12px;">
+                <strong>Status:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #7f1d1d;">{{ shipment.shipment_status|replace('_',' ') }}</span> | <strong>Mode:</strong> {{ shipment.mode_of_shipment|replace('_',' ')|title if shipment.mode_of_shipment else 'N/A' }}
+            </p>
+        </div>
+
+        <!-- SHIPMENT SUMMARY & DETAILS -->
+        <h3>Shipment Summary & Details</h3>
+        <table>
+            <tr><th width="25%">Field</th><th width="25%">Value</th><th width="25%">Field</th><th width="25%">Value</th></tr>
+            <tr>
+                <td><strong>Shipment Ref</strong></td><td>{{ shipment.shipment_reference or '-' }}</td>
+                <td><strong>Origin</strong></td><td>{{ shipment.origin or '-' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Client</strong></td><td>{{ shipment.client.company_name if shipment.client else '-' }}</td>
+                <td><strong>Destination</strong></td><td>{{ shipment.destination or '-' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Status</strong></td><td>{{ shipment.shipment_status|replace('_',' ')|title if shipment.shipment_status else '-' }}</td>
+                <td><strong>ETD / ETA</strong></td><td>{{ shipment.etd.strftime('%d %b %Y') if shipment.etd else '-' }} / {{ shipment.eta.strftime('%d %b %Y') if shipment.eta else '-' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Cargo Description</strong></td><td>{{ shipment.cargo_description or '-' }}</td>
+                <td><strong>Weight / Volume</strong></td><td>{{ shipment.cargo_weight_volume or '-' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Handled By</strong></td><td>{{ shipment.handled_by.full_name if shipment.handled_by else '-' }}</td>
+                <td><strong>Created On</strong></td><td>{{ shipment.created_at.strftime('%d %b %Y') if shipment.created_at else '-' }}</td>
+            </tr>
+        </table>
+
+        <!-- OPERATIONAL WORKFLOW -->
+        <h3>Operational Workflow</h3>
+        <table>
+            <tr>
+                <th width="32%">Stage</th>
+                <th width="18%">Status</th>
+                <th width="28%">Completed By</th>
+                <th width="22%">Completed On</th>
+            </tr>
+            {% set workflow = ['booked', 'cargo_picked_up', 'in_transit', 'arrived_destination', 'customs_clearance', 'out_for_delivery', 'delivered', 'closed_completed'] %}
+            {% set labels = {'booked': 'Booked', 'cargo_picked_up': 'Cargo Picked Up', 'in_transit': 'In Transit', 'arrived_destination': 'Arrived Destination', 'customs_clearance': 'Customs Clearance', 'out_for_delivery': 'Out For Delivery', 'delivered': 'Delivered', 'closed_completed': 'Closed'} %}
+            
+            {% for stage in workflow %}
+                {% set m = namespace(item=None) %}
+                {% if milestones %}
+                    {% for item in milestones %}
+                        {% if item.stage == stage %}
+                            {% set m.item = item %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <tr>
+                    <td><strong>{{ labels[stage] }}</strong></td>
+                    <td>
+                        {% if m.item %}
+                            <span class="badge-completed">Completed</span>
+                        {% else %}
+                            <span class="badge-pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ m.item.completed_by.full_name if m.item and m.item.completed_by else '-' }}</td>
+                    <td>{{ m.item.completed_at.strftime('%d %b %Y %H:%M') if m.item and m.item.completed_at else '-' }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <!-- SHIPMENT DOCUMENTS -->
+        <h3>Shipment Documents</h3>
+        <table>
+            <tr><th width="30%">Document</th><th width="25%">Type</th><th width="20%">Status</th><th width="25%">Remarks</th></tr>
+            {% if documents %}
+                {% for d in documents %}
+                <tr>
+                    <td>{{ d.document_name or '-' }}</td>
+                    <td>{{ d.document_type|replace('_',' ')|title if d.document_type else '-' }}</td>
+                    <td>{{ d.status|replace('_',' ')|title if d.status else '-' }}</td>
+                    <td>{{ d.remarks or '-' }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4" style="text-align: center; color: #666;">No shipment documents available.</td></tr>
+            {% endif %}
+        </table>
+
+        <!-- CUSTOMS & CLOSURE -->
+        <table style="border: none; margin-top: 6px;">
+            <tr>
+                <td width="50%" style="border: none; vertical-align: top; padding: 0 5px 0 0;">
+                    <h3 style="margin-top:0;">Customs Clearance</h3>
+                    <table>
+                        <tr><th width="45%">Clearance Required</th><td>{{ 'Yes' if customs and customs.clearance_required else 'No' }}</td></tr>
+                        <tr><th>Status</th><td>{{ customs.clearance_status|replace('_',' ')|title if customs and customs.clearance_status else '-' }}</td></tr>
+                        <tr><th>Clearing Agent</th><td>{{ customs.clearing_agent_name if customs and customs.clearing_agent_name else '-' }}</td></tr>
+                    </table>
+                </td>
+                <td width="50%" style="border: none; vertical-align: top; padding: 0 0 0 5px;">
+                    <h3 style="margin-top:0;">Shipment Closure</h3>
+                    <table>
+                        <tr><th width="45%">Closing Status</th><td>{{ closure.closing_status|replace('_',' ')|title if closure and closure.closing_status else 'Not closed' }}</td></tr>
+                        <tr><th>Closed By</th><td>{{ closure.closed_by.full_name if closure and closure.closed_by else '-' }}</td></tr>
+                        <tr><th>Client Rating</th><td>{{ closure.client_rating ~ ' / 5' if closure and closure.client_rating else '-' }}</td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <!-- FOOTER SIGNATURE -->
+        <table style="margin-top: 12px; border: none;">
+            <tr>
+                <td width="50%" style="border:none; vertical-align:top;">
+                    <strong>Handled By / Representative</strong><br><br>
+                    {{ shipment.handled_by.full_name if shipment.handled_by else 'System' }}
+                </td>
+                <td width="50%" style="border:none; text-align:right; vertical-align:top;">
+                    <strong>Authorized Signature</strong><br><br>
+                    _________________________
+                </td>
+            </tr>
+        </table>
+
+        <p style="text-align:center; color:#777; font-size:10px; margin-top: 10px;">
+        Generated on {{ now.strftime('%d %b %Y %H:%M') if now else 'N/A' }} | Shipment Ref: {{ shipment.shipment_reference }} | Thank you for choosing Al Qabandi & Partners Co. W.L.L.
+        </p>
+    </div>
+
+</body>
+</html>
