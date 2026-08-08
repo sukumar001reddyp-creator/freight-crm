@@ -3,15 +3,24 @@
 {% block title %}Create Quotation | Freight CRM{% endblock %}
 
 {% block content %}
-<div class="quotation-create-page">
-    <div class="create-header">
-        <div>
-            <h1>Create Direct Quotation</h1>
+<div class="quotation-create-page" style="max-width: 1050px; margin: 0 auto;">
+
+    <!-- ==========================================
+         PAGE HEADER & ACTIONS
+         ========================================== -->
+    <section class="enquiry-hero" style="display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 20px 24px; border-radius: 10px; background: linear-gradient(135deg, #7f1d1d, #b91c1c); color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18); margin-bottom: 22px;">
+        <div class="enquiry-hero-copy">
+            <a href="{{ url_for('quotations.quotation_list') }}" class="back-link" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; color: #fca5a5; text-decoration: none; font-size: 11.5px; font-weight: 700;">
+                <i class="bi bi-arrow-left"></i> Back to Quotations
+            </a>
+            <div class="reference-row">
+                <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff !important;">Create Direct Quotation</h2>
+            </div>
+            <p style="margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: #f1f5f9 !important;">
+                Manually create a new direct quotation with complete client, shipment details, and cost breakdown.
+            </p>
         </div>
-        <a href="{{ url_for('quotations.quotation_list') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-    </div>
+    </section>
 
     <form method="POST" action="{{ url_for('quotations.create_direct_quotation') }}" class="quotation-form-card">
         
@@ -248,8 +257,6 @@
 {% block extra_css %}
 <style>
     .quotation-create-page { max-width: 1050px; margin: 0 auto; }
-    .create-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
-    .create-header h1 { margin: 0 0 7px; color: #111827; font-size: 28px; font-weight: 800; }
     .quotation-form-card { padding: 26px; border: 1px solid #e5e7eb; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05); }
     .form-section { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9; }
     .form-section h3 { margin: 0 0 18px; color: #111827; font-size: 18px; font-weight: 800; }
@@ -262,22 +269,6 @@
     .form-actions { display: flex; justify-content: flex-end; padding-top: 22px; margin-top: 22px; border-top: 1px solid #eef2f7; }
     .create-quotation-btn { padding: 12px 24px; border: 0; border-radius: 10px; background: #7f1d1d; color: #ffffff; font-weight: 800; cursor: pointer; }
     @media (max-width: 768px) { .quotation-form-grid { grid-template-columns: 1fr; } }
-    .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 18px;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
-        background: #fff;
-        color: #374151;
-        text-decoration: none;
-        font-weight: 700;
-        transition: .2s;
-    }
-    .back-btn:hover {
-        background: #f3f4f6;
-        color: #111827;
-    }
+    .back-link:hover { color: #ffffff; text-decoration: underline; }
 </style>
 {% endblock %}
