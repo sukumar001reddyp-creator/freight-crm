@@ -205,7 +205,24 @@ def manage_party_details(quotation_id):
         flash("Agent, shipper and consignee details can be added only after quotation approval.", "warning")
         return redirect(url_for("quotations.view_quotation", quotation_id=quotation.id))
 
-    party_details = db.session.execute(db.select(ShipmentPartyDetails).where(ShipmentPartyDetails.quotation_id == quotation.id)).scalars().first()
+    party_details = db.session.execute(
+        db.select(ShipmentPartyDetails).where(ShipmentPartyDetails.quotation_id == quotation.id)
+    ).scalars().first()
+
+    client_obj = None
+    if quotation.enquiry and quotation.enquiry.client:
+        client_obj = quotation.enquiry.client
+    elif quotation.client:
+        client_obj = quotation.client
+
+    # clients.py మోడల్ ప్రకారం కరెక్ట్ ఫీల్డ్ నేమ్స్ ఇక్కడ మ్యాప్ చేయబడ్డాయి
+    client_data = {
+        "name": getattr(client_obj, "company_name", "") if client_obj else (quotation.other_client_name or ""),
+        "contact": getattr(client_obj, "contact_person_name", "") if client_obj else "",
+        "phone": getattr(client_obj, "primary_phone", "") if client_obj else "",
+        "email": getattr(client_obj, "email", "") if client_obj else "",
+        "address": getattr(client_obj, "address_line_1", "") if client_obj else ""
+    }
 
     if request.method == "POST":
         agent_name = request.form.get("agent_name", "").strip()
@@ -216,14 +233,16 @@ def manage_party_details(quotation_id):
         agent_reference = request.form.get("agent_reference", "").strip()
 
         shipper_name = request.form.get("shipper_name", "").strip()
-        shipper_address = request.form.get("shipper_address", "").strip()
         shipper_contact_person = request.form.get("shipper_contact_person", "").strip()
         shipper_phone = request.form.get("shipper_phone", "").strip()
+        shipper_email = request.form.get("shipper_email", "").strip()
+        shipper_address = request.form.get("shipper_address", "").strip()
 
         consignee_name = request.form.get("consignee_name", "").strip()
-        consignee_address = request.form.get("consignee_address", "").strip()
         consignee_contact_person = request.form.get("consignee_contact_person", "").strip()
         consignee_phone = request.form.get("consignee_phone", "").strip()
+        consignee_email = request.form.get("consignee_email", "").strip()
+        consignee_address = request.form.get("consignee_address", "").strip()
 
         if party_details is None:
             party_details = ShipmentPartyDetails(
@@ -241,20 +260,29 @@ def manage_party_details(quotation_id):
         party_details.agent_reference = agent_reference or None
 
         party_details.shipper_name = shipper_name
-        party_details.shipper_address = shipper_address
         party_details.shipper_contact_person = shipper_contact_person
         party_details.shipper_phone = shipper_phone
+        if hasattr(party_details, 'shipper_email'):
+            party_details.shipper_email = shipper_email
+        party_details.shipper_address = shipper_address
 
         party_details.consignee_name = consignee_name
-        party_details.consignee_address = consignee_address
         party_details.consignee_contact_person = consignee_contact_person
         party_details.consignee_phone = consignee_phone
+        if hasattr(party_details, 'consignee_email'):
+            party_details.consignee_email = consignee_email
+        party_details.consignee_address = consignee_address
 
         db.session.commit()
         flash("Agent, shipper and consignee details saved successfully.", "success")
         return redirect(url_for("quotations.view_quotation", quotation_id=quotation.id))
 
-    return render_template("quotations/party_details.html", quotation=quotation, party_details=party_details)
+    return render_template(
+        "quotations/party_details.html",
+        quotation=quotation,
+        party_details=party_details,
+        client_data=client_data
+    )
 
 @quotations_bp.route("/<int:quotation_id>/approve", methods=["POST"])
 @login_required

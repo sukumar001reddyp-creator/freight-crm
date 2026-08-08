@@ -34,6 +34,7 @@ from app.models import (
     ShipmentCustomsClearance,
     ShipmentClosure,
     Client,
+    User,
 )
 
 
@@ -2076,8 +2077,7 @@ def upload_individual_shipment_document(shipment_id, document_id):
 
 
 # =========================================================
-# CREATE DIRECT SHIPMENT
-# URL: /shipments/create-direct
+# CREATE DIRECT SHIPMENT (WITH PARTY DETAILS)
 # =========================================================
 
 @shipments_bp.route("/create-direct", methods=["GET", "POST"])
@@ -2086,12 +2086,9 @@ def create_direct_shipment():
     require_shipment_write_access()
 
     clients_list = db.session.execute(
-        db.select(Client)
-        .where(Client.is_archived == False)
-        .order_by(Client.company_name)
+        db.select(Client).where(Client.is_archived == False).order_by(Client.company_name)
     ).scalars().all()
     
-    from app.models import User
     users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
 
     if request.method == "POST":
@@ -2111,43 +2108,43 @@ def create_direct_shipment():
         volume = request.form.get("volume", "").strip()
         handled_by_id = request.form.get("handled_by_id")
 
-        # Cost Breakdown fields catch chestunnamu
+        # Party details
+        agent_name = request.form.get("agent_name", "").strip()
+        agent_country = request.form.get("agent_country", "").strip()
+        agent_contact_person = request.form.get("agent_contact_person", "").strip()
+        agent_phone = request.form.get("agent_phone", "").strip()
+        agent_email = request.form.get("agent_email", "").strip()
+        agent_reference = request.form.get("agent_reference", "").strip()
+
+        shipper_name = request.form.get("shipper_name", "").strip()
+        shipper_contact_person = request.form.get("shipper_contact_person", "").strip()
+        shipper_phone = request.form.get("shipper_phone", "").strip()
+        shipper_email = request.form.get("shipper_email", "").strip()
+        shipper_address = request.form.get("shipper_address", "").strip()
+
+        consignee_name = request.form.get("consignee_name", "").strip()
+        consignee_contact_person = request.form.get("consignee_contact_person", "").strip()
+        consignee_phone = request.form.get("consignee_phone", "").strip()
+        consignee_email = request.form.get("consignee_email", "").strip()
+        consignee_address = request.form.get("consignee_address", "").strip()
+
         ocean_air_freight = Decimal(request.form.get("ocean_air_freight") or "0.00")
         origin_charges = Decimal(request.form.get("origin_charges") or "0.00")
         destination_charges = Decimal(request.form.get("destination_charges") or "0.00")
         insurance_charges = Decimal(request.form.get("insurance_charges") or "0.00")
         other_surcharges = Decimal(request.form.get("other_surcharges") or "0.00")
         
-        # Total amount calculate avtundi
         quotation_amount = ocean_air_freight + origin_charges + destination_charges + insurance_charges + other_surcharges
-
-        etd_value = request.form.get("etd", "").strip()
-        eta_value = request.form.get("eta", "").strip()
 
         if not origin or not destination or not cargo_description:
             flash("Origin, Destination, and Cargo Description are required.", "danger")
             return render_template("shipments/create_direct.html", clients_list=clients_list, users_list=users_list)
 
-        etd = None
-        eta = None
-        try:
-            if etd_value:
-                etd = datetime.strptime(etd_value, "%Y-%m-%dT%H:%M")
-        except ValueError:
-            pass
-
-        try:
-            if eta_value:
-                eta = datetime.strptime(eta_value, "%Y-%m-%dT%H:%M")
-        except ValueError:
-            pass
-
-        from app.models import Quotation
         direct_quotation = Quotation(
             quotation_number=f"DIR-QUO-{int(datetime.now().timestamp())}",
-            client_id=int(client_id) if client_id and client_id != "other" and client_id != "others" else None,
-            other_client_name=other_client_name if client_id == "other" or client_id == "others" else None,
-            quotation_amount=quotation_amount, # <-- Ikkada calculated amount save avtundi
+            client_id=int(client_id) if client_id and client_id not in ("other", "others") else None,
+            other_client_name=other_client_name if client_id in ("other", "others") else None,
+            quotation_amount=quotation_amount,
             currency=currency,
             validity_date=date.today(),
             status="approved",
@@ -2164,8 +2161,8 @@ def create_direct_shipment():
         shipment = Shipment(
             shipment_reference=generate_shipment_reference(),
             quotation_id=direct_quotation.id,
-            client_id=int(client_id) if client_id and client_id != "other" and client_id != "others" else None,
-            other_client_name=other_client_name if client_id == "other" or client_id == "others" else None,
+            client_id=int(client_id) if client_id and client_id not in ("other", "others") else None,
+            other_client_name=other_client_name if client_id in ("other", "others") else None,
             origin=origin,
             destination=destination,
             mode_of_shipment=mode_of_shipment,
@@ -2179,36 +2176,58 @@ def create_direct_shipment():
             container_no=container_no or None,
             container_type=container_type or "40HC",
             volume=volume or None,
-            etd=etd,
-            eta=eta,
             handled_by_id=int(handled_by_id) if handled_by_id else current_user.id,
             created_by_id=current_user.id,
         )
-
-        default_documents = [
-            ("booking_confirmation", "Booking Confirmation"),
-            ("bill_of_lading_airway_bill", "Bill of Lading / Airway Bill"),
-            ("commercial_invoice", "Commercial Invoice"),
-            ("packing_list", "Packing List"),
-            ("certificate_of_origin", "Certificate of Origin"),
-            ("insurance_certificate", "Insurance Certificate"),
-            ("customs_declaration", "Customs Declaration"),
-            ("other_supporting_document", "Other Supporting Documents"),
-        ]
 
         try:
             db.session.add(shipment)
             db.session.flush()
 
+            party_details = ShipmentPartyDetails(
+                quotation_id=direct_quotation.id,
+                created_by_id=current_user.id,
+                agent_name=agent_name,
+                agent_country=agent_country,
+                agent_contact_person=agent_contact_person,
+                agent_phone=agent_phone,
+                agent_email=agent_email,
+                agent_reference=agent_reference or None,
+                shipper_name=shipper_name,
+                shipper_contact_person=shipper_contact_person,
+                shipper_phone=shipper_phone,
+                shipper_address=shipper_address,
+                consignee_name=consignee_name,
+                consignee_contact_person=consignee_contact_person,
+                consignee_phone=consignee_phone,
+                consignee_address=consignee_address
+            )
+            if hasattr(party_details, 'shipper_email'):
+                party_details.shipper_email = shipper_email
+            if hasattr(party_details, 'consignee_email'):
+                party_details.consignee_email = consignee_email
+
+            db.session.add(party_details)
+
+            default_documents = [
+                ("booking_confirmation", "Booking Confirmation"),
+                ("bill_of_lading_airway_bill", "Bill of Lading / Airway Bill"),
+                ("commercial_invoice", "Commercial Invoice"),
+                ("packing_list", "Packing List"),
+                ("certificate_of_origin", "Certificate of Origin"),
+                ("insurance_certificate", "Insurance Certificate"),
+                ("customs_declaration", "Customs Declaration"),
+                ("other_supporting_document", "Other Supporting Documents"),
+            ]
+
             for document_type, document_name in default_documents:
-                shipment_document = ShipmentDocument(
+                db.session.add(ShipmentDocument(
                     shipment_id=shipment.id,
                     document_type=document_type,
                     document_name=document_name,
                     status="pending",
                     created_by_id=current_user.id,
-                )
-                db.session.add(shipment_document)
+                ))
 
             db.session.commit()
             flash(f"Direct Shipment {shipment.shipment_reference} created successfully.", "success")
@@ -2275,14 +2294,13 @@ from app.models import Shipment
 def download_shipment_pdf(shipment_id):
     shipment = Shipment.query.get_or_404(shipment_id)
     
-    # మైలురాళ్లు (milestones) కరెక్ట్‌గా ఫెచ్ చేయడం
-    from app.models import ShipmentMilestone
-    milestones = ShipmentMilestone.query.filter_by(shipment_id=shipment.id).all()
-    
+    # రిలేటెడ్ డేటా సురక్షితంగా తీసుకోవడం
+    milestones = getattr(shipment, 'milestones', [])
     documents = getattr(shipment, 'documents', [])
     customs = getattr(shipment, 'customs_clearance', None)
     closure = getattr(shipment, 'closure', None) or getattr(shipment, 'shipment_closure', None)
 
+    # లోగోల అబ్సల్యూట్ పాత్స్
     logo_path = os.path.join(current_app.root_path, 'static', 'images', 'logo.png')
     logo_url = f"file:///{logo_path.replace('\\', '/')}"
 

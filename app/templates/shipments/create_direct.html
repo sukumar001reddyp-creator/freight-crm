@@ -5,17 +5,24 @@
 {% endblock %}
 
 {% block content %}
-<div class="shipment-view-page" style="max-width: 1050px; margin: 0 auto;">
-    <div class="shipments-header" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 22px;">
-        <div>
-            <span class="header-eyebrow" style="display: inline-block; margin-bottom: 7px; color: #1d4ed8; font-size: 11px; font-weight: 800; letter-spacing: 0.08em;">OPERATIONS</span>
-            <h1>Create Direct Shipment</h1>
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">Manually create a new shipment with complete client, operational and cost details.</p>
+<div class="enquiry-view-page" style="max-width: 1050px; margin: 0 auto;">
+
+    <!-- ==========================================
+         PAGE HEADER & ACTIONS
+         ========================================== -->
+    <section class="enquiry-hero" style="display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 20px 24px; border-radius: 10px; background: linear-gradient(135deg, #7f1d1d, #b91c1c); color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);">
+        <div class="enquiry-hero-copy">
+            <a href="{{ url_for('shipments.shipment_list') }}" class="back-link" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; color: #fca5a5; text-decoration: none; font-size: 11.5px; font-weight: 700;">
+                <i class="bi bi-arrow-left"></i> Back to Shipments
+            </a>
+            <div class="reference-row">
+                <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff !important;">Create Direct Shipment</h2>
+            </div>
+            <p style="margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: #f1f5f9 !important;">
+                Manually create a new shipment with complete client, party details, route and cost breakdown.
+            </p>
         </div>
-        <a href="{{ url_for('shipments.shipment_list') }}" class="back-btn" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; color: #374151; text-decoration: none; font-weight: 700;">
-            <i class="bi bi-arrow-left"></i> Back
-        </a>
-    </div>
+    </section>
 
     <form method="POST" class="quotation-form-card" style="padding: 26px; border: 1px solid #e5e7eb; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);">
         
@@ -40,10 +47,17 @@
                 <!-- Existing Client Dropdown -->
                 <div class="form-field form-field-full" id="existingClientDiv" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Select Client <span style="color: #b91c1c;">*</span></label>
-                    <select name="client_id" id="clientSelect" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <select name="client_id" id="clientSelect" onchange="onClientChange()" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                         <option value="">Search or select existing client...</option>
                         {% for client in clients_list %}
-                        <option value="{{ client.id }}">{{ client.company_name }}</option>
+                        <option value="{{ client.id }}" 
+                            data-name="{{ client.company_name | e }}" 
+                            data-contact="{{ client.contact_person_name | e }}" 
+                            data-phone="{{ client.primary_phone | e }}" 
+                            data-email="{{ client.email | e }}" 
+                            data-address="{{ client.address_line_1 | e }}">
+                            {{ client.company_name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -51,14 +65,114 @@
                 <!-- New Client Input Box -->
                 <div class="form-field form-field-full" id="newClientDiv" style="grid-column: 1 / -1; display: none; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">New Client Name <span style="color: #b91c1c;">*</span></label>
-                    <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter new client name" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter new client name" oninput="onNewClientInput()" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
             </div>
         </div>
 
-        <!-- SECTION 2: Route & Carrier Details -->
+        <!-- SECTION 2: Party Details (Agent, Shipper, Consignee) -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">2. Route & Carrier Details</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">2. Operational Party Details</h3>
+            
+            <!-- Agent Details -->
+            <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 12px; text-transform: uppercase; font-weight: 800; color: #1e293b;"><i class="bi bi-globe2"></i> Agent Details (Manual Entry)</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Agent Name <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" name="agent_name" required placeholder="Enter agent company name" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Country <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" name="agent_country" required placeholder="Enter country" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Contact Person <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" name="agent_contact_person" required placeholder="Enter contact person" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Phone <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" name="agent_phone" required placeholder="Enter phone" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Email <span style="color: #b91c1c;">*</span></label>
+                        <input type="email" name="agent_email" required placeholder="Enter email" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Reference No.</label>
+                        <input type="text" name="agent_reference" placeholder="Optional reference" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipper Details -->
+            <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h4 style="margin: 0; font-size: 12px; text-transform: uppercase; font-weight: 800; color: #1e293b;"><i class="bi bi-box-seam-fill"></i> Shipper Details</h4>
+                    <label style="font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="same_as_client_shipper" onchange="toggleShipperClient()"> Same as Client
+                    </label>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Shipper Name <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" id="shipper_name" name="shipper_name" required placeholder="Shipper name" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Contact Person <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" id="shipper_contact_person" name="shipper_contact_person" required placeholder="Contact person" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Phone <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" id="shipper_phone" name="shipper_phone" required placeholder="Phone number" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Email</label>
+                        <input type="email" id="shipper_email" name="shipper_email" placeholder="Email address" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Address <span style="color: #b91c1c;">*</span></label>
+                        <textarea id="shipper_address" name="shipper_address" rows="2" required placeholder="Complete address" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consignee Details -->
+            <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h4 style="margin: 0; font-size: 12px; text-transform: uppercase; font-weight: 800; color: #1e293b;"><i class="bi bi-geo-alt-fill"></i> Consignee Details</h4>
+                    <label style="font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="same_as_client_consignee" onchange="toggleConsigneeClient()"> Same as Client
+                    </label>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Consignee Name <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" id="consignee_name" name="consignee_name" required placeholder="Consignee name" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Contact Person <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" id="consignee_contact_person" name="consignee_contact_person" required placeholder="Contact person" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Phone <span style="color: #b91c1c;">*</span></label>
+                        <input type="text" id="consignee_phone" name="consignee_phone" required placeholder="Phone number" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Email</label>
+                        <input type="email" id="consignee_email" name="consignee_email" placeholder="Email address" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;">
+                    </div>
+                    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #374151;">Address <span style="color: #b91c1c;">*</span></label>
+                        <textarea id="consignee_address" name="consignee_address" rows="2" required placeholder="Complete address" style="padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: Route & Carrier Details -->
+        <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">3. Route & Carrier Details</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Origin <span style="color: #b91c1c;">*</span></label>
@@ -97,12 +211,21 @@
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Vessel / Flight</label>
                     <input type="text" name="vessel" placeholder="Vessel or flight number" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
+                <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
+                    <label style="color: #374151; font-size: 13px; font-weight: 700;">Handled By (Operation Owner)</label>
+                    <select name="handled_by_id" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                        <option value="">Select User (Default: Yourself)</option>
+                        {% for user in users_list %}
+                        <option value="{{ user.id }}" {% if user.id == current_user.id %}selected{% endif %}>{{ user.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
         </div>
 
-        <!-- SECTION 3: Cargo Specifications -->
+        <!-- SECTION 4: Cargo Specifications -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">3. Cargo Specifications</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">4. Cargo Specifications</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field form-field-full" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Cargo Description <span style="color: #b91c1c;">*</span></label>
@@ -127,9 +250,9 @@
             </div>
         </div>
 
-        <!-- SECTION 4: Schedule & Timeline -->
+        <!-- SECTION 5: Schedule & Timeline -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">4. Schedule & Timeline</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">5. Schedule & Timeline</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">ETD (Estimated Departure)</label>
@@ -142,12 +265,11 @@
             </div>
         </div>
 
-        <!-- SECTION 5: Cost Breakdown & Pricing -->
+        <!-- SECTION 6: Cost Breakdown & Pricing -->
         <div class="form-section" style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f1f5f9;">
-            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">5. Cost Breakdown & Pricing</h3>
+            <h3 style="color: #7f1d1d; text-transform: uppercase; font-size: 13px; font-weight: 800; margin-bottom: 15px;">6. Cost Breakdown & Pricing</h3>
             <div class="quotation-form-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
                 
-                <!-- Ocean / Air Freight (Mandatory Required Field) -->
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Ocean / Air Freight <span style="color: #b91c1c;">*</span></label>
                     <input type="number" name="ocean_air_freight" step="0.01" value="0.00" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
@@ -179,13 +301,15 @@
                         <option value="USD">USD</option>
                         <option value="AED">AED</option>
                         <option value="KWD">KWD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="form-actions" style="display: flex; justify-content: flex-end; padding-top: 22px; margin-top: 22px; border-top: 1px solid #eef2f7;">
-            <button type="submit" class="create-quotation-btn" style="padding: 12px 24px; border: 0; border-radius: 10px; background: #7f1d1d; color: #ffffff; font-weight: 800; cursor: pointer;">Create Shipment</button>
+            <button type="submit" class="create-quotation-btn" style="padding: 12px 24px; border: 0; border-radius: 10px; background: #7f1d1d; color: #ffffff; font-weight: 800; cursor: pointer;">Create Direct Shipment</button>
         </div>
     </form>
 </div>
@@ -230,6 +354,7 @@
                 otherName.required = false;
                 otherName.value = "";
             }
+            onClientChange();
         } else {
             existingDiv.style.display = "none";
             newDiv.style.display = "flex";
@@ -238,7 +363,92 @@
                 clientSelect.value = "";
             }
             if (otherName) otherName.required = true;
+            onNewClientInput();
         }
+    }
+
+    function getSelectedClientData() {
+        const select = document.getElementById("clientSelect");
+        const opt = select.options[select.selectedIndex];
+        if (!opt || !opt.value) return { name: "", contact: "", phone: "", email: "", address: "" };
+
+        return {
+            name: opt.getAttribute("data-name") || "",
+            contact: opt.getAttribute("data-contact") || "",
+            phone: opt.getAttribute("data-phone") || "",
+            email: opt.getAttribute("data-email") || "",
+            address: opt.getAttribute("data-address") || ""
+        };
+    }
+
+    function onClientChange() {
+        if (document.getElementById("same_as_client_shipper").checked) {
+            toggleFieldState('same_as_client_shipper', 'shipper_name', 'shipper_contact_person', 'shipper_phone', 'shipper_email', 'shipper_address');
+        }
+        if (document.getElementById("same_as_client_consignee").checked) {
+            toggleFieldState('same_as_client_consignee', 'consignee_name', 'consignee_contact_person', 'consignee_phone', 'consignee_email', 'consignee_address');
+        }
+    }
+
+    function onNewClientInput() {
+        if (document.getElementById("same_as_client_shipper").checked) {
+            toggleFieldState('same_as_client_shipper', 'shipper_name', 'shipper_contact_person', 'shipper_phone', 'shipper_email', 'shipper_address');
+        }
+        if (document.getElementById("same_as_client_consignee").checked) {
+            toggleFieldState('same_as_client_consignee', 'consignee_name', 'consignee_contact_person', 'consignee_phone', 'consignee_email', 'consignee_address');
+        }
+    }
+
+    function toggleFieldState(checkboxId, nameId, contactId, phoneId, emailId, addressId) {
+        const chk = document.getElementById(checkboxId);
+        const nameEl = document.getElementById(nameId);
+        const contactEl = document.getElementById(contactId);
+        const phoneEl = document.getElementById(phoneId);
+        const emailEl = document.getElementById(emailId);
+        const addressEl = document.getElementById(addressId);
+
+        if (chk.checked) {
+            const type = document.querySelector('input[name="client_type"]:checked').value;
+            let data = { name: "", contact: "", phone: "", email: "", address: "" };
+            if (type === "existing") {
+                data = getSelectedClientData();
+            } else {
+                data.name = document.getElementById("otherClientName").value;
+            }
+            nameEl.value = data.name;
+            contactEl.value = data.contact;
+            phoneEl.value = data.phone;
+            emailEl.value = data.email;
+            addressEl.value = data.address;
+
+            [nameEl, contactEl, phoneEl, emailEl, addressEl].forEach(el => {
+                el.setAttribute('readonly', true);
+                el.style.backgroundColor = "#f1f5f9";
+                el.style.color = "#475569";
+                el.style.cursor = "not-allowed";
+            });
+        } else {
+            nameEl.value = "";
+            contactEl.value = "";
+            phoneEl.value = "";
+            emailEl.value = "";
+            addressEl.value = "";
+
+            [nameEl, contactEl, phoneEl, emailEl, addressEl].forEach(el => {
+                el.removeAttribute('readonly');
+                el.style.backgroundColor = "#ffffff";
+                el.style.color = "#0f172a";
+                el.style.cursor = "text";
+            });
+        }
+    }
+
+    function toggleShipperClient() {
+        toggleFieldState('same_as_client_shipper', 'shipper_name', 'shipper_contact_person', 'shipper_phone', 'shipper_email', 'shipper_address');
+    }
+
+    function toggleConsigneeClient() {
+        toggleFieldState('same_as_client_consignee', 'consignee_name', 'consignee_contact_person', 'consignee_phone', 'consignee_email', 'consignee_address');
     }
 
     calculateTotal();

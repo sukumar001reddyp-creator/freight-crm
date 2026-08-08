@@ -14,6 +14,13 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 {% block content %}
 
+{# Safe Client Master Extraction #}
+{% set c_name = client_data.name | default('', true) %}
+{% set c_contact = client_data.contact | default('', true) %}
+{% set c_phone = client_data.phone | default('', true) %}
+{% set c_email = client_data.email | default('', true) %}
+{% set c_address = client_data.address | default('', true) %}
+
 <div class="party-page">
 
     <!-- ==========================================
@@ -92,19 +99,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                 <small>Enquiry</small>
 
                 <strong>
-                   <strong>
-
-{% if quotation.enquiry %}
-
-    {{ quotation.enquiry.enquiry_reference }}
-
-{% else %}
-
-    Direct Quotation
-
-{% endif %}
-
-</strong>
+                    {% if quotation.enquiry %}
+                        {{ quotation.enquiry.enquiry_reference }}
+                    {% else %}
+                        Direct Quotation
+                    {% endif %}
                 </strong>
             </div>
 
@@ -121,23 +120,7 @@ Capture agent, shipper and consignee information before shipment conversion.
                 <small>Client</small>
 
                 <strong>
-                    {% if quotation.enquiry %}
-
-    {{ quotation.enquiry.client.company_name }}
-
-{% elif quotation.other_client_name %}
-
-    {{ quotation.other_client_name }}
-
-{% elif quotation.client %}
-
-    {{ quotation.client.company_name }}
-
-{% else %}
-
-    N/A
-
-{% endif %}
+                    {{ c_name if c_name else 'N/A' }}
                 </strong>
             </div>
 
@@ -174,10 +157,11 @@ Capture agent, shipper and consignee information before shipment conversion.
             quotation_id=quotation.id
         ) }}"
         class="party-form"
+        id="partyDetailsForm"
     >
 
         <!-- ======================================
-             AGENT DETAILS
+             AGENT DETAILS (Manual Workflow)
              ====================================== -->
 
         <section class="party-section-card">
@@ -200,8 +184,7 @@ Capture agent, shipper and consignee information before shipment conversion.
                         </h3>
 
                         <p>
-                            Overseas or local forwarding
-                            agent information.
+                            Overseas or local forwarding agent information (Manual entry).
                         </p>
                     </div>
 
@@ -213,12 +196,7 @@ Capture agent, shipper and consignee information before shipment conversion.
             <div class="party-fields-grid">
 
                 <div class="party-field">
-
-                    <label for="agent_name">
-                        Agent Name
-                        <span>*</span>
-                    </label>
-
+                    <label for="agent_name">Agent Name <span>*</span></label>
                     <input
                         type="text"
                         id="agent_name"
@@ -227,17 +205,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter agent company name"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="agent_country">
-                        Country
-                        <span>*</span>
-                    </label>
-
+                    <label for="agent_country">Country <span>*</span></label>
                     <input
                         type="text"
                         id="agent_country"
@@ -246,17 +218,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter country"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="agent_contact_person">
-                        Contact Person
-                        <span>*</span>
-                    </label>
-
+                    <label for="agent_contact_person">Contact Person <span>*</span></label>
                     <input
                         type="text"
                         id="agent_contact_person"
@@ -265,17 +231,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter contact person"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="agent_phone">
-                        Phone
-                        <span>*</span>
-                    </label>
-
+                    <label for="agent_phone">Phone <span>*</span></label>
                     <input
                         type="text"
                         id="agent_phone"
@@ -284,17 +244,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter phone number"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="agent_email">
-                        Email
-                        <span>*</span>
-                    </label>
-
+                    <label for="agent_email">Email <span>*</span></label>
                     <input
                         type="email"
                         id="agent_email"
@@ -303,16 +257,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter email address"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="agent_reference">
-                        Agreement / Reference No.
-                    </label>
-
+                    <label for="agent_reference">Agreement / Reference No.</label>
                     <input
                         type="text"
                         id="agent_reference"
@@ -320,7 +269,6 @@ Capture agent, shipper and consignee information before shipment conversion.
                         value="{{ party_details.agent_reference if party_details else '' }}"
                         placeholder="Optional reference number"
                     >
-
                 </div>
 
             </div>
@@ -329,7 +277,7 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 
         <!-- ======================================
-             SHIPPER DETAILS
+             SHIPPER DETAILS (Auto-Populate / Editable)
              ====================================== -->
 
         <section class="party-section-card">
@@ -352,8 +300,7 @@ Capture agent, shipper and consignee information before shipment conversion.
                         </h3>
 
                         <p>
-                            Party responsible for dispatching
-                            the cargo.
+                            Party responsible for dispatching the cargo.
                         </p>
                     </div>
 
@@ -361,16 +308,24 @@ Capture agent, shipper and consignee information before shipment conversion.
 
             </div>
 
+            <!-- Checkbox Requirement: Default Unchecked -->
+            <div class="party-checkbox-row">
+                <label class="party-checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        id="same_as_client_shipper" 
+                        name="same_as_client_shipper"
+                        {% if party_details and party_details.shipper_name == c_name and c_name != '' %}checked{% endif %}
+                    >
+                    <span>Same as Client</span>
+                </label>
+            </div>
+
 
             <div class="party-fields-grid">
 
                 <div class="party-field">
-
-                    <label for="shipper_name">
-                        Shipper Name
-                        <span>*</span>
-                    </label>
-
+                    <label for="shipper_name">Shipper Name <span>*</span></label>
                     <input
                         type="text"
                         id="shipper_name"
@@ -379,17 +334,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter shipper name"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="shipper_contact_person">
-                        Contact Person
-                        <span>*</span>
-                    </label>
-
+                    <label for="shipper_contact_person">Contact Person <span>*</span></label>
                     <input
                         type="text"
                         id="shipper_contact_person"
@@ -398,17 +347,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter contact person"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="shipper_phone">
-                        Phone
-                        <span>*</span>
-                    </label>
-
+                    <label for="shipper_phone">Phone <span>*</span></label>
                     <input
                         type="text"
                         id="shipper_phone"
@@ -417,17 +360,23 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter phone number"
                         required
                     >
+                </div>
 
+
+                <div class="party-field">
+                    <label for="shipper_email">Email</label>
+                    <input
+                        type="email"
+                        id="shipper_email"
+                        name="shipper_email"
+                        value="{{ party_details.shipper_email if party_details and party_details.shipper_email is defined else '' }}"
+                        placeholder="Enter email address"
+                    >
                 </div>
 
 
                 <div class="party-field party-field-full">
-
-                    <label for="shipper_address">
-                        Address
-                        <span>*</span>
-                    </label>
-
+                    <label for="shipper_address">Address <span>*</span></label>
                     <textarea
                         id="shipper_address"
                         name="shipper_address"
@@ -435,7 +384,6 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter complete shipper address"
                         required
                     >{{ party_details.shipper_address if party_details else '' }}</textarea>
-
                 </div>
 
             </div>
@@ -444,7 +392,7 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 
         <!-- ======================================
-             CONSIGNEE DETAILS
+             CONSIGNEE DETAILS (Auto-Populate / Editable)
              ====================================== -->
 
         <section class="party-section-card">
@@ -467,8 +415,7 @@ Capture agent, shipper and consignee information before shipment conversion.
                         </h3>
 
                         <p>
-                            Final receiving party for the
-                            shipment.
+                            Final receiving party for the shipment.
                         </p>
                     </div>
 
@@ -476,16 +423,24 @@ Capture agent, shipper and consignee information before shipment conversion.
 
             </div>
 
+            <!-- Checkbox Requirement: Default Unchecked -->
+            <div class="party-checkbox-row">
+                <label class="party-checkbox-label">
+                    <input 
+                        type="checkbox" 
+                        id="same_as_client_consignee" 
+                        name="same_as_client_consignee"
+                        {% if party_details and party_details.consignee_name == c_name and c_name != '' %}checked{% endif %}
+                    >
+                    <span>Same as Client</span>
+                </label>
+            </div>
+
 
             <div class="party-fields-grid">
 
                 <div class="party-field">
-
-                    <label for="consignee_name">
-                        Consignee Name
-                        <span>*</span>
-                    </label>
-
+                    <label for="consignee_name">Consignee Name <span>*</span></label>
                     <input
                         type="text"
                         id="consignee_name"
@@ -494,17 +449,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter consignee name"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="consignee_contact_person">
-                        Contact Person
-                        <span>*</span>
-                    </label>
-
+                    <label for="consignee_contact_person">Contact Person <span>*</span></label>
                     <input
                         type="text"
                         id="consignee_contact_person"
@@ -513,17 +462,11 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter contact person"
                         required
                     >
-
                 </div>
 
 
                 <div class="party-field">
-
-                    <label for="consignee_phone">
-                        Phone
-                        <span>*</span>
-                    </label>
-
+                    <label for="consignee_phone">Phone <span>*</span></label>
                     <input
                         type="text"
                         id="consignee_phone"
@@ -532,17 +475,23 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter phone number"
                         required
                     >
+                </div>
 
+
+                <div class="party-field">
+                    <label for="consignee_email">Email</label>
+                    <input
+                        type="email"
+                        id="consignee_email"
+                        name="consignee_email"
+                        value="{{ party_details.consignee_email if party_details and party_details.consignee_email is defined else '' }}"
+                        placeholder="Enter email address"
+                    >
                 </div>
 
 
                 <div class="party-field party-field-full">
-
-                    <label for="consignee_address">
-                        Address
-                        <span>*</span>
-                    </label>
-
+                    <label for="consignee_address">Address <span>*</span></label>
                     <textarea
                         id="consignee_address"
                         name="consignee_address"
@@ -550,7 +499,6 @@ Capture agent, shipper and consignee information before shipment conversion.
                         placeholder="Enter complete consignee address"
                         required
                     >{{ party_details.consignee_address if party_details else '' }}</textarea>
-
                 </div>
 
             </div>
@@ -569,8 +517,7 @@ Capture agent, shipper and consignee information before shipment conversion.
                 <i class="bi bi-shield-check"></i>
 
                 <span>
-                    These details will be linked to
-                    quotation {{ quotation.quotation_number }}.
+                    These details will be stored as a snapshot linked to quotation {{ quotation.quotation_number }}.
                 </span>
 
             </div>
@@ -610,7 +557,124 @@ Capture agent, shipper and consignee information before shipment conversion.
 </div>
 
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const clientMaster = {
+        name: "{{ c_name | e }}",
+        contact: "{{ c_contact | e }}",
+        phone: "{{ c_phone | e }}",
+        email: "{{ c_email | e }}",
+        address: {{ c_address | string | tojson | safe }}
+    };
+
+    const hasPartyDetails = {% if party_details %}true{% else %}false{% endif %};
+
+    // Shipper Elements
+    const shipperCheckbox = document.getElementById('same_as_client_shipper');
+    const shipperName = document.getElementById('shipper_name');
+    const shipperContact = document.getElementById('shipper_contact_person');
+    const shipperPhone = document.getElementById('shipper_phone');
+    const shipperEmail = document.getElementById('shipper_email');
+    const shipperAddress = document.getElementById('shipper_address');
+
+    // Consignee Elements
+    const consigneeCheckbox = document.getElementById('same_as_client_consignee');
+    const consigneeName = document.getElementById('consignee_name');
+    const consigneeContact = document.getElementById('consignee_contact_person');
+    const consigneePhone = document.getElementById('consignee_phone');
+    const consigneeEmail = document.getElementById('consignee_email');
+    const consigneeAddress = document.getElementById('consignee_address');
+
+    function toggleFields(checkbox, nameEl, contactEl, phoneEl, emailEl, addressEl) {
+        if (checkbox.checked) {
+            nameEl.value = clientMaster.name;
+            contactEl.value = clientMaster.contact;
+            phoneEl.value = clientMaster.phone;
+            if (emailEl) emailEl.value = clientMaster.email;
+            addressEl.value = clientMaster.address;
+
+            nameEl.setAttribute('readonly', true);
+            contactEl.setAttribute('readonly', true);
+            phoneEl.setAttribute('readonly', true);
+            if (emailEl) emailEl.setAttribute('readonly', true);
+            addressEl.setAttribute('readonly', true);
+            
+            nameEl.classList.add('field-disabled');
+            contactEl.classList.add('field-disabled');
+            phoneEl.classList.add('field-disabled');
+            if (emailEl) emailEl.classList.add('field-disabled');
+            addressEl.classList.add('field-disabled');
+        } else {
+            // If page is loaded fresh without existing party details and checkbox is unchecked, clear them for manual entry
+            if (!hasPartyDetails) {
+                nameEl.value = "";
+                contactEl.value = "";
+                phoneEl.value = "";
+                if (emailEl) emailEl.value = "";
+                addressEl.value = "";
+            }
+
+            nameEl.removeAttribute('readonly');
+            contactEl.removeAttribute('readonly');
+            phoneEl.removeAttribute('readonly');
+            if (emailEl) emailEl.removeAttribute('readonly');
+            addressEl.removeAttribute('readonly');
+
+            nameEl.classList.remove('field-disabled');
+            contactEl.classList.remove('field-disabled');
+            phoneEl.classList.remove('field-disabled');
+            if (emailEl) emailEl.classList.remove('field-disabled');
+            addressEl.classList.remove('field-disabled');
+        }
+    }
+
+    if (shipperCheckbox) {
+        toggleFields(shipperCheckbox, shipperName, shipperContact, shipperPhone, shipperEmail, shipperAddress);
+        shipperCheckbox.addEventListener('change', function() {
+            toggleFields(shipperCheckbox, shipperName, shipperContact, shipperPhone, shipperEmail, shipperAddress);
+        });
+    }
+
+    if (consigneeCheckbox) {
+        toggleFields(consigneeCheckbox, consigneeName, consigneeContact, consigneePhone, consigneeEmail, consigneeAddress);
+        consigneeCheckbox.addEventListener('change', function() {
+            toggleFields(consigneeCheckbox, consigneeName, consigneeContact, consigneePhone, consigneeEmail, consigneeAddress);
+        });
+    }
+});
+</script>
+
+
 <style>
+.field-disabled {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    cursor: not-allowed;
+}
+
+.party-checkbox-row {
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.party-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.party-checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #b91c1c;
+    cursor: pointer;
+    border-radius: 4px;
+}
 
 .party-page {
     display: grid;
@@ -624,15 +688,9 @@ Capture agent, shipper and consignee information before shipment conversion.
     gap: 24px;
     padding: 28px;
     border-radius: 22px;
-    background:
-        linear-gradient(
-            135deg,
-            #7f1d1d,
-            #991b1b
-        );
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
     color: #fff;
-    box-shadow:
-        0 18px 40px rgba(127, 29, 29, 0.18);
+    box-shadow: 0 18px 40px rgba(127, 29, 29, 0.18);
 }
 
 .party-hero-copy {
@@ -665,8 +723,7 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 .party-summary-grid {
     display: grid;
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
 }
 
@@ -719,13 +776,12 @@ Capture agent, shipper and consignee information before shipment conversion.
     border: 1px solid #e5e7eb;
     border-radius: 22px;
     background: #fff;
-    box-shadow:
-        0 10px 30px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
 }
 
 .party-section-header {
-    margin-bottom: 22px;
-    padding-bottom: 18px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
     border-bottom: 1px solid #eef2f7;
 }
 
@@ -744,12 +800,7 @@ Capture agent, shipper and consignee information before shipment conversion.
     justify-content: center;
     flex-shrink: 0;
     color: #fff;
-    background:
-        linear-gradient(
-            135deg,
-            #b91c1c,
-            #7f1d1d
-        );
+    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
 }
 
 .party-section-step {
@@ -775,8 +826,7 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 .party-fields-grid {
     display: grid;
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
 }
 
@@ -809,9 +859,7 @@ Capture agent, shipper and consignee information before shipment conversion.
     color: #0f172a;
     font: inherit;
     outline: none;
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
 }
 
@@ -823,8 +871,7 @@ Capture agent, shipper and consignee information before shipment conversion.
 .party-field input:focus,
 .party-field textarea:focus {
     border-color: #b91c1c;
-    box-shadow:
-        0 0 0 4px rgba(185, 28, 28, 0.1);
+    box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.1);
 }
 
 .party-action-bar {
@@ -839,8 +886,7 @@ Capture agent, shipper and consignee information before shipment conversion.
     border: 1px solid #e5e7eb;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.96);
-    box-shadow:
-        0 16px 40px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
     backdrop-filter: blur(12px);
 }
 
@@ -885,14 +931,8 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 .party-btn-primary {
     color: #fff;
-    background:
-        linear-gradient(
-            135deg,
-            #b91c1c,
-            #7f1d1d
-        );
-    box-shadow:
-        0 8px 18px rgba(127, 29, 29, 0.18);
+    background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+    box-shadow: 0 8px 18px rgba(127, 29, 29, 0.18);
 }
 
 .party-hero .party-btn-light {
@@ -902,16 +942,12 @@ Capture agent, shipper and consignee information before shipment conversion.
 }
 
 @media (max-width: 1050px) {
-
     .party-summary-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
 }
 
 @media (max-width: 760px) {
-
     .party-hero,
     .party-action-bar {
         align-items: stretch;
@@ -934,17 +970,9 @@ Capture agent, shipper and consignee information before shipment conversion.
     .party-action-buttons .party-btn {
         flex: 1;
     }
-
 }
 
 @media (max-width: 520px) {
-
-    .party-hero,
-    .party-section-card {
-        padding: 18px;
-        border-radius: 17px;
-    }
-
     .party-summary-grid {
         grid-template-columns: 1fr;
     }
@@ -956,9 +984,7 @@ Capture agent, shipper and consignee information before shipment conversion.
     .party-action-buttons .party-btn {
         width: 100%;
     }
-
 }
-
 </style>
 
 {% endblock %}
