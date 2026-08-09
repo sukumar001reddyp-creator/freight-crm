@@ -109,18 +109,41 @@ def create_direct_quotation():
     clients = Client.query.order_by(Client.company_name).all()
 
     if request.method == "POST":
-        client_id = request.form.get("client_id")
-        other_client_name = request.form.get("other_client_name")
-
+        client_type = request.form.get("client_type")
+        client_id_raw = request.form.get("client_id")
+        
         quotation = Quotation()
         quotation.enquiry_id = None
         quotation.status = "pending"
 
-        if client_id == "others":
-            quotation.client_id = None
-            quotation.other_client_name = other_client_name
+        # క్లయింట్ టైప్ బట్టి హ్యాండ్ చేయడం
+        if client_type == "new" or client_id_raw == "others" or not client_id_raw:
+            other_client_name = request.form.get("other_client_name")
+            other_client_email = request.form.get("other_client_email")
+            other_client_phone = request.form.get("other_client_phone")
+            other_client_address = request.form.get("other_client_address")
+            
+            # కొత్త వాక్-ఇన్ క్లయింట్‌ని ఆటోమేటిక్‌గా డేటాబేస్‌లో క్రియేట్ చేయడం
+            
+            new_client = Client(
+                company_name=other_client_name or "Walk-in Client",
+                contact_person_name=other_client_name or "Walk-in Contact",
+                email=other_client_email,
+                primary_phone=other_client_phone,
+                address_line_1=other_client_address,
+                category="Walk-in",
+                status="active",
+                assigned_to_id=current_user.id, # <--- ఈ లైన్ యాడ్ చేయబడింది
+                created_by_id=current_user.id
+            )
+            db.session.add(new_client)
+            db.session.commit()
+            
+            quotation.client_id = new_client.id
+            quotation.other_client_name = None
         else:
-            client = Client.query.get_or_404(client_id)
+            # ఎగ్జిస్టింగ్ క్లయింట్ అయితే
+            client = Client.query.get_or_404(int(client_id_raw))
             quotation.client_id = client.id
             quotation.other_client_name = None
 
@@ -404,3 +427,41 @@ def delete_quotation(quotation_id):
     db.session.commit()
     flash("Quotation deleted successfully.", "success")
     return redirect(url_for("quotations.quotation_list"))
+
+from app.services.outlook_smtp_service import send_user_smtp_email # మీరు SMTP సర్వీస్ పెట్టిన ఫైల్ నుండి ఇంపోర్ట్ చేసుకోండి
+
+@quotations_bp.route('/<int:quotation_id>/send-email', methods=['POST'])
+@login_required
+def send_quotation_email(quotation_id):
+    quotation = Quotation.query.get_or_404(quotation_id)
+    client = quotation.client
+    
+    if not client or not client.email:
+        flash("Client email not found!", "danger")
+        return redirect(url_for('quotations.view_quotation', quotation_id=quotation_id))
+        
+    subject = f"Quotation #{quotation.quotation_number} - Freight Services"
+    html_content = f"""
+        <p>Dear {client.contact_person_name},</p>
+        <p>Please find attached the quotation requested for your shipment.</p>
+        <p>Best regards,<br>{current_user.full_name}</p>
+    """
+    
+    # కోటేషన్ PDF అటాచ్‌మెంట్ పాత్ (మీ ప్రాజెక్ట్‌లో ఉన్న ఫీల్డ్ బట్టి మార్చుకోవచ్చు)
+    pdf_path = quotation.document_file_path 
+    
+    # ప్రస్తుతం లాగిన్ అయిన యూజర్ ID ని ఉపయోగించి వారి అవుట్‌లుక్ ద్వారా మెయిల్ పంపడం
+    success, message = send_user_smtp_email(
+        user_id=current_user.id,
+        recipient_email=client.email,
+        subject=subject,
+        html_content=html_content,
+        pdf_attachment_path=pdf_path
+    )
+    
+    if success:
+        flash("Quotation sent successfully from your Outlook account!", "success")
+    else:
+        flash(f"Failed to send email: {message}", "danger")
+        
+    return redirect(url_for('quotations.view_quotation', quotation_id=quotation_id))

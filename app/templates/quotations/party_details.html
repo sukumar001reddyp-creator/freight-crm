@@ -277,7 +277,7 @@ Capture agent, shipper and consignee information before shipment conversion.
 
 
         <!-- ======================================
-             SHIPPER DETAILS (Auto-Populate / Editable)
+             SHIPPER DETAILS (Manual Workflow - No Checkbox)
              ====================================== -->
 
         <section class="party-section-card">
@@ -306,19 +306,6 @@ Capture agent, shipper and consignee information before shipment conversion.
 
                 </div>
 
-            </div>
-
-            <!-- Checkbox Requirement: Default Unchecked -->
-            <div class="party-checkbox-row">
-                <label class="party-checkbox-label">
-                    <input 
-                        type="checkbox" 
-                        id="same_as_client_shipper" 
-                        name="same_as_client_shipper"
-                        {% if party_details and party_details.shipper_name == c_name and c_name != '' %}checked{% endif %}
-                    >
-                    <span>Same as Client</span>
-                </label>
             </div>
 
 
@@ -569,14 +556,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const hasPartyDetails = {% if party_details %}true{% else %}false{% endif %};
 
-    // Shipper Elements
-    const shipperCheckbox = document.getElementById('same_as_client_shipper');
-    const shipperName = document.getElementById('shipper_name');
-    const shipperContact = document.getElementById('shipper_contact_person');
-    const shipperPhone = document.getElementById('shipper_phone');
-    const shipperEmail = document.getElementById('shipper_email');
-    const shipperAddress = document.getElementById('shipper_address');
-
     // Consignee Elements
     const consigneeCheckbox = document.getElementById('same_as_client_consignee');
     const consigneeName = document.getElementById('consignee_name');
@@ -626,13 +605,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (emailEl) emailEl.classList.remove('field-disabled');
             addressEl.classList.remove('field-disabled');
         }
-    }
-
-    if (shipperCheckbox) {
-        toggleFields(shipperCheckbox, shipperName, shipperContact, shipperPhone, shipperEmail, shipperAddress);
-        shipperCheckbox.addEventListener('change', function() {
-            toggleFields(shipperCheckbox, shipperName, shipperContact, shipperPhone, shipperEmail, shipperAddress);
-        });
     }
 
     if (consigneeCheckbox) {

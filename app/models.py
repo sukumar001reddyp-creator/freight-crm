@@ -20,6 +20,11 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False, default="sales_executive")
+    
+    # === OUTLOOK SMTP CREDENTIALS FIELDS ===
+    smtp_email = db.Column(db.String(180), nullable=True)
+    smtp_password = db.Column(db.String(255), nullable=True)
+    
     is_active_user = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = db.Column(db.DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
@@ -62,10 +67,7 @@ class Client(db.Model):
     __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, primary_key=True)
-    
-    # Auto-generated client reference (e.g., CLT-2026-000001)
     client_reference = db.Column(db.String(50), unique=True, nullable=True, index=True)
-    
     company_name = db.Column(db.String(200), nullable=False, index=True)
     category = db.Column(db.String(100), nullable=False, index=True)
     status = db.Column(db.String(50), nullable=False, default="lead", index=True)
@@ -81,7 +83,6 @@ class Client(db.Model):
     industry_sector = db.Column(db.String(150), nullable=True)
     services_needed = db.Column(db.JSON, nullable=False, default=list)
 
-    # NEW FIELDS FROM CHANGE REQUEST (SECTION 2.2)
     secondary_contact_details = db.Column(db.JSON, nullable=True)
     company_registration_number = db.Column(db.String(100), nullable=True)
     tax_vat_number = db.Column(db.String(100), nullable=True)
@@ -259,7 +260,6 @@ class Enquiry(db.Model):
     enquiry_reference = db.Column(db.String(50), unique=True, nullable=False, index=True)
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id", ondelete="RESTRICT"), nullable=False, index=True)
     
-    # ఇక్కడ అన్ని ఫీల్డ్స్ ఒకేసారి కరెక్ట్‌గా ఉన్నాయి
     enquiry_date = db.Column(db.Date, nullable=False, default=lambda: utc_now().date(), index=True)
     expected_timeline = db.Column(db.String(150), nullable=True)
     incoterms = db.Column(db.String(50), nullable=True)
@@ -286,12 +286,10 @@ class Enquiry(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = db.Column(db.DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
 
-    # Relationships
     client = db.relationship("Client", foreign_keys=[client_id])
     handled_by = db.relationship("User", foreign_keys=[handled_by_id])
     sales_coordinator = db.relationship("User", foreign_keys=[sales_coordinator_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
-
 
     def __repr__(self):
         return f"<Enquiry {self.enquiry_reference}>"
@@ -307,24 +305,13 @@ class Quotation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     quotation_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    enquiry_id = db.Column(
-    db.Integer,
-    db.ForeignKey("enquiries.id", ondelete="RESTRICT"),
-    nullable=True,
-    index=True
-)
-    client_id = db.Column(
-    db.Integer,
-    db.ForeignKey("clients.id", ondelete="RESTRICT"),
-    nullable=True,
-    index=True
-)
+    enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id", ondelete="RESTRICT"), nullable=True, index=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id", ondelete="RESTRICT"), nullable=True, index=True)
     other_client_name = db.Column(db.String(200), nullable=True)
     quotation_amount = db.Column(db.Numeric(15, 2), nullable=False)
     currency = db.Column(db.String(10), nullable=False, index=True)
     validity_date = db.Column(db.Date, nullable=False, index=True)
     
-    # Document fields
     document_original_filename = db.Column(db.String(255), nullable=True)
     document_stored_filename = db.Column(db.String(255), nullable=True)
     document_file_path = db.Column(db.String(500), nullable=True)
@@ -340,7 +327,6 @@ class Quotation(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = db.Column(db.DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
 
-    # 4.1 Shipment Details 
     shipping_line_airline = db.Column(db.String(150), nullable=True)
     no_of_containers = db.Column(db.Integer, nullable=True)
     container_type_quota = db.Column(db.String(50), nullable=True)
@@ -352,7 +338,6 @@ class Quotation(db.Model):
     incoterms = db.Column(db.String(50), nullable=True)
     hs_code = db.Column(db.String(50), nullable=True)
 
-    # === NEW COST BREAKDOWN FIELDS (4.2) ===
     ocean_air_freight = db.Column(db.Float, default=0.0)
     origin_charges = db.Column(db.Float, default=0.0)
     destination_charges = db.Column(db.Float, default=0.0)
@@ -360,49 +345,26 @@ class Quotation(db.Model):
     other_surcharges = db.Column(db.Float, default=0.0)
     payment_terms = db.Column(db.String(100), nullable=True)
 
-    # Remarks / Terms & Conditions
     remarks_terms = db.Column(db.Text, nullable=True)
-    origin = db.Column(
-    db.String(200),
-    nullable=True
-)
+    origin = db.Column(db.String(200), nullable=True)
     origin_port = db.Column(db.String(200), nullable=True)
     destination_port = db.Column(db.String(200), nullable=True)
-    
-    destination = db.Column(
-    db.String(200),
-    nullable=True
-)
+    destination = db.Column(db.String(200), nullable=True)
+    mode_of_shipment = db.Column(db.String(50), nullable=True)
+    cargo_description = db.Column(db.Text, nullable=True)
+    cargo_weight_volume = db.Column(db.String(100), nullable=True)
 
-    mode_of_shipment = db.Column(
-    db.String(50),
-    nullable=True
-)
-
-    cargo_description = db.Column(
-    db.Text,
-    nullable=True
-)
-
-    cargo_weight_volume = db.Column(
-    db.String(100),
-    nullable=True
-)
-
-    # Relationships
     enquiry = db.relationship("Enquiry", foreign_keys=[enquiry_id])
-    client = db.relationship(
-    "Client",
-    foreign_keys=[client_id]
-)
+    client = db.relationship("Client", foreign_keys=[client_id])
     approved_by = db.relationship("User", foreign_keys=[approved_by_id])
     created_by = db.relationship("User", foreign_keys=[created_by_id])
 
     def __repr__(self):
         return f"<Quotation {self.quotation_number}>"
 
+
 # =========================================================
-# SHIPMENT & OPERATIONAL MODULES (PRESERVED)
+# SHIPMENT & OPERATIONAL MODULES
 # =========================================================
 
 class ShipmentPartyDetails(db.Model):
@@ -445,23 +407,10 @@ class Shipment(db.Model):
     def shipment_id(self):
         return self.shipment_reference
 
-    enquiry_id = db.Column(
-    db.Integer,
-    db.ForeignKey("enquiries.id"),
-    nullable=True
-)
+    enquiry_id = db.Column(db.Integer, db.ForeignKey("enquiries.id"), nullable=True)
     quotation_id = db.Column(db.Integer, db.ForeignKey("quotations.id", ondelete="RESTRICT"), nullable=False, unique=True, index=True)
-
-    client_id = db.Column(
-    db.Integer,
-    db.ForeignKey("clients.id"),
-    nullable=True
-)
-
-    other_client_name = db.Column(
-    db.String(200),
-    nullable=True
-)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=True)
+    other_client_name = db.Column(db.String(200), nullable=True)
     origin = db.Column(db.String(255), nullable=False)
     destination = db.Column(db.String(255), nullable=False)
     mode_of_shipment = db.Column(db.String(50), nullable=False, index=True)
@@ -515,11 +464,8 @@ class ShipmentDocument(db.Model):
     shipment_id = db.Column(db.Integer, db.ForeignKey("shipments.id", ondelete="CASCADE"), nullable=False, index=True)
     document_type = db.Column(db.String(100), nullable=False, index=True)
     document_name = db.Column(db.String(150), nullable=False)
-    
-    # కొత్తగా ఈ రెండు కాలమ్స్ ఇక్కడ యాడ్ చేయాలి
     file_path = db.Column(db.String(500), nullable=True)
     original_filename = db.Column(db.String(255), nullable=True)
-    
     status = db.Column(db.String(30), nullable=False, default="pending", index=True)
     remarks = db.Column(db.Text, nullable=True)
     received_at = db.Column(db.DateTime(timezone=True), nullable=True)
@@ -629,6 +575,7 @@ class BackupLog(db.Model):
     error = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
 
+
 class ShipmentTask(db.Model):
     __tablename__ = "shipment_tasks"
     id = db.Column(db.Integer, primary_key=True)
@@ -638,10 +585,8 @@ class ShipmentTask(db.Model):
     due_date = db.Column(db.DateTime(timezone=True), nullable=False, index=True)
     status = db.Column(db.String(30), default="pending", nullable=False, index=True)
     
-    # Relationships
     shipment = db.relationship("Shipment", backref=db.backref("tasks", cascade="all, delete-orphan", lazy=True))
 
-from app import db
 
 class Settings(db.Model):
     __tablename__ = 'settings'
@@ -655,5 +600,66 @@ class Settings(db.Model):
     @staticmethod
     def create(filename, status, file_id=None, error=None):
         log = BackupLog(filename=filename, status=status, file_id=file_id, error=error)
+        db.session.add(log)
+        db.session.commit()
+
+
+# =========================================================
+# OUTLOOK INTEGRATION MODELS (OAUTH & SMTP LOGS)
+# =========================================================
+
+class UserToken(db.Model):
+    __tablename__ = 'user_tokens'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    access_token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text, nullable=False)
+    token_expires_at = db.Column(db.DateTime, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @classmethod
+    def save_tokens(cls, user_id, access_token, refresh_token, expires_in):
+        from datetime import timedelta
+        expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        token_record = cls.query.filter_by(user_id=user_id).first()
+        
+        if token_record:
+            token_record.access_token = access_token
+            if refresh_token:
+                token_record.refresh_token = refresh_token
+            token_record.token_expires_at = expires_at
+            token_record.updated_at = datetime.utcnow()
+        else:
+            token_record = cls(
+                user_id=user_id,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_expires_at=expires_at
+            )
+            db.session.add(token_record)
+        db.session.commit()
+
+
+class EmailLog(db.Model):
+    __tablename__ = 'email_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    recipient_email = db.Column(db.String(255), nullable=False)
+    subject = db.Column(db.String(255))
+    status = db.Column(db.String(50))  # 'Sent' or 'Failed'
+    error_message = db.Column(db.Text, nullable=True)
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @classmethod
+    def log_email(cls, user_id, recipient, subject, status, error=None):
+        log = cls(
+            user_id=user_id,
+            recipient_email=recipient,
+            subject=subject,
+            status=status,
+            error_message=error
+        )
         db.session.add(log)
         db.session.commit()

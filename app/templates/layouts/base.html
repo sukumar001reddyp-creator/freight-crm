@@ -401,13 +401,15 @@
             </nav>
         </div>
 
-        <div class="sidebar-user">
-            <div class="user-avatar" style="display:flex; align-items:center; justify-content:center;">{{ current_user.full_name[0]|upper }}</div>
-            <div class="user-copy">
-                <strong>{{ current_user.full_name }}</strong>
-                <span>{{ current_user.role_label }}</span>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="logout-icon" title="Logout">
+        <div class="sidebar-user" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px;">
+            <a href="{{ url_for('users.profile') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; overflow: hidden; flex-grow: 1;" title="Go to My Profile">
+                <div class="user-avatar" style="display:flex; align-items:center; justify-content:center; flex-shrink: 0;">{{ current_user.full_name[0]|upper }}</div>
+                <div class="user-copy" style="overflow: hidden;">
+                    <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ current_user.full_name }}</strong>
+                    <span style="font-size: 11px; opacity: 0.8;">My Profile</span>
+                </div>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="logout-icon" title="Logout" style="flex-shrink: 0; margin-left: 8px;">
                 <i class="bi bi-box-arrow-right"></i>
             </a>
         </div>
@@ -452,6 +454,13 @@
                             <strong>{{ current_user.full_name }}</strong>
                             <span>{{ current_user.email }}</span>
                         </div>
+
+                        <!-- My Profile Link Added Here -->
+                        <a href="{{ url_for('users.profile') }}" class="top-user-dropdown-item">
+                            <i class="bi bi-person-badge-fill"></i>
+                            <span>My Profile</span>
+                        </a>
+
                         <a href="{{ url_for('auth.change_password') }}" class="top-user-dropdown-item">
                             <i class="bi bi-shield-lock-fill"></i>
                             <span>Change Password</span>

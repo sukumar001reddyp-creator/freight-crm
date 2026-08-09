@@ -51,9 +51,24 @@
                     </select>
                 </div>
 
-                <div class="form-field form-field-full" id="otherClientBox" style="display:none;">
-                    <label>New Client Name <span>*</span></label>
-                    <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter Client Name">
+                <!-- న్యూ క్లయింట్ కోసం పేరు, ఈమెైిల్, ఫోన్ మరియు అడ్రస్ ఫీల్డ్స్ -->
+                <div class="form-field-full" id="otherClientBox" style="display:none; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-field">
+                        <label>New Client / Company Name <span>*</span></label>
+                        <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter Client Name">
+                    </div>
+                    <div class="form-field">
+                        <label>Client Email <span>*</span></label>
+                        <input type="email" id="otherClientEmail" name="other_client_email" placeholder="client@example.com">
+                    </div>
+                    <div class="form-field">
+                        <label>Client Phone</label>
+                        <input type="text" id="otherClientPhone" name="other_client_phone" placeholder="Phone number">
+                    </div>
+                    <div class="form-field">
+                        <label>Client Address</label>
+                        <input type="text" id="otherClientAddress" name="other_client_address" placeholder="Street, City, Country">
+                    </div>
                 </div>
 
             </div>
@@ -234,19 +249,23 @@
         const newDiv = document.getElementById("otherClientBox");
         const clientSelect = document.getElementById("clientSelect");
         const otherClientName = document.getElementById("otherClientName");
+        const otherClientEmail = document.getElementById("otherClientEmail");
 
         if (type === "existing") {
             existingDiv.style.display = "flex";
             newDiv.style.display = "none";
             clientSelect.required = true;
             otherClientName.required = false;
+            otherClientEmail.required = false;
             otherClientName.value = "";
+            otherClientEmail.value = "";
         } else {
             existingDiv.style.display = "none";
-            newDiv.style.display = "flex";
+            newDiv.style.display = "grid";
             clientSelect.required = false;
             clientSelect.value = "";
             otherClientName.required = true;
+            otherClientEmail.required = true;
         }
     }
 
@@ -268,7 +287,7 @@
     .form-field input, .form-field select, .form-field textarea { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; }
     .form-actions { display: flex; justify-content: flex-end; padding-top: 22px; margin-top: 22px; border-top: 1px solid #eef2f7; }
     .create-quotation-btn { padding: 12px 24px; border: 0; border-radius: 10px; background: #7f1d1d; color: #ffffff; font-weight: 800; cursor: pointer; }
-    @media (max-width: 768px) { .quotation-form-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .quotation-form-grid { grid-template-columns: 1fr; } #otherClientBox { grid-template-columns: 1fr !important; } }
     .back-link:hover { color: #ffffff; text-decoration: underline; }
 </style>
 {% endblock %}
