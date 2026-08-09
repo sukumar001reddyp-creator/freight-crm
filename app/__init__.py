@@ -1,4 +1,4 @@
-from datetime import timedelta  # <--- timedelta ఇక్కడ ఇంపోర్ట్ చేయబడింది
+from datetime import timedelta
 from flask import (
     Flask,
     redirect,
@@ -19,7 +19,7 @@ from flask_login import (
 )
 
 from config import Config
-from sqlalchemy import text  # <-- సీక్వెన్స్ ఫిక్స్ కోసం ఇది అవసరం
+from sqlalchemy import text
 
 # =========================================================
 # EXTENSIONS
@@ -35,10 +35,6 @@ login_manager = LoginManager()
 # =========================================================
 
 def fix_postgres_sequences():
-    """
-    Render లేదా Local లో PostgreSQL వాడేటప్పుడు ID సీక్వెన్సులు 
-    అవుట్-ఆఫ్-సింక్ కాకుండా మాక్సిమమ్ ID కి ఆటోమేటిక్‌గా సెట్ చేస్తుంది.
-    """
     try:
         tables = [
             'users', 
@@ -74,7 +70,7 @@ def fix_postgres_sequences():
                         COALESCE((SELECT MAX(id) FROM {table}), 1), true);
                     """))
                 except Exception:
-                    pass # టేబుల్ లేదా సీక్వెన్స్ లేకపోతే సైలెంట్‌గా స్కిప్ అవుతుంది
+                    pass
         print("✅ PostgreSQL sequences synchronized successfully!")
     except Exception as e:
         print(f"Sequence sync note: {e}")
@@ -91,8 +87,6 @@ def create_app():
     app.config.from_object(Config)
 
     app.config["JWT_SECRET_KEY"] = "freight-crm-mobile-secret-key"
-    
-    # --- JWT టోకెన్ గడువును 7 రోజులకు సెట్ చేయడం జరిగింది ---
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 
     jwt = JWTManager(app)
@@ -105,21 +99,15 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
 
-    # --- ఇక్కడ ఆటోమేటిక్‌గా సీక్వెన్స్ సింక్ అవుతుంది ---
     with app.app_context():
         fix_postgres_sequences()
-
 
     # ==========================================
     # LOGIN CONFIGURATION
     # ==========================================
 
     login_manager.login_view = "auth.login"
-
-    login_manager.login_message = (
-        "Please log in to access the CRM."
-    )
-
+    login_manager.login_message = "Please log in to access the CRM."
     login_manager.login_message_category = "warning"
 
 
@@ -165,8 +153,6 @@ def create_app():
 
     from app.api import api_bp
     app.register_blueprint(api_bp)
-
-
 
 
     # ==========================================
@@ -259,12 +245,9 @@ def create_app():
         )
         from flask import request
 
-        # Global Search Query Parameter
         search_q = request.args.get("global_q", "").strip()
-
         is_sales_dashboard = getattr(current_user, "role", None) in {"sales", "sales_executive"}
 
-        # Scopes Initialization
         client_scope = Client.query.filter(Client.is_archived.is_(False))
         enquiry_scope = Enquiry.query.join(Client, Enquiry.client_id == Client.id)
         quotation_scope = Quotation.query.join(Enquiry, Quotation.enquiry_id == Enquiry.id).join(Client, Enquiry.client_id == Client.id)
@@ -272,7 +255,6 @@ def create_app():
         activity_scope = ClientActivity.query.join(Client, ClientActivity.client_id == Client.id)
         shipment_scope = Shipment.query.join(Client, Shipment.client_id == Client.id)
 
-        # Apply Sales Executive Restrictions if true
         if is_sales_dashboard:
             client_scope = client_scope.filter(Client.assigned_to_id == current_user.id)
             enquiry_scope = enquiry_scope.filter(Client.assigned_to_id == current_user.id)
@@ -281,7 +263,6 @@ def create_app():
             activity_scope = activity_scope.filter(Client.assigned_to_id == current_user.id)
             shipment_scope = shipment_scope.filter(Client.assigned_to_id == current_user.id)
 
-        # EXECUTE SEARCH IF QUERY EXISTS
         search_results = None
         if search_q:
             try:
@@ -303,7 +284,6 @@ def create_app():
                         (Quotation.quotation_number.ilike(f"%{search_q}%")) |
                         (Client.company_name.ilike(f"%{search_q}%"))
                     ).limit(5).all(),
-
                     
                     "shipments": shipment_scope.filter(
                         (Shipment.shipment_reference.ilike(f"%{search_q}%")) |
@@ -313,13 +293,11 @@ def create_app():
             except Exception:
                 search_results = {"clients": [], "enquiries": [], "quotations": [], "shipments": []}
 
-        # Top Cards Counts
         total_clients = client_scope.count()
         total_enquiries = enquiry_scope.filter(Enquiry.status.notin_(["closed", "cancelled", "converted"])).count()
         total_quotations = quotation_scope.filter(Quotation.status == "pending").count()
         total_shipments = shipment_scope.filter(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"])).count()
 
-        # Quotation & Enquiry Status Counts
         quotation_status_counts = {
             "pending": quotation_scope.filter(Quotation.status == "pending").count(),
             "approved": quotation_scope.filter(Quotation.status == "approved").count(),
@@ -336,7 +314,6 @@ def create_app():
             Shipment.shipment_status.in_(["delivered", "closed", "completed", "closed_completed"])
         ).count()
 
-        # Client Categories
         client_category_counts = {}
         category_query = db.session.query(Client.category, db.func.count(Client.id)).filter(Client.is_archived.is_(False))
         if is_sales_dashboard:
@@ -345,7 +322,6 @@ def create_app():
             label = str(category_name).strip() if category_name else "Uncategorized"
             client_category_counts[label] = count
 
-        # Shipment Stages
         shipment_stage_counts = {
             "booked": shipment_scope.filter(Shipment.current_stage == "booked").count(),
             "cargo_picked_up": shipment_scope.filter(Shipment.current_stage == "cargo_picked_up").count(),
@@ -357,7 +333,6 @@ def create_app():
             "closed_completed": shipment_scope.filter(Shipment.current_stage == "closed_completed").count(),
         }
 
-        # Follow-ups & Activities
         follow_up_tasks = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).order_by(ClientTask.due_date.asc()).limit(5).all()
         pending_followups_count = task_scope.filter(ClientTask.status.in_(["pending", "in_progress"])).count()
 

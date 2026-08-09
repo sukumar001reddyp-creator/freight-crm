@@ -410,6 +410,16 @@
                     Download Quotation PDF
                 </a>
 
+               <!-- OPEN IN OUTLOOK APP WITH AUTO PDF DOWNLOAD -->
+                {% set client_email = quotation.client.email if quotation.client else (quotation.enquiry.client.email if quotation.enquiry else '') %}
+                <a href="{{ url_for('quotations.download_quotation_pdf', quotation_id=quotation.id) }}" 
+                   target="_blank"
+                   onclick="setTimeout(function(){ window.location.href='mailto:{{ client_email }}?subject=Quotation%20%23{{ quotation.quotation_number }}%20-%20Freight%20Services&body=Dear%20Sir%2FMadam,%0D%0A%0D%0APlease%20find%20attached%20the%20quotation%20reference%20number%20%23{{ quotation.quotation_number }}%20for%20your%20shipment.%0D%0A%0D%0ABest%20regards,%0D%0A{{ current_user.full_name }}'; }, 1000);"
+                   class="btn" 
+                   style="background: #2563eb; color: white; width: 100%; border: none; margin-bottom: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="bi bi-envelope-paper-fill"></i> Download PDF & Open Outlook
+                </a>
+
                 {% if quotation.status != "approved" %}
                 <form method="POST" 
                       action="{{ url_for('quotations.delete_quotation', quotation_id=quotation.id) }}" 
@@ -441,7 +451,7 @@
                       action="{{ url_for('quotations.approve_quotation', quotation_id=quotation.id) }}" 
                       class="approve-form"
                       onsubmit="return confirm('Approve this quotation?');">
-                    <button type="submit" class="btn" style="background: #16a34a; color: white; width: 100%; border: none;">
+                    <button type="submit" class="btn" style="background: #16a34a; color: white; width: 100%; border: none; margin-bottom: 8px;">
                         <i class="bi bi-check-circle-fill"></i>
                         Approve Quotation
                     </button>

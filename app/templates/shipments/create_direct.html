@@ -105,13 +105,10 @@
                 </div>
             </div>
 
-            <!-- Shipper Details -->
+            <!-- Shipper Details (Checkbox Removed) -->
             <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h4 style="margin: 0; font-size: 12px; text-transform: uppercase; font-weight: 800; color: #1e293b;"><i class="bi bi-box-seam-fill"></i> Shipper Details</h4>
-                    <label style="font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <input type="checkbox" id="same_as_client_shipper" onchange="toggleShipperClient()"> Same as Client
-                    </label>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
                     <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -382,30 +379,24 @@
     }
 
     function onClientChange() {
-        if (document.getElementById("same_as_client_shipper").checked) {
-            toggleFieldState('same_as_client_shipper', 'shipper_name', 'shipper_contact_person', 'shipper_phone', 'shipper_email', 'shipper_address');
-        }
         if (document.getElementById("same_as_client_consignee").checked) {
-            toggleFieldState('same_as_client_consignee', 'consignee_name', 'consignee_contact_person', 'consignee_phone', 'consignee_email', 'consignee_address');
+            toggleConsigneeClient();
         }
     }
 
     function onNewClientInput() {
-        if (document.getElementById("same_as_client_shipper").checked) {
-            toggleFieldState('same_as_client_shipper', 'shipper_name', 'shipper_contact_person', 'shipper_phone', 'shipper_email', 'shipper_address');
-        }
         if (document.getElementById("same_as_client_consignee").checked) {
-            toggleFieldState('same_as_client_consignee', 'consignee_name', 'consignee_contact_person', 'consignee_phone', 'consignee_email', 'consignee_address');
+            toggleConsigneeClient();
         }
     }
 
-    function toggleFieldState(checkboxId, nameId, contactId, phoneId, emailId, addressId) {
-        const chk = document.getElementById(checkboxId);
-        const nameEl = document.getElementById(nameId);
-        const contactEl = document.getElementById(contactId);
-        const phoneEl = document.getElementById(phoneId);
-        const emailEl = document.getElementById(emailId);
-        const addressEl = document.getElementById(addressId);
+    function toggleConsigneeClient() {
+        const chk = document.getElementById('same_as_client_consignee');
+        const nameEl = document.getElementById('consignee_name');
+        const contactEl = document.getElementById('consignee_contact_person');
+        const phoneEl = document.getElementById('consignee_phone');
+        const emailEl = document.getElementById('consignee_email');
+        const addressEl = document.getElementById('consignee_address');
 
         if (chk.checked) {
             const type = document.querySelector('input[name="client_type"]:checked').value;
@@ -441,14 +432,6 @@
                 el.style.cursor = "text";
             });
         }
-    }
-
-    function toggleShipperClient() {
-        toggleFieldState('same_as_client_shipper', 'shipper_name', 'shipper_contact_person', 'shipper_phone', 'shipper_email', 'shipper_address');
-    }
-
-    function toggleConsigneeClient() {
-        toggleFieldState('same_as_client_consignee', 'consignee_name', 'consignee_contact_person', 'consignee_phone', 'consignee_email', 'consignee_address');
     }
 
     calculateTotal();

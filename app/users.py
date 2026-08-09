@@ -144,7 +144,6 @@ def edit_user(user_id):
                 role_options=ROLE_OPTIONS,
             )
 
-        # Prevent current admin from accidentally removing own admin role.
         if user.id == current_user.id and role != "admin":
             flash("You cannot remove your own Admin role.", "danger")
             return render_template(
@@ -206,3 +205,29 @@ def reset_password(user_id):
 
     flash(f"Password reset successfully for {user.full_name}.", "success")
     return redirect(url_for("users.user_list"))
+
+
+# ==========================================
+# USER PROFILE & OUTLOOK SMTP SETTINGS
+# ==========================================
+
+@users_bp.route('/profile', methods=['GET'])
+@login_required
+def profile():
+    return render_template('users/profile.html')
+
+
+@users_bp.route('/profile/smtp-settings', methods=['POST'])
+@login_required
+def update_my_smtp_settings():
+    """యూజర్లు తమ సొంత అవుట్‌లుక్ SMTP వివరాలను మాత్రమే అప్‌డేట్ చేసుకోవడానికి"""
+    smtp_email = request.form.get('smtp_email')
+    smtp_password = request.form.get('smtp_password')
+    
+    current_user.smtp_email = smtp_email
+    if smtp_password:  # పాస్‌వర్డ్ ఖాళీగా వదిలితే పాతదే ఉంటుంది
+        current_user.smtp_password = smtp_password
+        
+    db.session.commit()
+    flash("Your Outlook SMTP settings updated successfully!", "success")
+    return redirect(url_for('users.profile'))
