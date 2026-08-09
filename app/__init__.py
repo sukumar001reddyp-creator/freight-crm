@@ -154,6 +154,8 @@ def create_app():
     from app.api import api_bp
     app.register_blueprint(api_bp)
 
+    from app.agents import agents_bp
+    app.register_blueprint(agents_bp)
 
     # ==========================================
     # IMPORT MODELS

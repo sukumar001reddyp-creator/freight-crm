@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Agents Directory | Freight CRM
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px;">
+
+    <!-- HERO HEADER -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #7f1d1d, #b91c1c); padding: 20px 24px; border-radius: 10px; color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);">
+        <div>
+            <span style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #fca5a5;">CRM • AGENT MANAGEMENT</span>
+            <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff;">Agents Directory</h2>
+            <p style="margin: 0; font-size: 13px; color: #f1f5f9; opacity: 0.95;">Manage international partners for multi-country freight enquiries.</p>
+        </div>
+        <a href="{{ url_for('agents.add_agent') }}" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: #ffffff; color: #b91c1c; text-decoration: none; font-size: 12.5px; font-weight: 700; white-space: nowrap;">
+            <i class="bi bi-plus-lg"></i> Add New Agent
+        </a>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">Registered Partners</h3>
+            <span style="padding: 3px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 11px; font-weight: 600; color: #64748b;">{{ agents|length }} Agents</span>
+        </div>
+
+        <!-- SEARCH -->
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; margin-bottom: 14px;">
+            <i class="bi bi-search" style="color: #64748b;"></i>
+            <input type="text" id="agentSearch" placeholder="Search by Country, Name, Email..." style="flex: 1; border: none; outline: none; font-size: 13px; background: transparent; color: #1e293b;">
+        </div>
+
+        {% if agents %}
+            <div style="width: 100%; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Country</th>
+                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Agent Name</th>
+                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Email Address</th>
+                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Added Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agent in agents %}
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 12px 14px;">
+                                    <span style="padding: 4px 10px; background: #f1f5f9; border-radius: 6px; font-weight: 700; color: #0f172a;">
+                                        🌍 {{ agent.country }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 14px; font-weight: 600; color: #0f172a;">{{ agent.name }}</td>
+                                <td style="padding: 12px 14px;">
+                                    <a href="mailto:{{ agent.email }}" style="color: #b91c1c; text-decoration: none; font-weight: 600;">
+                                        <i class="bi bi-envelope-at"></i> {{ agent.email }}
+                                    </a>
+                                </td>
+                                <td style="padding: 12px 14px; color: #64748b;">{{ agent.created_at.strftime("%d %b %Y") if agent.created_at else "N/A" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="padding: 40px 20px; text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%; background: #f8fafc; border: 1px solid #e2e8f0; color: #b91c1c; font-size: 20px;">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h3 style="margin: 0 0 4px; font-size: 15px; color: #0f172a; font-weight: 600;">No agents found</h3>
+                <p style="margin: 0 auto 16px; color: #64748b; font-size: 12.5px;">Add international partners to handle multi-country enquiries.</p>
+                <a href="{{ url_for('agents.add_agent') }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; height: 38px; background: #b91c1c; color: #ffffff; border-radius: 8px; text-decoration: none; font-size: 12.5px; font-weight: 600;">
+                    <i class="bi bi-plus-lg"></i> Add Agent
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const search = document.getElementById("agentSearch");
+    if (!search) return;
+
+    search.addEventListener("keyup", function () {
+        const keyword = this.value.toLowerCase();
+        document.querySelectorAll("tbody tr").forEach(function(row){
+            row.style.display = row.innerText.toLowerCase().includes(keyword) ? "" : "none";
+        });
+    });
+});
+</script>
+{% endblock %}

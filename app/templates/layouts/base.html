@@ -326,6 +326,16 @@
                 </a>
                 {% endif %}
 
+                 {% if permissions.can_access_enquiries() %}
+<a href="{{ url_for('agents.agent_list') }}" class="nav-item {% if request.blueprint == 'agents' %}active{% endif %}">
+    <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
+    <span>Agents</span>
+    {% if agents_count is defined and agents_count > 0 %}
+    <span class="nav-count">{{ agents_count }}</span>
+    {% endif %}
+</a>
+{% endif %}
+
                 {% if permissions.can_access_enquiries() %}
                 <a href="{{ url_for('enquiries.enquiry_list') }}" class="nav-item {% if request.blueprint == 'enquiries' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-inbox-fill"></i></span>
@@ -333,7 +343,8 @@
                     <span class="nav-count">{{ sidebar_enquiries_count }}</span>
                 </a>
                 {% endif %}
-
+                
+               
                 {% if permissions.can_access_quotations() %}
                 <a href="{{ url_for('quotations.quotation_list') }}" class="nav-item {% if request.blueprint == 'quotations' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-file-earmark-text-fill"></i></span>

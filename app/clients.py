@@ -1607,3 +1607,4 @@ def client_portal_account(client_id):
         return redirect(url_for('clients.client_portal_account', client_id=client.id))
         
     return render_template('clients/client_portal_account.html', client=client)
+
