@@ -663,3 +663,12 @@ class EmailLog(db.Model):
         )
         db.session.add(log)
         db.session.commit()
+
+class Agent(db.Model):
+    __tablename__ = 'agents'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    country = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

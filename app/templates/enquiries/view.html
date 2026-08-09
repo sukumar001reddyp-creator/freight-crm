@@ -176,6 +176,112 @@
         <!-- RIGHT COLUMN: SIDEBAR PANELS -->
         <div class="detail-sidebar">
 
+            <!-- COUNTRY-WISE AGENTS DROPDOWN SELECTION -->
+            <div class="detail-card">
+                <div class="card-heading" style="margin-bottom: 12px;">
+                    <span class="heading-icon" style="background: #eff6ff; color: #2563eb;">
+                        <i class="bi bi-people-fill"></i>
+                    </span>
+                    <div>
+                        <h3>Country Agents</h3>
+                        <p>Select country to view & email agents</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; font-size: 13px;">
+                    <!-- Country Dropdown -->
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-weight: 700; color: #374151; font-size: 12px;">Select Country</label>
+                        <select id="countrySelect" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;" onchange="filterAgentsByCountry()">
+                            <option value="">-- Choose Country --</option>
+                            {% set countries = agents | map(attribute='country') | unique | list if agents else [] %}
+                            {% for country in countries %}
+                                <option value="{{ country }}">{{ country }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Agents Checkboxes Container (Initially Hidden / Filtered) -->
+                    <div id="agentsContainer" style="display: none; flex-direction: column; gap: 6px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 180px; overflow-y: auto;">
+                        <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Available Agents:</span>
+                        {% for agent in agents %}
+                            <label class="agent-item" data-country="{{ agent.country }}" style="cursor: pointer; display: none; align-items: center; gap: 8px; font-weight: normal; font-size: 12.5px;">
+                                <input type="checkbox" class="agent-checkbox" value="{{ agent.email }}" style="width: 14px; height: 14px;"> 
+                                {{ agent.name }} <span style="color: #64748b; font-size: 11px;">({{ agent.email }})</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary-red" style="width: 100%; background: #2563eb;" onclick="sendToSelectedCountryAgents()">
+                    <i class="bi bi-envelope-paper-fill"></i> Send to Selected Agents (Outlook)
+                </button>
+            </div>
+
+            <script>
+            function filterAgentsByCountry() {
+                let selectedCountry = document.getElementById('countrySelect').value;
+                let agentsContainer = document.getElementById('agentsContainer');
+                let agentItems = document.querySelectorAll('.agent-item');
+                
+                if (!selectedCountry) {
+                    agentsContainer.style.display = 'none';
+                    return;
+                }
+                
+                agentsContainer.style.display = 'flex';
+                let found = false;
+                
+                agentItems.forEach(item => {
+                    if (item.getAttribute('data-country') === selectedCountry) {
+                        item.style.display = 'flex';
+                        found = true;
+                    } else {
+                        item.style.display = 'none';
+                        // Uncheck hidden ones so they don't get selected accidentally
+                        item.querySelector('input').checked = false;
+                    }
+                });
+            }
+
+            function sendToSelectedCountryAgents() {
+                let checkboxes = document.querySelectorAll('.agent-checkbox:checked');
+                let emails = [];
+                checkboxes.forEach((cb) => { emails.push(cb.value); });
+                
+                if(emails.length === 0) {
+                    alert('Please select at least one agent!');
+                    return;
+                }
+                
+                let agentList = emails.join(',');
+                
+                // 1. Download Enquiry PDF first
+                window.open("{{ url_for('enquiries.download_enquiry_pdf', enquiry_id=enquiry.id) }}", '_blank');
+                
+                // 2. Mail body structure
+                let mailBody = 'Dear Agents,\r\n\r\n' +
+                               'Please find the freight enquiry details below for your review and competitive rates:\r\n\r\n' +
+                               '----------------------------------------\r\n' +
+                               'Enquiry Reference : {{ enquiry.enquiry_reference }}\r\n' +
+                               'Origin            : {{ enquiry.origin }}\r\n' +
+                               'Destination       : {{ enquiry.destination }}\r\n' +
+                               'Mode of Shipment  : {{ enquiry.mode_of_shipment | replace("_", " ") | title }}\r\n' +
+                               'Cargo Description : {{ enquiry.cargo_description }}\r\n' +
+                               'Weight / Volume   : {{ enquiry.cargo_weight_volume or "N/A" }}\r\n' +
+                               'Incoterms         : {{ enquiry.incoterms or "N/A" }}\r\n' +
+                               '----------------------------------------\r\n\r\n' +
+                               'Please share your best rates at the earliest.\r\n\r\n' +
+                               'Best Regards,\r\n' +
+                               '{{ current_user.full_name }}';
+                               
+                // 3. Open Outlook with selected emails in To field
+                setTimeout(function(){
+                    window.location.href = 'mailto:' + agentList + '?subject=' + encodeURIComponent('Freight Enquiry - {{ enquiry.enquiry_reference }}') + '&body=' + encodeURIComponent(mailBody);
+                }, 1000);
+            }
+            </script>
+            
             <!-- CLIENT PROFILE LINK -->
             <div class="detail-card">
                 <div class="card-heading">

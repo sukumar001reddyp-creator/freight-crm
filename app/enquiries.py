@@ -38,6 +38,7 @@ from app.models import (
     Client,
     Enquiry,
     User,
+    Agent
 )
 
 from app.sales_scope import (
@@ -419,19 +420,27 @@ def add_enquiry():
 # One enquiry record ni full details tho open chestundi.
 # =========================================================
 
-@enquiries_bp.route(
-    "/<int:enquiry_id>"
-)
+# =========================================================
+# VIEW ENQUIRY DETAILS
+# URL: /enquiries/<enquiry_id>
+# =========================================================
+
+@enquiries_bp.route("/<int:enquiry_id>")
 @login_required
 def view_enquiry(enquiry_id):
-
     enquiry = get_enquiry_or_404(enquiry_id)
+    
+    # డేటాబేస్ నుండి ఏజెంట్లను కంట్రీ వారీగా లేదా అన్నీ ఫెచ్ చేయడం
+    try:
+        agents = Agent.query.order_by(Agent.country.asc(), Agent.name.asc()).all()
+    except Exception:
+        agents = []
 
     return render_template(
         "enquiries/view.html",
-        enquiry=enquiry
+        enquiry=enquiry,
+        agents=agents
     )
-
 
 # =========================================================
 # UPDATE ENQUIRY STATUS
@@ -849,3 +858,4 @@ def download_enquiry_pdf(enquiry_id):
     response.headers["Content-Disposition"] = f'attachment; filename=Enquiry_{enquiry.enquiry_reference}.pdf'
 
     return response
+
