@@ -2294,11 +2294,29 @@ from app.models import Shipment
 def download_shipment_pdf(shipment_id):
     shipment = Shipment.query.get_or_404(shipment_id)
     
-    # రిలేటెడ్ డేటా సురక్షితంగా తీసుకోవడం
-    milestones = getattr(shipment, 'milestones', [])
-    documents = getattr(shipment, 'documents', [])
-    customs = getattr(shipment, 'customs_clearance', None)
-    closure = getattr(shipment, 'closure', None) or getattr(shipment, 'shipment_closure', None)
+    # ఇక్కడ నేరుగా డేటాబేస్ నుంచి మైలురాళ్లు మరియు డాక్యుమెంట్లు క్వెరీ చేస్తున్నాం
+    milestones = db.session.execute(
+        db.select(ShipmentMilestone)
+        .where(ShipmentMilestone.shipment_id == shipment.id)
+        .order_by(ShipmentMilestone.completed_at.asc())
+    ).scalars().all()
+
+    documents = db.session.execute(
+        db.select(ShipmentDocument)
+        .where(ShipmentDocument.shipment_id == shipment.id)
+        .order_by(ShipmentDocument.id.asc())
+    ).scalars().all()
+
+    customs = (
+        db.session.execute(
+            db.select(ShipmentCustomsClearance)
+            .where(ShipmentCustomsClearance.shipment_id == shipment.id)
+        )
+        .scalars()
+        .first()
+    )
+    
+    closure = get_shipment_closure(shipment.id)
 
     # లోగోల అబ్సల్యూట్ పాత్స్
     logo_path = os.path.join(current_app.root_path, 'static', 'images', 'logo.png')
