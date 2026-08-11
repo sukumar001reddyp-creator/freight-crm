@@ -12,30 +12,42 @@
          PAGE HEADER
          ========================================== -->
 
-    <section class="shipment-hero">
-        <div class="shipments-header-copy">
-            <span class="panel-eyebrow">
-                OPERATIONS • FREIGHT LOGISTICS
-            </span>
+<section class="shipment-hero">
+    <div class="shipments-header-copy">
+        <span class="panel-eyebrow">
+            OPERATIONS • FREIGHT LOGISTICS
+        </span>
 
-            <h2>Shipments Directory</h2>
+        <h2>Shipments Directory</h2>
 
-            <p>
-                Track active freight shipments converted from approved quotations or created directly.
-            </p>
+        <p>
+            Track active freight shipments converted from approved quotations or created directly.
+        </p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+       
+        <a href="{{ url_for('shipments.export_shipments_excel', 
+                            search=selected_search, 
+                            status=selected_status, 
+                            mode=selected_mode, 
+                            client_id=selected_client_id, 
+                            handled_by_id=selected_handled_by_id) }}" 
+           class="btn btn-primary-red">
+            <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
+        </a>
+
+        <!-- DIRECT SHIPMENT BUTTON -->
+        <a href="{{ url_for('shipments.create_direct_shipment') }}" class="btn btn-primary-red">
+            <i class="bi bi-plus-lg"></i> Direct Shipment
+        </a>
+
+        <div class="shipment-count-pill-box">
+            <small>Total Shipments</small>
+            <strong>{{ shipments|length }}</strong>
         </div>
-
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <a href="{{ url_for('shipments.create_direct_shipment') }}" class="btn btn-primary-red">
-                <i class="bi bi-plus-lg"></i> Direct Shipment
-            </a>
-
-            <div class="shipment-count-pill-box">
-                <small>Total Shipments</small>
-                <strong>{{ shipments|length }}</strong>
-            </div>
-        </div>
-    </section>
+    </div>
+</section>
 
 
     <!-- ==========================================

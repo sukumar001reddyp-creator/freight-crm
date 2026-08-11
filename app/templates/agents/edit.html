@@ -1,0 +1,31 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+    Edit Agent | Freight CRM
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #0f172a;">Edit Agent</h2>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">Agent Name</label>
+                <input type="text" name="name" value="{{ agent.name }}" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">Email Address</label>
+                <input type="email" name="email" value="{{ agent.email }}" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">Country</label>
+                <input type="text" name="country" value="{{ agent.country }}" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" style="padding: 10px 16px; background: #b91c1c; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Save Changes</button>
+                <a href="{{ url_for('agents.agent_list') }}" style="padding: 10px 16px; background: #f1f5f9; color: #475569; text-decoration: none; border-radius: 8px; font-weight: 600;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
