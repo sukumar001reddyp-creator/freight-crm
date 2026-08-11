@@ -12,120 +12,41 @@
          PAGE HEADER
          ========================================== -->
 
-<section class="shipment-hero">
-    <div class="shipments-header-copy">
-        <span class="panel-eyebrow">
-            OPERATIONS • FREIGHT LOGISTICS
-        </span>
+    <div class="shipments-header">
 
-        <h2>Shipments Directory</h2>
+        <div>
+            <span class="header-eyebrow">
+                OPERATIONS
+            </span>
 
-        <p>
-            Track active freight shipments converted from approved quotations or created directly.
-        </p>
-    </div>
+            <h1>Shipments</h1>
 
-    <div style="display: flex; align-items: center; gap: 12px;">
-       
-        <a href="{{ url_for('shipments.export_shipments_excel', 
-                            search=selected_search, 
-                            status=selected_status, 
-                            mode=selected_mode, 
-                            client_id=selected_client_id, 
-                            handled_by_id=selected_handled_by_id) }}" 
-           class="btn btn-primary-red">
-            <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
-        </a>
-
-        <!-- DIRECT SHIPMENT BUTTON -->
-        <a href="{{ url_for('shipments.create_direct_shipment') }}" class="btn btn-primary-red">
-            <i class="bi bi-plus-lg"></i> Direct Shipment
-        </a>
-
-        <div class="shipment-count-pill-box">
-            <small>Total Shipments</small>
-            <strong>{{ shipments|length }}</strong>
+            <p>
+                Track active freight shipments converted
+                from approved quotations.
+            </p>
         </div>
+
+        <div class="shipment-count-box">
+
+            <span>
+                Total Shipments
+            </span>
+
+            <strong>
+                {{ shipments|length }}
+            </strong>
+
+        </div>
+
     </div>
-</section>
 
 
     <!-- ==========================================
-         SEARCH & FILTERS SECTION
+         SHIPMENTS CARD
          ========================================== -->
 
-    <section class="shipment-filter-card">
-        <form method="GET" action="{{ url_for('shipments.shipment_list') }}" class="shipment-filter-form">
-            
-            <div class="shipment-search-box-top">
-                <i class="bi bi-search"></i>
-                <input
-                    type="search"
-                    name="search"
-                    id="shipmentSearch"
-                    value="{{ selected_search|default('') }}"
-                    placeholder="Search by Shipment Ref, Client, Route, Mode..."
-                >
-            </div>
-            
-            <div class="shipment-filter-bottom-row">
-                <div class="shipment-filter-grid">
-                    
-                    <!-- Status Filter -->
-                    <select name="status">
-                        <option value="">All Statuses</option>
-                        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
-                        <option value="in_transit" {% if selected_status == 'in_transit' %}selected{% endif %}>In Transit</option>
-                        <option value="delivered" {% if selected_status == 'delivered' %}selected{% endif %}>Delivered</option>
-                        <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Closed</option>
-                    </select>
-
-                    <!-- Mode Filter -->
-                    <select name="mode">
-                        <option value="">All Modes</option>
-                        <option value="air_freight" {% if selected_mode == 'air_freight' %}selected{% endif %}>Air Freight</option>
-                        <option value="sea_freight" {% if selected_mode == 'sea_freight' %}selected{% endif %}>Sea Freight</option>
-                        <option value="land_freight" {% if selected_mode == 'land_freight' %}selected{% endif %}>Land Freight</option>
-                    </select>
-
-                    <!-- Client Filter -->
-                    <select name="client_id">
-                        <option value="">All Clients</option>
-                        {% for client in clients_list|default([]) %}
-                        <option value="{{ client.id }}" {% if selected_client_id|string == client.id|string %}selected{% endif %}>{{ client.company_name }}</option>
-                        {% endfor %}
-                    </select>
-
-                    <!-- Handled By Filter -->
-                    <select name="handled_by_id">
-                        <option value="">All Handled By</option>
-                        {% for user in users_list|default([]) %}
-                        <option value="{{ user.id }}" {% if selected_handled_by_id|string == user.id|string %}selected{% endif %}>{{ user.full_name }}</option>
-                        {% endfor %}
-                    </select>
-
-                </div>
-
-                <div class="shipment-filter-actions">
-                    <button type="submit" class="btn btn-primary-red">
-                        <i class="bi bi-funnel"></i> Apply
-                    </button>
-                    <a href="{{ url_for('shipments.shipment_list') }}" class="btn btn-secondary-soft-dark">Reset</a>
-                </div>
-            </div>
-        </form>
-    </section>
-
-
-    <!-- ==========================================
-         SHIPMENTS TABLE CARD
-         ========================================== -->
-
-    <section class="shipments-table-card">
-        <div class="shipments-table-head">
-            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--surface-dark);">Shipment Records</h3>
-            <span class="record-count-pill">{{ shipments|length }} Results</span>
-        </div>
+    <div class="shipments-card">
 
         {% if shipments %}
 
