@@ -1,0 +1,81 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Add {{ category_name }} | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" class="client-form" style="max-width: 900px; margin: 0 auto;">
+    <div class="form-page-header">
+        <div>
+            <span class="panel-eyebrow">
+                SPECIAL ACCOUNTS • NEW RECORD
+            </span>
+            <h2>
+                Create {{ category_name }}
+            </h2>
+            <p>
+                Capture complete relationship and contact information for this special account.
+            </p>
+        </div>
+
+        <div class="form-page-actions">
+            <a href="{{ url_for('management_clients.view_category', category_name=category_name) }}" class="btn btn-secondary-soft-dark">
+                <i class="bi bi-arrow-left"></i>
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary-red">
+                <i class="bi bi-check2-circle"></i>
+                Save Record
+            </button>
+        </div>
+    </div>
+
+    <input type="hidden" name="category" value="{{ category_name }}">
+
+    <div class="client-form-layout" style="display: block;">
+        <div class="client-form-main">
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div class="form-section-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h3>Account Information</h3>
+                        <p>Define the company and classification.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="crm-field full-span">
+                        <label for="company_name">Company Name <span class="required">*</span></label>
+                        <input type="text" id="company_name" name="company_name" placeholder="e.g. Embassy Organization" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="contact_person_name">Contact Person <span class="required">*</span></label>
+                        <input type="text" id="contact_person_name" name="contact_person_name" placeholder="Primary point of contact" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="email">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="contact@domain.com" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="primary_phone">Primary Phone <span class="required">*</span></label>
+                        <input type="tel" id="primary_phone" name="primary_phone" placeholder="+965 XXXXXXXX" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="address_line_1">Address <span class="required">*</span></label>
+                        <input type="text" id="address_line_1" name="address_line_1" placeholder="Building, street, area" required>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

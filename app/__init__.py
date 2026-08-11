@@ -157,6 +157,9 @@ def create_app():
     from app.agents import agents_bp
     app.register_blueprint(agents_bp)
 
+    from app.management_clients import management_clients_bp
+    app.register_blueprint(management_clients_bp)
+    
     # ==========================================
     # IMPORT MODELS
     # ==========================================

@@ -273,6 +273,59 @@
     padding: 16px;
 }
 
+/* ==========================================================
+   STYLISH MANAGEMENT CLIENTS DROPDOWN & SUB-MENU STYLING
+   ========================================================== */
+#mgmtClientsGroup .nav-sub-menu {
+    display: none;
+    flex-direction: column;
+    padding-left: 16px;
+    padding-right: 8px;
+    gap: 3px;
+    margin: 6px 0 10px;
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+    margin-left: 18px;
+}
+
+#mgmtClientsGroup.open #mgmtSubMenu {
+    display: flex !important;
+    animation: fadeInMenu 0.2s ease-in-out;
+}
+
+#mgmtClientsGroup.open .mgmt-chevron {
+    transform: rotate(180deg);
+}
+
+@keyframes fadeInMenu {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-sub-item {
+    font-size: 12px;
+    font-weight: 500;
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+}
+
+.nav-sub-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    padding-left: 14px;
+}
+
+.nav-sub-item.active-sub {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 @media (max-width: 640px) {
     .top-user-dropdown {
         width: min(260px, calc(100vw - 32px));
@@ -319,7 +372,7 @@
                 {% endif %}
 
                 {% if permissions.can_access_clients() %}
-                <a href="{{ url_for('clients.client_list') }}" class="nav-item {% if request.blueprint == 'clients' %}active{% endif %}">
+                <a href="{{ url_for('clients.client_list') }}" class="nav-item {% if request.blueprint == 'clients' and not request.args.get('category') %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
                     <span>Clients</span>
                     <span class="nav-count">{{ sidebar_clients_count }}</span>
@@ -370,6 +423,34 @@
                     <span>Tasks & Follow-ups</span>
                 </a>
                 {% endif %}
+            </nav>
+        
+            <!-- ==========================================
+                 SPECIAL ACCOUNTS (MANAGEMENT CLIENTS)
+                 ========================================== -->
+            <div class="nav-label" style="color: #fca5a5; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; margin-top: 16px;">SPECIAL ACCOUNTS</div>
+            <nav class="sidebar-nav">
+                <div class="nav-dropdown-group" id="mgmtClientsGroup">
+                    <a href="#" class="nav-item nav-dropdown-toggle" onclick="document.getElementById('mgmtClientsGroup').classList.toggle('open'); return false;">
+                        <span class="nav-icon"><i class="bi bi-folder-fill"></i></span>
+                        <span>Management Clients</span>
+                        <i class="bi bi-chevron-down mgmt-chevron" style="margin-left: auto; font-size: 10px; transition: transform 0.2s ease;"></i>
+                    </a>
+                    
+                    <div class="nav-sub-menu" id="mgmtSubMenu">
+                        <a href="{{ url_for('management_clients.view_category', category_name='Embassies') }}" class="nav-sub-item">Embassies</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Government Ministries') }}" class="nav-sub-item">Government Ministries</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Government Projects') }}" class="nav-sub-item">Government Projects</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Diplomatic Missions') }}" class="nav-sub-item">Diplomatic Missions</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='UN & International Orgs') }}" class="nav-sub-item">UN & International Orgs</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='NGOs') }}" class="nav-sub-item">NGOs</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='State-Owned Enterprises') }}" class="nav-sub-item">State-Owned Enterprises</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Military / Defense') }}" class="nav-sub-item">Military / Defense</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Public Sector Tenders') }}" class="nav-sub-item">Public Sector Tenders</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Municipalities') }}" class="nav-sub-item">Municipalities</a>
+                        <a href="{{ url_for('management_clients.view_category', category_name='Semi-Government Authorities') }}" class="nav-sub-item">Semi-Government Authorities</a>
+                    </div>
+                </div>
             </nav>
 
             <div class="nav-label">Intelligence</div>
@@ -515,6 +596,23 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // Dynamic Active Highlighting & Auto-Open for Management Clients Dropdown
+    const currentPath = window.location.pathname;
+    const subItems = document.querySelectorAll("#mgmtSubMenu .nav-sub-item");
+    let isMatched = false;
+
+    subItems.forEach(item => {
+        if (item.getAttribute("href") === currentPath) {
+            item.classList.add("active-sub");
+            isMatched = true;
+        }
+    });
+
+    if (isMatched) {
+        const group = document.getElementById("mgmtClientsGroup");
+        if (group) group.classList.add("open");
+    }
+
     const menu = document.getElementById("topUserMenu");
     const trigger = document.getElementById("topUserTrigger");
 

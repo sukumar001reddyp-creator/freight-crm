@@ -1,0 +1,81 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+Edit {{ client.company_name }} | Freight CRM
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" class="client-form" style="max-width: 900px; margin: 0 auto;">
+    <div class="form-page-header">
+        <div>
+            <span class="panel-eyebrow">
+                SPECIAL ACCOUNTS • EDIT RECORD
+            </span>
+            <h2>
+                Edit {{ client.company_name }}
+            </h2>
+            <p>
+                Update account details for this special record.
+            </p>
+        </div>
+
+        <div class="form-page-actions">
+            <a href="{{ url_for('management_clients.view_client', client_id=client.id) }}" class="btn btn-secondary-soft-dark">
+                <i class="bi bi-arrow-left"></i>
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary-red">
+                <i class="bi bi-check2-circle"></i>
+                Save Changes
+            </button>
+        </div>
+    </div>
+
+    <input type="hidden" name="category" value="{{ client.category }}">
+
+    <div class="client-form-layout" style="display: block;">
+        <div class="client-form-main">
+            <section class="form-section-card">
+                <div class="form-section-header">
+                    <div class="form-section-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h3>Account Information</h3>
+                        <p>Update company and contact information.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="crm-field full-span">
+                        <label for="company_name">Company Name <span class="required">*</span></label>
+                        <input type="text" id="company_name" name="company_name" value="{{ client.company_name }}" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="contact_person_name">Contact Person <span class="required">*</span></label>
+                        <input type="text" id="contact_person_name" name="contact_person_name" value="{{ client.contact_person_name }}" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="email">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" value="{{ client.email }}" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="primary_phone">Primary Phone <span class="required">*</span></label>
+                        <input type="tel" id="primary_phone" name="primary_phone" value="{{ client.primary_phone }}" required>
+                    </div>
+
+                    <div class="crm-field">
+                        <label for="address_line_1">Address <span class="required">*</span></label>
+                        <input type="text" id="address_line_1" name="address_line_1" value="{{ client.address_line_1 }}" required>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
