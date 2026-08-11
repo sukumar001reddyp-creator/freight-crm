@@ -44,6 +44,11 @@
             <a href="{{ url_for('enquiries.edit_enquiry', enquiry_id=enquiry.id) }}" class="btn btn-primary-red">
                 <i class="bi bi-pencil-square"></i> Edit Enquiry
             </a>
+
+            <a href="{{ url_for('enquiries.delete_enquiry', id=enquiry.id) }}" class="btn" style="background: #dc2626; color: white;" onclick="return confirm('Are you sure you want to delete this enquiry?');">
+                <i class="bi bi-trash-fill"></i> Delete
+            </a>
+        
         </div>
     </section>
 

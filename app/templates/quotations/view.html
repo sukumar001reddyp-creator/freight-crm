@@ -409,47 +409,7 @@
                     <i class="bi bi-download"></i>
                     Download Quotation PDF
                 </a>
-<!-- OPEN IN OUTLOOK APP WITH AUTO PDF DOWNLOAD -->
-{% set client_email = quotation.client.email if quotation.client else (quotation.enquiry.client.email if quotation.enquiry else '') %}
 
-{% set mail_subject = "Quotation #" ~ quotation.quotation_number ~ " - Freight Services" %}
-
-{% set mail_body = "Dear Sir/Madam,\n\nPlease find attached the quotation reference number #" ~ quotation.quotation_number ~ " for your shipment.\n\n--- QUOTATION DETAILS ---\n• Quotation No: " ~ quotation.quotation_number ~ "\n" %}
-
-{% if quotation.origin %}{% set mail_body = mail_body ~ "• Origin: " ~ quotation.origin ~ "\n" %}{% endif %}
-{% if quotation.destination %}{% set mail_body = mail_body ~ "• Destination: " ~ quotation.destination ~ "\n" %}{% endif %}
-{% if quotation.mode_of_shipment %}{% set mail_body = mail_body ~ "• Mode: " ~ quotation.mode_of_shipment ~ "\n" %}{% endif %}
-{% if quotation.validity_date %}{% set mail_body = mail_body ~ "• Validity Date: " ~ quotation.validity_date.strftime('%d %b %Y') ~ "\n" %}{% endif %}
-{% if quotation.cargo_description %}{% set mail_body = mail_body ~ "• Cargo Description: " ~ quotation.cargo_description ~ "\n" %}{% endif %}
-{% if quotation.cargo_weight_volume %}{% set mail_body = mail_body ~ "• Weight / Volume: " ~ quotation.cargo_weight_volume ~ "\n" %}{% endif %}
-{% if quotation.shipping_line_airline %}{% set mail_body = mail_body ~ "• Shipping Line / Airline: " ~ quotation.shipping_line_airline ~ "\n" %}{% endif %}
-{% if quotation.no_of_containers %}{% set mail_body = mail_body ~ "• No. of Containers: " ~ quotation.no_of_containers ~ "\n" %}{% endif %}
-{% if quotation.container_type_quota %}{% set mail_body = mail_body ~ "• Container Type: " ~ quotation.container_type_quota ~ "\n" %}{% endif %}
-{% if quotation.etd %}{% set mail_body = mail_body ~ "• ETD: " ~ quotation.etd.strftime('%d %b %Y %H:%M') ~ "\n" %}{% endif %}
-{% if quotation.cutoff_date_documentation %}{% set mail_body = mail_body ~ "• Documentation Cutoff: " ~ quotation.cutoff_date_documentation.strftime('%d %b %Y %H:%M') ~ "\n" %}{% endif %}
-{% if quotation.cutoff_date_cargo %}{% set mail_body = mail_body ~ "• Cargo Cutoff: " ~ quotation.cutoff_date_cargo.strftime('%d %b %Y %H:%M') ~ "\n" %}{% endif %}
-{% if quotation.free_time_days %}{% set mail_body = mail_body ~ "• Free Time (Days): " ~ quotation.free_time_days ~ "\n" %}{% endif %}
-{% if quotation.transit_time_days %}{% set mail_body = mail_body ~ "• Transit Time (Days): " ~ quotation.transit_time_days ~ "\n" %}{% endif %}
-{% if quotation.incoterms %}{% set mail_body = mail_body ~ "• Incoterms: " ~ quotation.incoterms ~ "\n" %}{% endif %}
-{% if quotation.hs_code %}{% set mail_body = mail_body ~ "• HS Code: " ~ quotation.hs_code ~ "\n" %}{% endif %}
-
-{% set mail_body = mail_body
-    ~ "\n====================================\n"
-    ~ "          GRAND TOTAL\n"
-    ~ "====================================\n"
-    ~ quotation.currency ~ " " ~ '{:,.2f}'.format(quotation.quotation_amount or 0)
-    ~ "\n====================================\n\n"
-    ~ "Best regards,\n"
-    ~ current_user.full_name
-%}
-
-<a href="{{ url_for('quotations.download_quotation_pdf', quotation_id=quotation.id) }}" 
-   target="_blank"
-   onclick="setTimeout(function(){ window.location.href='mailto:{{ client_email }}?subject={{ mail_subject | urlencode }}&body={{ mail_body | urlencode }}'; }, 1000);"
-   class="btn" 
-   style="background: #2563eb; color: white; width: 100%; border: none; margin-bottom: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-    <i class="bi bi-envelope-paper-fill"></i> Download PDF & Open Outlook
-</a>
                 
                 {% if quotation.status != "approved" %}
                 <form method="POST" 

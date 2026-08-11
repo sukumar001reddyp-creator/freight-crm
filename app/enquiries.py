@@ -859,3 +859,18 @@ def download_enquiry_pdf(enquiry_id):
 
     return response
 
+
+
+@enquiries_bp.route('/enquiry/delete/<int:id>')
+@login_required
+def delete_enquiry(id):
+    try:
+        enquiry = Enquiry.query.get_or_404(id)
+        db.session.delete(enquiry)
+        db.session.commit()
+        flash('Enquiry deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting enquiry: {e}', 'danger')
+        
+    return redirect(url_for('enquiries.enquiry_list'))

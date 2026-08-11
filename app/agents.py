@@ -34,3 +34,40 @@ def add_agent():
             flash("Unable to add agent. Please try again.", "danger")
 
     return render_template("agents/add.html")
+
+@agents_bp.route("/edit/<int:id>", methods=["GET", "POST"])
+@login_required
+def edit_agent(id):
+    agent = Agent.query.get_or_404(id)
+    if request.method == "POST":
+        agent.name = request.form.get("name", "").strip()
+        agent.email = request.form.get("email", "").strip()
+        agent.country = request.form.get("country", "").strip()
+
+        if not agent.name or not agent.email or not agent.country:
+            flash("Please fill in all required fields.", "danger")
+            return render_template("agents/edit.html", agent=agent)
+
+        try:
+            db.session.commit()
+            flash(f"Agent {agent.name} updated successfully.", "success")
+            return redirect(url_for("agents.agent_list"))
+        except Exception:
+            db.session.rollback()
+            flash("Unable to update agent. Please try again.", "danger")
+
+    return render_template("agents/edit.html", agent=agent)
+
+@agents_bp.route("/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_agent(id):
+    agent = Agent.query.get_or_404(id)
+    try:
+        agent_name = agent.name
+        db.session.delete(agent)
+        db.session.commit()
+        flash(f"Agent {agent_name} deleted successfully.", "success")
+    except Exception:
+        db.session.rollback()
+        flash("Unable to delete agent. Please try again.", "danger")
+    return redirect(url_for("agents.agent_list"))
