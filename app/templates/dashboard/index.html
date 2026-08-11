@@ -273,7 +273,7 @@
     border-color: rgba(255, 255, 255, 0.7);
 }
 
-/* KPIs Grid */
+/* KPIs Grid & Enhanced Hover Effects */
 .cd-kpis {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -285,11 +285,16 @@
     box-shadow: var(--shadow-subtle);
     padding: 20px;
     border-radius: var(--radius-lg);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
 .cd-kpi:hover {
-    box-shadow: var(--shadow-card);
-    transform: translateY(-1px);
+    box-shadow: 0 10px 20px -5px rgba(185, 28, 28, 0.12);
+    transform: translateY(-3px);
+    border-color: var(--primary-red);
 }
 .cd-kpi-top {
     display: flex;
@@ -775,20 +780,20 @@
 <!-- KPIS SECTION -->
 <section class="cd-kpis">
 {% set kpis = [
-("i-red","people-fill","Live Records",total_clients,"Total Clients"),
-("i-orange","inbox-fill","Pending",total_enquiries,"Open Enquiries"),
-("i-purple","file-earmark-text-fill","Decision",total_quotations,"Pending Quotations"),
-("i-green","truck","In Progress",total_shipments,"Active Shipments")
+("i-red","people-fill","Live Records",total_clients,"Total Clients", url_for('clients.client_list')),
+("i-orange","inbox-fill","Pending",total_enquiries,"Open Enquiries", url_for('enquiries.enquiry_list', status='dashboard_open')),
+("i-purple","file-earmark-text-fill","Decision",total_quotations,"Pending Quotations", url_for('quotations.quotation_list', status='dashboard_pending')),
+("i-green","truck","In Progress",total_shipments,"Active Shipments", url_for('shipments.shipment_list', status='dashboard_active'))
 ] %}
-{% for icon_class,icon,state,value,label in kpis %}
-<article class="cd-kpi">
+{% for icon_class,icon,state,value,label,target_url in kpis %}
+<a href="{{ target_url }}" class="cd-kpi">
     <div class="cd-kpi-top">
         <span class="cd-icon {{ icon_class }}"><i class="bi bi-{{ icon }}"></i></span>
         <span class="cd-state">{{ state }}</span>
     </div>
     <div class="cd-value">{{ value }}</div>
     <div class="cd-label">{{ label }}</div>
-</article>
+</a>
 {% endfor %}
 </section>
 

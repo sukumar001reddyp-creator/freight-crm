@@ -8,11 +8,11 @@ import pdfkit
 from decimal import Decimal
 from flask import (
     Blueprint, render_template, request, redirect, 
-    url_for, flash, current_app, make_response
+    url_for, flash, current_app, make_response, send_file,
 )
 from flask_login import login_required, current_user
 from app import db
-from app.models import Client, Quotation, Enquiry, ShipmentPartyDetails
+from app.models import Client, Quotation, Enquiry, ShipmentPartyDetails, User
 from app.sales_scope import (
     scope_quotations, get_enquiry_or_404, get_quotation_or_404,
 )
@@ -33,6 +33,15 @@ def generate_quotation_number():
 @login_required
 def create_quotation(enquiry_id):
     enquiry = get_enquiry_or_404(enquiry_id)
+
+    # 🛑 ఇక్కడ చెక్ చేయాలి: ఈ ఎన్‌క్వైరీకి ఆల్రెడీ కొటేషన్ ఉందా లేదా?
+    existing_quotation = db.session.execute(
+        db.select(Quotation).where(Quotation.enquiry_id == enquiry.id)
+    ).scalars().first()
+
+    if existing_quotation:
+        flash(f"This enquiry is already quoted! Existing Quotation Number: {existing_quotation.quotation_number}", "warning")
+        return redirect(url_for("enquiries.view_enquiry", enquiry_id=enquiry.id))
 
     if request.method == "POST":
         ocean_air_freight = Decimal(request.form.get("ocean_air_freight") or 0)
@@ -191,18 +200,78 @@ def create_direct_quotation():
 
     return render_template("quotations/create_direct.html", clients=clients)
 
+# =========================================================
+# QUOTATION LIST 
+# =========================================================
+
 @quotations_bp.route("/")
 @login_required
 def quotation_list():
-    quotations = (
-        db.session.execute(
-            scope_quotations(db.select(Quotation).where(Quotation.is_deleted == False))
-            .order_by(Quotation.created_at.desc())
+    selected_search = request.args.get("search", "").strip()
+    selected_status = request.args.get("status", "").strip()
+    selected_mode = request.args.get("mode", "").strip()
+    selected_client_id = request.args.get("client_id", "").strip()
+    selected_handled_by_id = request.args.get("handled_by_id", "").strip()
+
+    # ఒరిజినల్ కౌంట్స్ కోసం బేస్ క్వెరీ
+    base_query = scope_quotations(db.select(Quotation).where(Quotation.is_deleted == False))
+    all_quotations = db.session.execute(base_query).scalars().all()
+
+    # విడివిడిగా ఒరిజినల్ కౌంట్స్ లెక్కించడం
+    total_quotations_count = len(all_quotations)
+    pending_count = sum(1 for q in all_quotations if q.status == "pending")
+    approved_count = sum(1 for q in all_quotations if q.status == "approved")
+    rejected_count = sum(1 for q in all_quotations if q.status == "rejected")
+    converted_count = sum(1 for q in all_quotations if q.status == "converted")
+
+    # టేబుల్ కోసం ఫిల్టర్డ్ క్వెరీ
+    query = scope_quotations(db.select(Quotation).where(Quotation.is_deleted == False))
+
+    if selected_search:
+        query = query.where(
+            (Quotation.quotation_number.ilike(f"%{selected_search}%")) |
+            (Quotation.origin.ilike(f"%{selected_search}%")) |
+            (Quotation.destination.ilike(f"%{selected_search}%"))
         )
-        .scalars()
-        .all()
+
+    # ఇక్కడ కన్వర్ట్ అయినవి కూడా లిస్ట్‌లో కనిపించేలా స్టేటస్ ఫిల్టర్ సరిచేశాం
+    if selected_status == "dashboard_pending" or selected_status == "pending":
+        query = query.where(Quotation.status == "pending")
+    elif selected_status:
+        query = query.where(Quotation.status == selected_status)
+
+    if selected_mode:
+        query = query.where(Quotation.mode_of_shipment == selected_mode)
+
+    if selected_client_id:
+        query = query.where(Quotation.client_id == int(selected_client_id))
+
+    if selected_handled_by_id:
+        query = query.where(Quotation.created_by_id == int(selected_handled_by_id))
+
+    quotations = db.session.execute(query.order_by(Quotation.created_at.desc())).scalars().all()
+
+    clients_list = db.session.execute(db.select(Client).where(Client.is_archived == False).order_by(Client.company_name)).scalars().all()
+    
+    from app.models import User
+    users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
+
+    return render_template(
+        "quotations/list.html",
+        quotations=quotations,
+        total_quotations_count=total_quotations_count,
+        pending_count=pending_count,
+        approved_count=approved_count,
+        rejected_count=rejected_count,
+        converted_count=converted_count,
+        selected_search=selected_search,
+        selected_status=selected_status,
+        selected_mode=selected_mode,
+        selected_client_id=selected_client_id,
+        selected_handled_by_id=selected_handled_by_id,
+        clients_list=clients_list,
+        users_list=users_list
     )
-    return render_template("quotations/list.html", quotations=quotations)
 
 @quotations_bp.route("/<int:quotation_id>")
 @login_required
@@ -419,16 +488,16 @@ def edit_quotation(quotation_id):
 @login_required
 def delete_quotation(quotation_id):
     quotation = get_quotation_or_404(quotation_id)
-    if quotation.status == "approved":
-        flash("Approved quotations cannot be deleted.", "warning")
+    
+    # ఇక్కడ 'approved' తో పాటు 'converted' అయినవి కూడా డిలీట్ అవ్వకుండా బ్లాక్ చేస్తున్నాం
+    if quotation.status in ["approved", "converted"]:
+        flash("Approved or converted quotations cannot be deleted.", "warning")
         return redirect(url_for("quotations.view_quotation", quotation_id=quotation.id))
 
     quotation.is_deleted = True
     db.session.commit()
     flash("Quotation deleted successfully.", "success")
     return redirect(url_for("quotations.quotation_list"))
-
-from app.services.outlook_smtp_service import send_user_smtp_email # మీరు SMTP సర్వీస్ పెట్టిన ఫైల్ నుండి ఇంపోర్ట్ చేసుకోండి
 
 @quotations_bp.route('/<int:quotation_id>/send-email', methods=['POST'])
 @login_required
@@ -465,3 +534,99 @@ def send_quotation_email(quotation_id):
         flash(f"Failed to send email: {message}", "danger")
         
     return redirect(url_for('quotations.view_quotation', quotation_id=quotation_id))
+
+import io
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+
+@quotations_bp.route("/export-excel")
+@login_required
+def export_quotations_excel():
+    search = request.args.get("search", "").strip()
+    status = request.args.get("status", "").strip()
+    mode = request.args.get("mode", "").strip()
+    client_id = request.args.get("client_id", "").strip()
+    handled_by_id = request.args.get("handled_by_id", "").strip()
+
+    query = scope_quotations(db.select(Quotation).where(Quotation.is_deleted == False))
+
+    if search:
+        query = query.where(
+            (Quotation.quotation_number.ilike(f"%{search}%")) |
+            (Quotation.origin.ilike(f"%{search}%")) |
+            (Quotation.destination.ilike(f"%{search}%"))
+        )
+        
+    if status == "dashboard_pending":
+        query = query.where(Quotation.status == "pending")
+    elif status:
+        query = query.where(Quotation.status == status)
+        
+    if mode:
+        query = query.where(Quotation.mode_of_shipment == mode)
+    if client_id:
+        query = query.where(Quotation.client_id == int(client_id))
+    if handled_by_id:
+        query = query.where(Quotation.created_by_id == int(handled_by_id))
+
+    quotations = db.session.execute(query.order_by(Quotation.created_at.desc())).scalars().all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Quotations Report"
+
+    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="7F1D1D", end_color="7F1D1D", fill_type="solid")
+    border_thin = Border(
+        left=Side(style='thin', color='CBD5E1'), right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'), bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    headers = ["Quotation No", "Client", "Route", "Mode", "Amount", "Validity", "Status"]
+    ws.append(headers)
+
+    for col_num in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = border_thin
+
+    ws.row_dimensions[1].height = 24
+
+    for row_idx, q in enumerate(quotations, 2):
+        client_name = q.client.company_name if q.client else (q.other_client_name or "-")
+        route = f"{q.origin} -> {q.destination}"
+        mode = q.mode_of_shipment.replace("_", " ").title() if q.mode_of_shipment else "-"
+        amount = f"{q.currency} {q.quotation_amount:,.2f}" if q.quotation_amount else "-"
+        validity = q.validity_date.strftime("%d %b %Y") if q.validity_date else "-"
+        status_val = q.status.replace("_", " ").title() if q.status else "-"
+
+        row_data = [q.quotation_number, client_name, route, mode, amount, validity, status_val]
+        ws.append(row_data)
+
+        for col_idx in range(1, len(row_data) + 1):
+            cell = ws.cell(row=row_idx, column=col_idx)
+            cell.font = Font(name="Segoe UI", size=10)
+            cell.border = border_thin
+            cell.alignment = Alignment(horizontal="left", vertical="center")
+
+        ws.row_dimensions[row_idx].height = 20
+
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 5, 15)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Quotations_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )

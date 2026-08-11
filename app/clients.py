@@ -431,20 +431,6 @@ def excel_prepare_sheet(ws, title, headers):
     ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}1"
 
 
-def excel_finish_sheet(ws):
-    for row in ws.iter_rows():
-        for cell in row:
-            cell.alignment = Alignment(vertical="top", wrap_text=True)
-
-    for column_cells in ws.columns:
-        letter = get_column_letter(column_cells[0].column)
-        max_length = 0
-        for cell in column_cells:
-            value = export_text(cell.value)
-            if value:
-                max_length = max(max_length, min(len(value), 60))
-        ws.column_dimensions[letter].width = max(12, min(max_length + 2, 45))
-
 
 # =========================================================
 # CLIENT LIST
@@ -483,14 +469,19 @@ def client_list():
             )
         )
 
-    if category:
-        query = query.filter(Client.category == category)
+    # సమ్మరీ కార్డ్స్ క్లిక్ చేసినప్పుడు లేదా డ్రాప్‌డౌన్ ఫిల్టర్ చేసినప్పుడు వర్తించే లాజిక్
     if status:
         query = query.filter(Client.status == status)
+
+    if category:
+        query = query.filter(Client.category == category)
+
     if assigned_to and not is_sales_user():
         query = query.filter(Client.assigned_to_id == assigned_to)
+
     if priority:
         query = query.filter(Client.priority_level == priority)
+
     if pipeline_stage:
         query = query.filter(Client.pipeline_stage == pipeline_stage)
 
@@ -519,6 +510,16 @@ def client_list():
     if is_sales_user():
         stats_query = stats_query.filter(Client.assigned_to_id == current_user.id)
 
+    # సమ్మరీ కార్డ్స్ కోసం ఒరిజినల్ కౌంట్స్
+    all_stats_clients = stats_query.all()
+    total_clients_count = len(all_stats_clients)
+    active_count = sum(1 for c in all_stats_clients if c.status in ["active", "key", "reactivated"])
+    lead_count = sum(1 for c in all_stats_clients if c.status in ["lead", "new"])
+    pipeline_count = sum(1 for c in all_stats_clients if c.category == "pipeline")
+    
+    # portal_user లేకపోతే ఎర్రర్ రాకుండా దీన్ని ఇలా మార్చు:
+    portal_count = sum(1 for c in all_stats_clients if getattr(c, 'portal_account', None))
+
     total_clients = stats_query.count()
     active_clients = stats_query.filter(Client.status.in_(["active", "key", "reactivated"])).count()
     lead_clients = stats_query.filter(Client.status.in_(["lead", "new"])).count()
@@ -532,6 +533,11 @@ def client_list():
         active_clients=active_clients,
         lead_clients=lead_clients,
         at_risk_clients=at_risk_clients,
+        total_clients_count=total_clients_count,
+        active_count=active_count,
+        lead_count=lead_count,
+        pipeline_count=pipeline_count,
+        portal_count=portal_count,
         statuses=CLIENT_STATUSES,
         services=SERVICE_OPTIONS,
         categories=CLIENT_CATEGORIES,
@@ -546,7 +552,6 @@ def client_list():
         selected_pipeline_stage=pipeline_stage,
         selected_sort=sort,
     )
-
 
 # =========================================================
 # BULK REASSIGN CLIENT OWNER
@@ -1608,3 +1613,179 @@ def client_portal_account(client_id):
         
     return render_template('clients/client_portal_account.html', client=client)
 
+@clients_bp.route("/export/all-excel")
+@login_required
+def export_all_clients_excel():
+    query = Client.query.filter_by(is_archived=False)
+    if is_sales_user():
+        query = query.filter(Client.assigned_to_id == current_user.id)
+    
+    clients = query.order_by(Client.company_name.asc()).all()
+    
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Clients Directory"
+
+    headers = [
+        "Client Reference", "Company Name", "Contact Person", "Email", "Primary Phone", "Secondary Phone",
+        "Category", "Status", "Pipeline Stage", "Priority", "Owner", "Industry", "Registration No", "VAT No", "License No", "Payment Terms", "Next Follow-Up", "Last Contact"
+    ]
+    sheet.append(headers)
+
+    for client in clients:
+        sheet.append([
+            client.client_reference or "", client.company_name or "", client.contact_person_name or "", client.email or "", client.primary_phone or "", client.secondary_phone or "",
+            client.category or "", client.status or "", client.pipeline_stage or "", client.priority_level or "", client.assigned_to.full_name if client.assigned_to else "", client.industry_sector or "",
+            client.company_registration_number or "", client.tax_vat_number or "", client.license_number or "", client.payment_terms or "",
+            client.next_follow_up_date.strftime("%Y-%m-%d") if client.next_follow_up_date else "", client.last_contact_date.strftime("%Y-%m-%d") if client.last_contact_date else ""
+        ])
+
+    for cell in sheet[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor="C62828")
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return send_file(output, as_attachment=True, download_name=f"clients_directory_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx", mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+
+@clients_bp.route("/export/excel", methods=["GET"])
+@login_required
+def export_clients_excel():
+    search = request.args.get("search", "").strip()
+    category = request.args.get("category", "").strip()
+    status = request.args.get("status", "").strip()
+    assigned_to = request.args.get("assigned_to", type=int)
+    priority = request.args.get("priority", "").strip()
+    pipeline_stage = request.args.get("pipeline_stage", "").strip()
+
+    query = Client.query.filter_by(is_archived=False)
+
+    if is_sales_user():
+        query = query.filter(Client.assigned_to_id == current_user.id)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Client.client_reference.ilike(search_term),
+                Client.company_name.ilike(search_term),
+                Client.contact_person_name.ilike(search_term),
+                Client.email.ilike(search_term),
+                Client.primary_phone.ilike(search_term),
+                Client.industry_sector.ilike(search_term),
+            )
+        )
+
+    if status:
+        query = query.filter(Client.status == status)
+
+    if category:
+        query = query.filter(Client.category == category)
+
+    if assigned_to and not is_sales_user():
+        query = query.filter(Client.assigned_to_id == assigned_to)
+
+    if priority:
+        query = query.filter(Client.priority_level == priority)
+
+    if pipeline_stage:
+        query = query.filter(Client.pipeline_stage == pipeline_stage)
+
+    clients = query.order_by(Client.company_name.asc()).all()
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Clients Directory"
+    
+    headers = [
+        "Client Reference", "Company Name", "Contact Person", "Email", "Primary Phone", "Secondary Phone",
+        "Category", "Status", "Pipeline Stage", "Priority", "Owner", "Industry", "Registration No", "VAT No", "License No", "Payment Terms", "Next Follow-Up", "Last Contact"
+    ]
+    sheet.append(headers)
+
+    # హెడర్ స్టైలింగ్ (రెడ్ కలర్ & సెంటర్ అలైన్‌మెంట్)
+    for cell in sheet[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor="C62828")
+        cell.alignment = Alignment(vertical="center", horizontal="center", wrap_text=False)
+
+    sheet.freeze_panes = "A2"
+    sheet.auto_filter.ref = f"A1:{get_column_letter(len(headers))}1"
+
+    for client in clients:
+        sheet.append([
+            client.client_reference or "", 
+            client.company_name or "", 
+            client.contact_person_name or "", 
+            client.email or "", 
+            client.primary_phone or "", 
+            client.secondary_phone or "",
+            client.category or "", 
+            client.status or "", 
+            client.pipeline_stage or "", 
+            client.priority_level or "", 
+            client.assigned_to.full_name if client.assigned_to else "", 
+            client.industry_sector or "",
+            client.company_registration_number or "", 
+            client.tax_vat_number or "", 
+            client.license_number or "", 
+            client.payment_terms or "",
+            client.next_follow_up_date.strftime("%Y-%m-%d") if client.next_follow_up_date else "", 
+            client.last_contact_date.strftime("%Y-%m-%d") if client.last_contact_date else ""
+        ])
+
+    for row in sheet.iter_rows(min_row=2):
+        for cell in row:
+            cell.alignment = Alignment(
+                vertical="center",
+                horizontal="left",
+                wrap_text=False
+            )
+
+    # Auto width
+    for column_cells in sheet.columns:
+        length = max(
+            len(str(cell.value)) if cell.value is not None else 0
+            for cell in column_cells
+        )
+
+        col_letter = get_column_letter(column_cells[0].column)
+        sheet.column_dimensions[col_letter].width = min(length + 3, 60)
+    # Set fixed column widths
+    column_widths = {
+        "A": 20,
+        "B": 36,
+        "C": 21,
+        "D": 32,
+        "E": 18,
+        "F": 18,
+        "G": 18,
+        "H": 16,
+        "I": 20,
+        "J": 15,
+        "K": 22,
+        "L": 22,
+        "M": 20,
+        "N": 20,
+        "O": 20,
+        "P": 24,
+        "Q": 18,
+        "R": 18,
+    }
+
+    for col, width in column_widths.items():
+        sheet.column_dimensions[col].width = width
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="clients_export.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )

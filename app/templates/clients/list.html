@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 
 {% block title %}
-Clients | Freight CRM
+    Clients Directory | Freight CRM
 {% endblock %}
 
 {% block page_title %}
@@ -50,6 +50,11 @@ Search, filter and manage complete client lifecycle records.
                 Import Excel
             </button>
 
+           <!-- EXPORT EXCEL BUTTON -->
+            <a href="{{ url_for('clients.export_all_clients_excel') }}" class="btn btn-secondary-soft">
+                <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
+            </a>
+
             <a
                 href="{{ url_for('clients.add_client') }}"
                 class="btn btn-primary-red"
@@ -87,38 +92,45 @@ Search, filter and manage complete client lifecycle records.
     </div>
             
 
+    <!-- ==========================================
+         SUMMARY CARDS (CLICKABLE WITH ACTIVE STATE)
+         ========================================== -->
     <section class="client-stat-grid">
-        <article class="client-stat-card">
+        <!-- TOTAL CLIENTS -->
+        <a href="{{ url_for('clients.client_list') }}" class="client-stat-card {% if not selected_status and not selected_category %}active-card{% endif %}">
             <span class="client-stat-icon"><i class="bi bi-people-fill"></i></span>
             <div>
                 <small>Total Clients</small>
-                <strong>{{ total_clients }}</strong>
+                <strong>{{ total_clients_count }}</strong>
             </div>
-        </article>
+        </a>
 
-        <article class="client-stat-card">
+        <!-- ACTIVE -->
+        <a href="{{ url_for('clients.client_list', status='active') }}" class="client-stat-card {% if selected_status == 'active' %}active-card{% endif %}">
             <span class="client-stat-icon"><i class="bi bi-check2-circle"></i></span>
             <div>
                 <small>Active</small>
-                <strong>{{ active_clients }}</strong>
+                <strong>{{ active_count }}</strong>
             </div>
-        </article>
+        </a>
 
-        <article class="client-stat-card">
+        <!-- LEADS -->
+        <a href="{{ url_for('clients.client_list', status='lead') }}" class="client-stat-card {% if selected_status == 'lead' %}active-card{% endif %}">
             <span class="client-stat-icon"><i class="bi bi-funnel-fill"></i></span>
             <div>
                 <small>Leads / New</small>
-                <strong>{{ lead_clients }}</strong>
+                <strong>{{ lead_count }}</strong>
             </div>
-        </article>
+        </a>
 
-        <article class="client-stat-card danger-stat">
-            <span class="client-stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+        <!-- PIPELINE -->
+        <a href="{{ url_for('clients.client_list', category='pipeline') }}" class="client-stat-card {% if selected_category == 'pipeline' %}active-card{% endif %}">
+            <span class="client-stat-icon" style="background: #f5f3ff; color: #7c3aed;"><i class="bi bi-diagram-3-fill"></i></span>
             <div>
-                <small>At Risk</small>
-                <strong>{{ at_risk_clients }}</strong>
+                <small>Pipeline</small>
+                <strong>{{ pipeline_count }}</strong>
             </div>
-        </article>
+        </a>
     </section>
 
 
@@ -152,6 +164,7 @@ Search, filter and manage complete client lifecycle records.
                         <option value="Warehouse / 3PL Provider" {% if selected_category == 'Warehouse / 3PL Provider' %}selected{% endif %}>Warehouse / 3PL</option>
                         <option value="Direct Corporate Client" {% if selected_category == 'Direct Corporate Client' %}selected{% endif %}>Direct Corporate</option>
                         <option value="Government / Institutional Client" {% if selected_category == 'Government / Institutional Client' %}selected{% endif %}>Government / Institutional</option>
+                        <option value="pipeline" {% if selected_category == 'pipeline' %}selected{% endif %}>Pipeline</option>
                     </select>
 
                     <select name="status">
@@ -572,7 +585,7 @@ Search, filter and manage complete client lifecycle records.
 }
 .custom-close:hover { color: var(--text-main); }
 
-/* Stat Grid */
+/* Stat Grid & Clickable Summary Cards */
 .client-stat-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -587,6 +600,21 @@ Search, filter and manage complete client lifecycle records.
     display: flex;
     align-items: center;
     gap: 12px;
+    text-decoration: none !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease;
+}
+.client-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--primary-red);
+}
+.client-stat-card.active-card {
+    background: #fef2f2 !important;
+    border-color: var(--primary-red) !important;
+    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.15) !important;
+    transform: translateY(-2px);
 }
 .client-stat-icon {
     width: 38px;
@@ -599,10 +627,6 @@ Search, filter and manage complete client lifecycle records.
     color: var(--primary-red);
     font-size: 17px;
     flex-shrink: 0;
-}
-.client-stat-card.danger-stat .client-stat-icon {
-    background: #ffedd5;
-    color: #c2410c;
 }
 .client-stat-card small {
     display: block;
@@ -856,7 +880,7 @@ Search, filter and manage complete client lifecycle records.
 .column-settings-grid label { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 11.5px; font-weight: 500; cursor: pointer; background: var(--bg-canvas); }
 .reset-columns-btn { margin-top: 10px; height: 32px; padding: 0 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-canvas); font-size: 11px; font-weight: 600; cursor: pointer; color: var(--text-muted); }
 
-/* Table Styling - Bold & Larger Client Name */
+/* Table Styling */
 .client-data-table {
     width: 100%;
     border-collapse: collapse;
@@ -904,7 +928,7 @@ Search, filter and manage complete client lifecycle records.
 .client-company-name {
     font-weight: 700;
     color: var(--surface-dark);
-    font-size: 14.5px; /* Increased font size for client name */
+    font-size: 14.5px;
     text-decoration: none;
     display: block;
 }

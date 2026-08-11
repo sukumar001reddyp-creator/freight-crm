@@ -265,9 +265,17 @@ def generate_shipment_reference():
     )
 
 
+import io
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+
 # =========================================================
-# SHIPMENT LIST
-# URL: /shipments/
+# SHIPMENT LIST 
+# =========================================================
+
+# =========================================================
+# SHIPMENT LIST 
 # =========================================================
 
 @shipments_bp.route("/")
@@ -282,20 +290,18 @@ def shipment_list():
     query = db.select(Shipment)
 
     if is_sales_user():
-        query = (
-            query
-            .join(
-                Client,
-                Shipment.client_id == Client.id
-            )
-            .where(
-                Client.assigned_to_id
-                == current_user.id
-            )
-        )
+        query = query.join(Client, Shipment.client_id == Client.id).where(Client.assigned_to_id == current_user.id)
     elif not is_admin_user():
         from flask import abort
         abort(403)
+
+    # టాప్ కార్డ్స్ కోసం టోటల్ డేటాను బేస్ చేసి కౌంట్స్ లెక్కించడం
+    all_shipments_list = db.session.execute(query).scalars().all()
+    total_shipments_count = len(all_shipments_list)
+    active_count = sum(1 for s in all_shipments_list if s.shipment_status not in ["delivered", "closed", "completed", "closed_completed", "cancelled"])
+    in_transit_count = sum(1 for s in all_shipments_list if s.shipment_status == "in_transit")
+    delivered_count = sum(1 for s in all_shipments_list if s.shipment_status == "delivered")
+    closed_count = sum(1 for s in all_shipments_list if s.shipment_status in ["closed", "completed", "closed_completed"])
 
     if selected_search:
         query = query.where(
@@ -304,7 +310,10 @@ def shipment_list():
             (Shipment.destination.ilike(f"%{selected_search}%"))
         )
 
-    if selected_status:
+    # డాష్‌బోర్డ్ యాక్టివ్ షిప్‌మెంట్ల లాజిక్
+    if selected_status == "dashboard_active":
+        query = query.where(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"]))
+    elif selected_status:
         query = query.where(Shipment.shipment_status == selected_status)
 
     if selected_mode:
@@ -316,19 +325,9 @@ def shipment_list():
     if selected_handled_by_id:
         query = query.where(Shipment.handled_by_id == int(selected_handled_by_id))
 
-    shipments = (
-        db.session.execute(
-            query.order_by(
-                Shipment.created_at.desc()
-            )
-        )
-        .scalars()
-        .all()
-    )
+    shipments = db.session.execute(query.order_by(Shipment.created_at.desc())).scalars().all()
 
     clients_list = db.session.execute(db.select(Client).where(Client.is_archived == False).order_by(Client.company_name)).scalars().all()
-    
-    from app.models import User
     users_list = db.session.execute(db.select(User).order_by(User.full_name)).scalars().all()
 
     return render_template(
@@ -336,11 +335,116 @@ def shipment_list():
         shipments=shipments,
         clients_list=clients_list,
         users_list=users_list,
+        total_shipments_count=total_shipments_count,
+        active_count=active_count,
+        in_transit_count=in_transit_count,
+        delivered_count=delivered_count,
+        closed_count=closed_count,
         selected_search=selected_search,
         selected_status=selected_status,
         selected_mode=selected_mode,
         selected_client_id=selected_client_id,
         selected_handled_by_id=selected_handled_by_id
+    )
+# =========================================================
+# EXPORT EXCEL (రౌట్ మార్పు)
+# =========================================================
+
+@shipments_bp.route("/export-excel")
+@login_required
+def export_shipments_excel():
+    search = request.args.get("search", "").strip()
+    status = request.args.get("status", "").strip()
+    mode = request.args.get("mode", "").strip()
+    client_id = request.args.get("client_id", "").strip()
+    handled_by_id = request.args.get("handled_by_id", "").strip()
+
+    query = db.select(Shipment)
+
+    if is_sales_user():
+        query = query.join(Client, Shipment.client_id == Client.id).where(Client.assigned_to_id == current_user.id)
+    elif not is_admin_user():
+        from flask import abort
+        abort(403)
+
+    if search:
+        query = query.where(
+            (Shipment.shipment_reference.ilike(f"%{search}%")) |
+            (Shipment.origin.ilike(f"%{search}%")) |
+            (Shipment.destination.ilike(f"%{search}%"))
+        )
+        
+    if status == "dashboard_active":
+        query = query.where(Shipment.shipment_status.notin_(["delivered", "closed", "completed", "closed_completed"]))
+    elif status:
+        query = query.where(Shipment.shipment_status == status)
+        
+    if mode:
+        query = query.where(Shipment.mode_of_shipment == mode)
+    if client_id:
+        query = query.where(Shipment.client_id == int(client_id))
+    if handled_by_id:
+        query = query.where(Shipment.handled_by_id == int(handled_by_id))
+
+    shipments = db.session.execute(query.order_by(Shipment.created_at.desc())).scalars().all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Shipments Report"
+
+    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="7F1D1D", end_color="7F1D1D", fill_type="solid")
+    border_thin = Border(
+        left=Side(style='thin', color='CBD5E1'), right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'), bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    headers = ["Shipment Ref", "Client", "Route", "Mode", "Status", "Handled By", "Created Date"]
+    ws.append(headers)
+
+    for col_num in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = border_thin
+
+    ws.row_dimensions[1].height = 24
+
+    for row_idx, s in enumerate(shipments, 2):
+        client_name = s.client.company_name if s.client else (s.other_client_name or "-")
+        route = f"{s.origin} -> {s.destination}"
+        mode = s.mode_of_shipment.replace("_", " ").title() if s.mode_of_shipment else "-"
+        status_val = s.shipment_status.replace("_", " ").title() if s.shipment_status else "-"
+        handled_by = s.handled_by.full_name if s.handled_by else "-"
+        created_at = s.created_at.strftime("%d %b %Y") if s.created_at else "-"
+
+        row_data = [s.shipment_reference, client_name, route, mode, status_val, handled_by, created_at]
+        ws.append(row_data)
+
+        for col_idx in range(1, len(row_data) + 1):
+            cell = ws.cell(row=row_idx, column=col_idx)
+            cell.font = Font(name="Segoe UI", size=10)
+            cell.border = border_thin
+            cell.alignment = Alignment(horizontal="left", vertical="center")
+
+        ws.row_dimensions[row_idx].height = 20
+
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 5, 15)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Shipments_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
 
@@ -508,6 +612,8 @@ def convert_from_quotation(quotation_id):
 
     if enquiry:
         enquiry.status = "converted"
+        
+    quotation.status = "converted"  
 
     default_documents = [
         ("booking_confirmation", "Booking Confirmation"),
@@ -2369,107 +2475,3 @@ import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
-@shipments_bp.route("/export-excel")
-@login_required
-def export_shipments_excel():
-    # 1. రిక్వెస్ట్ నుండి ఫిల్టర్ పారామీటర్లను తీసుకోవడం
-    search = request.args.get("search", "").strip()
-    status = request.args.get("status", "").strip()
-    mode = request.args.get("mode", "").strip()
-    client_id = request.args.get("client_id", "").strip()
-    handled_by_id = request.args.get("handled_by_id", "").strip()
-
-    # 2. క్వెరీ బిల్డింగ్ (లిస్ట్ పేజీ లాగే)
-    query = db.select(Shipment)
-
-    if is_sales_user():
-        query = query.join(Client, Shipment.client_id == Client.id).where(Client.assigned_to_id == current_user.id)
-    elif not is_admin_user():
-        from flask import abort
-        abort(403)
-
-    # 3. ఫిల్టర్స్ అప్లై చేయడం
-    if search:
-        query = query.where(
-            (Shipment.shipment_reference.ilike(f"%{search}%")) |
-            (Shipment.origin.ilike(f"%{search}%")) |
-            (Shipment.destination.ilike(f"%{search}%"))
-        )
-    if status:
-        query = query.where(Shipment.shipment_status == status)
-    if mode:
-        query = query.where(Shipment.mode_of_shipment == mode)
-    if client_id:
-        query = query.where(Shipment.client_id == int(client_id))
-    if handled_by_id:
-        query = query.where(Shipment.handled_by_id == int(handled_by_id))
-
-    shipments = db.session.execute(query.order_by(Shipment.created_at.desc())).scalars().all()
-
-    # 4. Excel Workbook క్రియేషన్
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Shipments Report"
-
-    # హెడర్ స్టైల్స్
-    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="7F1D1D", end_color="7F1D1D", fill_type="solid")
-    border_thin = Border(
-        left=Side(style='thin', color='CBD5E1'),
-        right=Side(style='thin', color='CBD5E1'),
-        top=Side(style='thin', color='CBD5E1'),
-        bottom=Side(style='thin', color='CBD5E1')
-    )
-
-    headers = ["Shipment Ref", "Client", "Route", "Mode", "Status", "Handled By", "Created Date"]
-    ws.append(headers)
-
-    # హెడర్ రో ఫార్మాటింగ్
-    for col_num in range(1, len(headers) + 1):
-        cell = ws.cell(row=1, column=col_num)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center", vertical="center")
-        cell.border = border_thin
-
-    ws.row_dimensions[1].height = 24
-
-    # డేటా రోస్ ఫిల్ చేయడం
-    for row_idx, s in enumerate(shipments, 2):
-        client_name = s.client.company_name if s.client else (s.other_client_name or "-")
-        route = f"{s.origin} -> {s.destination}"
-        mode = s.mode_of_shipment.replace("_", " ").title() if s.mode_of_shipment else "-"
-        status_val = s.shipment_status.replace("_", " ").title() if s.shipment_status else "-"
-        handled_by = s.handled_by.full_name if s.handled_by else "-"
-        created_at = s.created_at.strftime("%d %b %Y") if s.created_at else "-"
-
-        row_data = [s.shipment_reference, client_name, route, mode, status_val, handled_by, created_at]
-        ws.append(row_data)
-
-        for col_idx in range(1, len(row_data) + 1):
-            cell = ws.cell(row=row_idx, column=col_idx)
-            cell.font = Font(name="Segoe UI", size=10)
-            cell.border = border_thin
-            cell.alignment = Alignment(horizontal="left", vertical="center")
-
-        ws.row_dimensions[row_idx].height = 20
-
-    # కాలమ్ విడ్త్ ఆటో-అడ్జస్ట్మెంట్
-    for col in ws.columns:
-        max_len = max(len(str(cell.value or '')) for cell in col)
-        col_letter = get_column_letter(col[0].column)
-        ws.column_dimensions[col_letter].width = max(max_len + 5, 15)
-
-    # 5. మెమరీ బఫర్ ద్వారా ఫైల్‌ని రిటర్న్ చేయడం
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    filename = f"Shipments_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )

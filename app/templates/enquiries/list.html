@@ -26,7 +26,17 @@
             </p>
         </div>
 
-        <div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- EXPORT EXCEL BUTTON -->
+            <a href="{{ url_for('enquiries.export_enquiries_excel', 
+                                search=selected_search, 
+                                status=selected_status, 
+                                mode=selected_mode, 
+                                client_id=selected_client_id, 
+                                handled_by_id=selected_handled_by_id) }}" 
+               class="btn btn-primary-red">
+                <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
+            </a>
            
             <a
                 href="{{ url_for('enquiries.add_enquiry') }}"
@@ -38,111 +48,125 @@
         </div>
     </section>
 
-
-    <!-- ==========================================
-         SUMMARY CARDS
+<!-- ==========================================
+         SUMMARY CARDS (CLICKABLE WITH ACTIVE STATE)
          ========================================== -->
 
-    <section class="enquiry-stat-grid">
+    <section class="quotation-stat-grid">
 
         <!-- TOTAL -->
-
-        <article class="enquiry-stat-card stat-total">
-            <span class="enquiry-stat-icon"><i class="bi bi-inbox-fill"></i></span>
+        <a href="{{ url_for('enquiries.enquiry_list') }}" class="quotation-stat-card stat-total {% if not selected_status %}active-card{% endif %}">
+            <span class="quotation-stat-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
             <div>
                 <small>Total Enquiries</small>
-                <strong>{{ enquiries|length }}</strong>
+                <strong>{{ total_enquiries_count|default(enquiries|length) }}</strong>
             </div>
-        </article>
+        </a>
 
-
-        <!-- OPEN -->
-
-        <article class="enquiry-stat-card stat-open">
-            <span class="enquiry-stat-icon"><i class="bi bi-folder2-open"></i></span>
+        <!-- OPEN / ACTIVE -->
+        <a href="{{ url_for('enquiries.enquiry_list', status='dashboard_open') }}" class="quotation-stat-card stat-pending {% if selected_status == 'dashboard_open' %}active-card{% endif %}">
+            <span class="quotation-stat-icon"><i class="bi bi-hourglass-split"></i></span>
             <div>
-                <small>Open</small>
-                <strong>
-                    {{
-                        enquiries
-                        |selectattr(
-                            "status",
-                            "equalto",
-                            "open"
-                        )
-                        |list
-                        |length
-                    }}
-                </strong>
+                <small>Open / Active</small>
+                <strong>{{ open_count|default(0) }}</strong>
             </div>
-        </article>
-
+        </a>
 
         <!-- IN PROGRESS -->
-
-        <article class="enquiry-stat-card stat-progress">
-            <span class="enquiry-stat-icon"><i class="bi bi-arrow-repeat"></i></span>
+        <a href="{{ url_for('enquiries.enquiry_list', status='in_progress') }}" class="quotation-stat-card stat-approved {% if selected_status == 'in_progress' %}active-card{% endif %}">
+            <span class="quotation-stat-icon"><i class="bi bi-arrow-repeat"></i></span>
             <div>
                 <small>In Progress</small>
-                <strong>
-                    {{
-                        enquiries
-                        |selectattr(
-                            "status",
-                            "equalto",
-                            "in_progress"
-                        )
-                        |list
-                        |length
-                    }}
-                </strong>
+                <strong>{{ in_progress_count|default(0) }}</strong>
             </div>
-        </article>
-
+        </a>
 
         <!-- QUOTED -->
-
-        <article class="enquiry-stat-card stat-quoted">
-            <span class="enquiry-stat-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
+        <a href="{{ url_for('enquiries.enquiry_list', status='quoted') }}" class="quotation-stat-card stat-converted {% if selected_status == 'quoted' %}active-card{% endif %}">
+            <span class="quotation-stat-icon"><i class="bi bi-check-circle-fill"></i></span>
             <div>
                 <small>Quoted</small>
-                <strong>
-                    {{
-                        enquiries
-                        |selectattr(
-                            "status",
-                            "equalto",
-                            "quoted"
-                        )
-                        |list
-                        |length
-                    }}
-                </strong>
+                <strong>{{ quoted_count|default(0) }}</strong>
             </div>
-        </article>
-
+        </a>
 
         <!-- CLOSED -->
-
-        <article class="enquiry-stat-card stat-closed">
-            <span class="enquiry-stat-icon"><i class="bi bi-check-circle-fill"></i></span>
+        <a href="{{ url_for('enquiries.enquiry_list', status='closed') }}" class="quotation-stat-card stat-rejected {% if selected_status == 'closed' %}active-card{% endif %}">
+            <span class="quotation-stat-icon"><i class="bi bi-x-circle-fill"></i></span>
             <div>
                 <small>Closed</small>
-                <strong>
-                    {{
-                        enquiries
-                        |selectattr(
-                            "status",
-                            "equalto",
-                            "closed"
-                        )
-                        |list
-                        |length
-                    }}
-                </strong>
+                <strong>{{ closed_count|default(0) }}</strong>
             </div>
-        </article>
+        </a>
 
+    </section>
+
+    <!-- ==========================================
+         SEARCH & FILTERS SECTION
+         ========================================== -->
+
+    <section class="enquiry-filter-card">
+        <form method="GET" action="{{ url_for('enquiries.enquiry_list') }}" class="enquiry-filter-form">
+            
+            <div class="enquiry-search-box-top">
+                <i class="bi bi-search"></i>
+                <input
+                    type="search"
+                    name="search"
+                    id="enquirySearch"
+                    value="{{ selected_search|default('') }}"
+                    placeholder="Search by Reference, Client, Route, Mode..."
+                >
+            </div>
+            
+            <div class="enquiry-filter-bottom-row">
+                <div class="enquiry-filter-grid">
+                    
+                    <!-- Status Filter (Included Converted & Closed) -->
+                    <select name="status">
+    <option value="">All Statuses</option>
+    <option value="dashboard_open" {% if selected_status == 'dashboard_open' %}selected{% endif %}>Dashboard Active / Pending</option>
+    <option value="open" {% if selected_status == 'open' %}selected{% endif %}>Open</option>
+    <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+    <option value="quoted" {% if selected_status == 'quoted' %}selected{% endif %}>Quoted</option>
+    <option value="converted" {% if selected_status == 'converted' %}selected{% endif %}>Converted</option>
+    <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Closed</option>
+</select>
+
+                    <!-- Mode Filter -->
+                    <select name="mode">
+                        <option value="">All Modes</option>
+                        <option value="air_freight" {% if selected_mode == 'air_freight' %}selected{% endif %}>Air Freight</option>
+                        <option value="sea_freight" {% if selected_mode == 'sea_freight' %}selected{% endif %}>Sea Freight</option>
+                        <option value="land_freight" {% if selected_mode == 'land_freight' %}selected{% endif %}>Land Freight</option>
+                    </select>
+
+                    <!-- Client Filter -->
+                    <select name="client_id">
+                        <option value="">All Clients</option>
+                        {% for client in clients_list|default([]) %}
+                        <option value="{{ client.id }}" {% if selected_client_id|string == client.id|string %}selected{% endif %}>{{ client.company_name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Handled By Filter -->
+                    <select name="handled_by_id">
+                        <option value="">All Handled By</option>
+                        {% for user in users_list|default([]) %}
+                        <option value="{{ user.id }}" {% if selected_handled_by_id|string == user.id|string %}selected{% endif %}>{{ user.full_name }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+
+                <div class="enquiry-filter-actions">
+                    <button type="submit" class="btn btn-primary-red">
+                        <i class="bi bi-funnel"></i> Apply
+                    </button>
+                    <a href="{{ url_for('enquiries.enquiry_list') }}" class="btn btn-secondary-soft-dark">Reset</a>
+                </div>
+            </div>
+        </form>
     </section>
 
 
@@ -154,15 +178,6 @@
         <div class="enquiry-table-head">
             <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--surface-dark);">Enquiries Directory</h3>
             <span class="record-count-pill">{{ enquiries|length }} Results</span>
-        </div>
-
-        <div class="enquiry-search-box">
-            <i class="bi bi-search"></i>
-            <input
-                type="text"
-                id="enquirySearch"
-                placeholder="Search by Reference, Client, Route, Mode, Status..."
-            >
         </div>
 
         {% if enquiries %}
@@ -193,108 +208,47 @@
                             <tr>
 
                                 <!-- REFERENCE -->
-
                                 <td>
-
-                                    <a
-                                        href="{{
-                                            url_for(
-                                                'enquiries.view_enquiry',
-                                                enquiry_id=enquiry.id
-                                            )
-                                        }}"
-                                        class="enquiry-reference-link"
-                                    >
-                                        {{
-                                            enquiry.enquiry_reference
-                                        }}
+                                    <a href="{{ url_for('enquiries.view_enquiry', enquiry_id=enquiry.id) }}" class="enquiry-reference-link">
+                                        {{ enquiry.enquiry_reference }}
                                     </a>
-
                                 </td>
-
 
                                 <!-- CLIENT -->
-
                                 <td>
-                                    {{
-                                        enquiry.client.company_name
-                                    }}
+                                    {{ enquiry.client.company_name if enquiry.client else '-' }}
                                 </td>
-
 
                                 <!-- ROUTE -->
-
                                 <td>
-
                                     <div class="route-cell">
-
-                                        <span>
-                                            {{ enquiry.origin }}
-                                        </span>
-
-                                        <i
-                                            class="bi bi-arrow-right"
-                                        ></i>
-
-                                        <span>
-                                            {{ enquiry.destination }}
-                                        </span>
-
+                                        <span>{{ enquiry.origin }}</span>
+                                        <i class="bi bi-arrow-right"></i>
+                                        <span>{{ enquiry.destination }}</span>
                                     </div>
-
                                 </td>
-
 
                                 <!-- MODE -->
-
                                 <td>
-                                    {{
-                                        enquiry.mode_of_shipment
-                                        |replace("_", " ")
-                                        |title
-                                    }}
+                                    {{ enquiry.mode_of_shipment | replace("_", " ") | title }}
                                 </td>
-
 
                                 <!-- HANDLED BY -->
-
                                 <td>
-                                    {{
-                                        enquiry.handled_by.full_name
-                                    }}
+                                    {{ enquiry.handled_by.full_name if enquiry.handled_by else '-' }}
                                 </td>
-
 
                                 <!-- DATE -->
-
                                 <td>
-                                    {{
-                                        enquiry.enquiry_date
-                                        .strftime("%d %b %Y")
-                                    }}
+                                    {{ enquiry.enquiry_date.strftime("%d %b %Y") if enquiry.enquiry_date else '-' }}
                                 </td>
 
-
                                 <!-- STATUS -->
-
                                 <td>
-
-                                    <span
-                                        class="
-                                            enquiry-status
-                                            status-{{
-                                                enquiry.status
-                                            }}
-                                        "
-                                    >
+                                    <span class="enquiry-status status-{{ enquiry.status }}">
                                         <span class="status-dot"></span>
-                                        {{
-                                            enquiry.status
-                                            |replace("_", " ")
-                                            |title
-                                        }}
+                                        {{ enquiry.status | replace("_", " ") | title }}
                                     </span>
-
                                 </td>
 
                             </tr>
@@ -307,7 +261,6 @@
 
             </div>
 
-
         {% else %}
 
             <!-- ==================================
@@ -315,28 +268,14 @@
                  ================================== -->
 
             <div class="enquiry-empty">
-
                 <div class="empty-icon">
                     <i class="bi bi-inbox"></i>
                 </div>
-
-                <h3>
-                    No enquiries yet
-                </h3>
-
-                <p>
-                    Create the first freight enquiry
-                    and start the quotation workflow.
-                </p>
-
-                <a
-                    href="{{ url_for('enquiries.add_enquiry') }}"
-                    class="btn btn-primary-red"
-                >
-                    <i class="bi bi-plus-lg"></i>
-                    Create Enquiry
+                <h3>No enquiries yet</h3>
+                <p>Create the first freight enquiry and start the quotation workflow.</p>
+                <a href="{{ url_for('enquiries.add_enquiry') }}" class="btn btn-primary-red">
+                    <i class="bi bi-plus-lg"></i> Create Enquiry
                 </a>
-
             </div>
 
         {% endif %}
@@ -351,10 +290,6 @@
 {% block extra_css %}
 
 <style>
-/* ==========================================================================
-   CORPORATE UI REDESIGN - ENQUIRIES DIRECTORY PAGE (BALANCED FONT SIZE)
-   ================================================================---------- */
-
 :root {
     --primary-red: #b91c1c;
     --primary-dark-red: #7f1d1d;
@@ -398,7 +333,6 @@
     font-size: 22px;
     font-weight: 700;
     color: #ffffff !important;
-    letter-spacing: -0.01em;
 }
 .enquiry-hero-copy p {
     margin: 0;
@@ -428,7 +362,6 @@
     text-decoration: none;
     font-size: 12.5px;
     font-weight: 600;
-    transition: all 0.15s ease;
     cursor: pointer;
     border: none;
     white-space: nowrap;
@@ -440,6 +373,92 @@
 .btn-primary-red:hover {
     background: var(--primary-dark-red);
     color: #ffffff;
+}
+.btn-secondary-soft-dark {
+    background: var(--bg-canvas);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+.btn-secondary-soft-dark:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+/* Filter Card */
+.enquiry-filter-card {
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-subtle);
+    padding: 16px 18px;
+    border-radius: var(--radius-lg);
+}
+.enquiry-filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+.enquiry-search-box-top {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.enquiry-search-box-top input {
+    width: 100%;
+    height: 38px;
+    padding: 0 14px 0 38px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    outline: none;
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+.enquiry-search-box-top input:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.08);
+}
+.enquiry-search-box-top i {
+    position: absolute;
+    left: 12px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.enquiry-filter-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.enquiry-filter-grid {
+    display: flex;
+    flex: 1;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+.enquiry-filter-grid select {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-main);
+    outline: none;
+}
+.enquiry-filter-actions {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+.enquiry-filter-actions .btn {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 12px;
 }
 
 /* Summary Cards Grid */
@@ -475,7 +494,6 @@
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
     color: var(--text-muted);
 }
 .enquiry-stat-card strong {
@@ -485,7 +503,6 @@
     color: var(--surface-dark);
 }
 
-/* Unique Left Borders / Accents matching stats */
 .stat-total { border-left: 4px solid #1e3a8a; }
 .stat-total .enquiry-stat-icon { background: #eff6ff; color: #1e3a8a; }
 
@@ -498,8 +515,8 @@
 .stat-quoted { border-left: 4px solid #7c3aed; }
 .stat-quoted .enquiry-stat-icon { background: #f5f3ff; color: #7c3aed; }
 
-.stat-closed { border-left: 4px solid #64748b; }
-.stat-closed .enquiry-stat-icon { background: #f8fafc; color: #64748b; }
+.stat-converted { border-left: 4px solid #16a34a; }
+.stat-converted .enquiry-stat-icon { background: #dcfce7; color: #16a34a; }
 
 /* Table Card Section */
 .enquiry-table-card {
@@ -527,30 +544,6 @@
     color: var(--text-muted);
 }
 
-/* Search Box */
-.enquiry-search-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--bg-card);
-    margin-bottom: 14px;
-}
-.enquiry-search-box i {
-    color: var(--text-muted);
-    font-size: 14px;
-}
-.enquiry-search-box input {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 13px;
-    background: transparent;
-    color: var(--text-main);
-}
-
 /* Table Styling */
 .table-responsive {
     width: 100%;
@@ -569,7 +562,6 @@
     font-weight: 600;
     text-transform: uppercase;
     font-size: 10.5px;
-    letter-spacing: 0.05em;
     border-bottom: 1px solid var(--border-light);
     white-space: nowrap;
 }
@@ -601,10 +593,6 @@
     gap: 8px;
     white-space: nowrap;
 }
-.route-cell i {
-    color: var(--text-muted);
-    font-size: 12px;
-}
 
 /* Status Badges */
 .enquiry-status {
@@ -628,6 +616,9 @@
 .status-quoted { background: #ede9fe; color: #6d28d9; }
 .status-quoted .status-dot { background: #7c3aed; }
 
+.status-converted { background: #dcfce7; color: #166534; }
+.status-converted .status-dot { background: #15803d; }
+
 .status-closed { background: #f3f4f6; color: #4b5563; }
 .status-closed .status-dot { background: #64748b; }
 
@@ -640,6 +631,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 52px;
+    end: auto;
     width: 52px;
     height: 52px;
     margin: 0 auto 10px;
@@ -662,41 +655,90 @@
     font-size: 12.5px;
     line-height: 1.5;
 }
+.quotation-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.quotation-stat-card {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+    padding: 16px 18px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    color: inherit !important;
+}
 
-/* Responsive Media Queries */
+.quotation-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+    border-color: #b91c1c;
+}
+
+.quotation-stat-card.active-card {
+    background: #fef2f2 !important;
+    border-color: #b91c1c !important;
+    box-shadow: 0 4px 12px rgba(185, 28, 28, 0.15) !important;
+    transform: translateY(-2px);
+}
+
+.quotation-stat-icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 17px;
+    flex-shrink: 0;
+}
+
+.quotation-stat-card small {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.quotation-stat-card strong {
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #0f172a;
+}
+
+.stat-total { border-left: 4px solid #1e3a8a; }
+.stat-total .quotation-stat-icon { background: #eff6ff; color: #1e3a8a; }
+
+.stat-pending { border-left: 4px solid #d97706; }
+.stat-pending .quotation-stat-icon { background: #fffbeb; color: #d97706; }
+
+.stat-approved { border-left: 4px solid #16a34a; }
+.stat-approved .quotation-stat-icon { background: #dcfce7; color: #16a34a; }
+
+.stat-rejected { border-left: 4px solid #dc2626; }
+.stat-rejected .quotation-stat-icon { background: #fee2e2; color: #dc2626; }
+
+.stat-converted { border-left: 4px solid #7c3aed; }
+.stat-converted .quotation-stat-icon { background: #f5f3ff; color: #7c3aed; }
+
 @media (max-width: 1100px) {
-    .enquiry-stat-grid {
+    .quotation-stat-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 @media (max-width: 768px) {
-    .enquiry-hero {
-        align-items: stretch;
-        flex-direction: column;
-    }
-    .enquiry-hero .btn {
-        width: 100%;
-    }
-    .enquiry-stat-grid {
+    .quotation-stat-grid {
         grid-template-columns: 1fr;
     }
 }
 </style>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const search = document.getElementById("enquirySearch");
-    if (!search) return;
-
-    search.addEventListener("keyup", function () {
-        const keyword = this.value.toLowerCase();
-        document.querySelectorAll(".enquiry-table tbody tr").forEach(function(row){
-            row.style.display = row.innerText.toLowerCase().includes(keyword)
-                ? ""
-                : "none";
-        });
-    });
-});
-</script>
-
 {% endblock %}

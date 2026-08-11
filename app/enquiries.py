@@ -120,38 +120,6 @@ def generate_enquiry_reference():
     )
 
 
-# =========================================================
-# ENQUIRY LIST
-# URL: /enquiries/
-#
-# Purpose:
-# Database lo unna enquiries ni newest-first order lo
-# load chesi HTML page ki pampistundi.
-# =========================================================
-
-@enquiries_bp.route("/")
-@login_required
-def enquiry_list():
-
-    # Database nunchi all enquiries load chestundi
-    enquiries = (
-        db.session.execute(
-            scope_enquiries(
-                db.select(Enquiry)
-            )
-            .order_by(
-                Enquiry.created_at.desc()
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    # Data ni HTML template ki pampistundi
-    return render_template(
-        "enquiries/list.html",
-        enquiries=enquiries
-    )
     # =========================================================
 # CREATE NEW ENQUIRY
 # URL: /enquiries/add
@@ -430,7 +398,12 @@ def add_enquiry():
 def view_enquiry(enquiry_id):
     enquiry = get_enquiry_or_404(enquiry_id)
     
-    # డేటాబేస్ నుండి ఏజెంట్లను కంట్రీ వారీగా లేదా అన్నీ ఫెచ్ చేయడం
+    # ఇక్కడ ఆల్రెడీ కొటేషన్ ఉందో లేదో చెక్ చేస్తున్నాం
+    from app.models import Quotation, Agent
+    existing_quotation = db.session.execute(
+        db.select(Quotation).where(Quotation.enquiry_id == enquiry.id)
+    ).scalars().first()
+    
     try:
         agents = Agent.query.order_by(Agent.country.asc(), Agent.name.asc()).all()
     except Exception:
@@ -439,7 +412,8 @@ def view_enquiry(enquiry_id):
     return render_template(
         "enquiries/view.html",
         enquiry=enquiry,
-        agents=agents
+        agents=agents,
+        existing_quotation=existing_quotation  # దీన్ని టెంప్లేట్‌కి పంపుతున్నాం
     )
 
 # =========================================================
@@ -874,3 +848,196 @@ def delete_enquiry(id):
         flash(f'Error deleting enquiry: {e}', 'danger')
         
     return redirect(url_for('enquiries.enquiry_list'))
+
+import io
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from flask import send_file
+
+# =========================================================
+# ENQUIRY LIST
+# =========================================================
+
+@enquiries_bp.route("/")
+@login_required
+def enquiry_list():
+    selected_search = request.args.get("search", "").strip()
+    selected_status = request.args.get("status", "").strip()
+    selected_mode = request.args.get("mode", "").strip()
+    selected_client_id = request.args.get("client_id", "").strip()
+    selected_handled_by_id = request.args.get("handled_by_id", "").strip()
+
+    base_query = scope_enquiries(db.select(Enquiry)).join(Client, Enquiry.client_id == Client.id)
+
+    # కార్డ్స్ కోసం కౌంట్స్ లెక్కించడం
+    all_stats_query = scope_enquiries(db.select(Enquiry))
+    total_enquiries_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.subquery())).scalar() or 0
+    open_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status.notin_(["closed", "cancelled", "converted"])).subquery())).scalar() or 0
+    in_progress_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "in_progress").subquery())).scalar() or 0
+    quoted_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "quoted").subquery())).scalar() or 0
+    closed_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "closed").subquery())).scalar() or 0
+
+    query = base_query
+
+    if selected_search:
+        query = query.where(
+            (Enquiry.enquiry_reference.ilike(f"%{selected_search}%")) |
+            (Enquiry.origin.ilike(f"%{selected_search}%")) |
+            (Enquiry.destination.ilike(f"%{selected_search}%")) |
+            (Client.company_name.ilike(f"%{selected_search}%"))
+        )
+
+    if selected_status == "dashboard_open":
+        query = query.where(Enquiry.status.notin_(["closed", "cancelled", "converted"]))
+    elif selected_status:
+        query = query.where(Enquiry.status == selected_status)
+
+    if selected_mode:
+        query = query.where(Enquiry.mode_of_shipment == selected_mode)
+
+    if selected_client_id:
+        query = query.where(Enquiry.client_id == int(selected_client_id))
+
+    if selected_handled_by_id:
+        query = query.where(Enquiry.handled_by_id == int(selected_handled_by_id))
+
+    enquiries = (
+        db.session.execute(
+            query.order_by(
+                Enquiry.created_at.desc()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    clients_list = db.session.execute(
+        db.select(Client)
+        .where(Client.is_archived.is_(False))
+        .where(Client.assigned_to_id == current_user.id if is_sales_user() else True)
+        .order_by(Client.company_name.asc())
+    ).scalars().all()
+
+    users_list = (
+        [current_user]
+        if is_sales_user()
+        else db.session.execute(
+            db.select(User)
+            .where(User.is_active_user.is_(True))
+            .order_by(User.full_name.asc())
+        ).scalars().all()
+    )
+
+    return render_template(
+        "enquiries/list.html",
+        enquiries=enquiries,
+        clients_list=clients_list,
+        users_list=users_list,
+        total_enquiries_count=total_enquiries_count,
+        open_count=open_count,
+        in_progress_count=in_progress_count,
+        quoted_count=quoted_count,
+        closed_count=closed_count,
+        selected_search=selected_search,
+        selected_status=selected_status,
+        selected_mode=selected_mode,
+        selected_client_id=selected_client_id,
+        selected_handled_by_id=selected_handled_by_id
+    )
+
+# =========================================================
+# EXPORT EXCEL 
+# =========================================================
+
+@enquiries_bp.route("/export-excel")
+@login_required
+def export_enquiries_excel():
+    search = request.args.get("search", "").strip()
+    status = request.args.get("status", "").strip()
+    mode = request.args.get("mode", "").strip()
+    client_id = request.args.get("client_id", "").strip()
+    handled_by_id = request.args.get("handled_by_id", "").strip()
+
+    query = scope_enquiries(db.select(Enquiry)).join(Client, Enquiry.client_id == Client.id)
+
+    if search:
+        query = query.where(
+            (Enquiry.enquiry_reference.ilike(f"%{search}%")) |
+            (Enquiry.origin.ilike(f"%{search}%")) |
+            (Enquiry.destination.ilike(f"%{search}%")) |
+            (Client.company_name.ilike(f"%{search}%"))
+        )
+        
+    if status == "dashboard_open":
+        query = query.where(Enquiry.status.notin_(["closed", "cancelled", "converted"]))
+    elif status:
+        query = query.where(Enquiry.status == status)
+        
+    if mode:
+        query = query.where(Enquiry.mode_of_shipment == mode)
+    if client_id:
+        query = query.where(Enquiry.client_id == int(client_id))
+    if handled_by_id:
+        query = query.where(Enquiry.handled_by_id == int(handled_by_id))
+
+    enquiries = db.session.execute(query.order_by(Enquiry.created_at.desc())).scalars().all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Enquiries Report"
+
+    header_font = Font(name="Segoe UI", size=11, bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="7F1D1D", end_color="7F1D1D", fill_type="solid")
+    border_thin = Border(
+        left=Side(style='thin', color='CBD5E1'), right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'), bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    headers = ["Reference", "Client", "Route", "Mode", "Handled By", "Date", "Status"]
+    ws.append(headers)
+
+    for col_num in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = border_thin
+
+    ws.row_dimensions[1].height = 24
+
+    for row_idx, e in enumerate(enquiries, 2):
+        client_name = e.client.company_name if e.client else "-"
+        route = f"{e.origin} -> {e.destination}"
+        mode = e.mode_of_shipment.replace("_", " ").title() if e.mode_of_shipment else "-"
+        handled_by = e.handled_by.full_name if e.handled_by else "-"
+        date_str = e.enquiry_date.strftime("%d %b %Y") if e.enquiry_date else "-"
+        status_val = e.status.replace("_", " ").title() if e.status else "-"
+
+        row_data = [e.enquiry_reference, client_name, route, mode, handled_by, date_str, status_val]
+        ws.append(row_data)
+
+        for col_idx in range(1, len(row_data) + 1):
+            cell = ws.cell(row=row_idx, column=col_idx)
+            cell.font = Font(name="Segoe UI", size=10)
+            cell.border = border_thin
+            cell.alignment = Alignment(horizontal="left", vertical="center")
+
+        ws.row_dimensions[row_idx].height = 20
+
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 5, 15)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Enquiries_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )

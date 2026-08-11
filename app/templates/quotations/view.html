@@ -411,17 +411,17 @@
                 </a>
 
                 
-                {% if quotation.status != "approved" %}
+               {% if quotation.status not in ['approved', 'converted'] %}
                 <form method="POST" 
-                      action="{{ url_for('quotations.delete_quotation', quotation_id=quotation.id) }}" 
-                      class="delete-form"
-                      onsubmit="return confirm('Are you sure you want to delete this quotation?');">
+                    action="{{ url_for('quotations.delete_quotation', quotation_id=quotation.id) }}" 
+                    class="delete-form"
+                    onsubmit="return confirm('Are you sure you want to delete this quotation?');">
                     <button type="submit" class="btn" style="background: #dc2626; color: white; width: 100%; border: none;">
                         <i class="bi bi-trash"></i>
                         Delete Quotation
                     </button>
                 </form>
-                {% endif %}
+{% endif %}
             </div>
 
             <!-- CLIENT DECISION -->
