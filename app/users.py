@@ -16,6 +16,7 @@ users_bp = Blueprint(
 ROLE_OPTIONS = [
     ("admin", "Admin"),
     ("sales_executive", "Sales Executive"),
+    ("sales_coordinator", "Sales Coordinator"),  # కొత్త రోల్ ఇక్కడ యాడ్ చేయబడింది
     ("operations_team", "Operations Team"),
     ("management_viewer", "Management / Viewer"),
 ]

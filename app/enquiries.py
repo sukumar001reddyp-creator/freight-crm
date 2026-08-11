@@ -868,9 +868,10 @@ def enquiry_list():
     selected_client_id = request.args.get("client_id", "").strip()
     selected_handled_by_id = request.args.get("handled_by_id", "").strip()
 
-    base_query = scope_enquiries(db.select(Enquiry)).join(Client, Enquiry.client_id == Client.id)
+    # బేస్ క్వెరీ (డ్యూప్లికేట్ జాయిన్ రాకుండా కేవలం అవసరమైనప్పుడు క్లయింట్ జాయిన్ అయ్యేలా)
+    base_query = scope_enquiries(db.select(Enquiry))
 
-    # కార్డ్స్ కోసం కౌంట్స్ లెక్కించడం
+    # కార్డ్స్ కోసం కౌంట్స్ లెక్కించడం (ఎటువంటి ఎర్రర్స్ రాకుండా సేఫ్ సబ్‌క్వెరీస్)
     all_stats_query = scope_enquiries(db.select(Enquiry))
     total_enquiries_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.subquery())).scalar() or 0
     open_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status.notin_(["closed", "cancelled", "converted"])).subquery())).scalar() or 0
@@ -879,6 +880,10 @@ def enquiry_list():
     closed_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "closed").subquery())).scalar() or 0
 
     query = base_query
+
+    # సెర్చ్ లేదా క్లయింట్ ఫిల్టర్ ఉన్నప్పుడు మాత్రమే క్లయింట్‌ని జాయిన్ చేయడం (DuplicateAlias ఎర్రర్ రాకుండా)
+    if selected_search or selected_client_id:
+        query = query.join(Client, Enquiry.client_id == Client.id, isouter=True)
 
     if selected_search:
         query = query.where(
@@ -945,7 +950,6 @@ def enquiry_list():
         selected_client_id=selected_client_id,
         selected_handled_by_id=selected_handled_by_id
     )
-
 # =========================================================
 # EXPORT EXCEL 
 # =========================================================

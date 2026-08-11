@@ -21,7 +21,6 @@
     {% block extra_css %}{% endblock %}
 
 <style>
-/* Modern Luxury & Clean Design System Codes */
 :root {
     --primary: #7f1d1d;
     --primary-light: #fef2f2;
@@ -29,20 +28,15 @@
     --text-muted: #475569;
     --border-subtle: rgba(226, 232, 240, 0.8);
     --bg-card: #ffffff;
-    
-    /* Premium Soft Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.08);
     --shadow-dropdown: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.12);
-    
     --radius-xl: 16px;
     --radius-lg: 12px;
     --radius-md: 8px;
     --transition-bounce: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Header Topbar Refresh with Light Green Touch */
 .topbar {
     background: rgba(236, 253, 245, 0.85) !important;
     backdrop-filter: blur(12px);
@@ -91,10 +85,6 @@
     box-shadow: var(--shadow-sm);
 }
 
-.top-action-btn i {
-    font-size: 16px;
-}
-
 .notification-dot {
     position: absolute;
     top: 10px;
@@ -119,18 +109,6 @@
     transition: var(--transition-bounce);
 }
 
-.top-user-trigger:hover {
-    border-color: rgba(4, 120, 87, 0.2);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.top-user-menu.open .top-user-trigger {
-    background: #fafafa;
-    border-color: #cbd5e1;
-    transform: translateY(0);
-}
-
 .top-user-avatar {
     width: 32px;
     height: 32px;
@@ -139,7 +117,6 @@
     font-weight: 600;
     font-size: 13px;
     border-radius: var(--radius-md);
-    box-shadow: 0 2px 4px rgba(127, 29, 29, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,16 +212,6 @@
     padding-left: 18px;
 }
 
-.top-user-dropdown-item i {
-    font-size: 16px;
-    color: var(--text-muted);
-    transition: all 0.15s ease;
-}
-
-.top-user-dropdown-item:hover i {
-    color: #047857;
-}
-
 .top-user-dropdown-item.danger {
     color: #dc2626;
 }
@@ -252,16 +219,6 @@
 .top-user-dropdown-item.danger:hover {
     background: #fef2f2;
     color: #dc2626;
-}
-
-.top-user-dropdown-item.danger i {
-    color: #dc2626;
-}
-
-.top-user-dropdown-divider {
-    height: 1px;
-    margin: 6px 0;
-    background: #f1f5f9;
 }
 
 .app-alert {
@@ -273,9 +230,6 @@
     padding: 16px;
 }
 
-/* ==========================================================
-   STYLISH MANAGEMENT CLIENTS DROPDOWN & SUB-MENU STYLING
-   ========================================================== */
 #mgmtClientsGroup .nav-sub-menu {
     display: none;
     flex-direction: column;
@@ -323,22 +277,11 @@
     background: rgba(255, 255, 255, 0.15) !important;
     color: #ffffff !important;
     font-weight: 700 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-@media (max-width: 640px) {
-    .top-user-dropdown {
-        width: min(260px, calc(100vw - 32px));
-    }
 }
 </style>
 
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 <meta name="theme-color" content="#7f1d1d">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Freight CRM">
 </head>
 
 <body>
@@ -364,48 +307,36 @@
         <div class="sidebar-scroll">
             <div class="nav-label">Workspace</div>
             <nav class="sidebar-nav">
-                {% if permissions.can_access_dashboard() %}
                 <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
                     <span>Dashboard</span>
                 </a>
-                {% endif %}
 
-                {% if permissions.can_access_clients() %}
                 <a href="{{ url_for('clients.client_list') }}" class="nav-item {% if request.blueprint == 'clients' and not request.args.get('category') %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
                     <span>Clients</span>
                     <span class="nav-count">{{ sidebar_clients_count }}</span>
                 </a>
-                {% endif %}
 
-                 {% if permissions.can_access_enquiries() %}
-<a href="{{ url_for('agents.agent_list') }}" class="nav-item {% if request.blueprint == 'agents' %}active{% endif %}">
-    <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
-    <span>Agents</span>
-    {% if agents_count is defined and agents_count > 0 %}
-    <span class="nav-count">{{ agents_count }}</span>
-    {% endif %}
-</a>
-{% endif %}
+                <a href="{{ url_for('agents.agent_list') }}" class="nav-item {% if request.blueprint == 'agents' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
+                    <span>Agents</span>
+                    {% if agents_count is defined and agents_count > 0 %}
+                    <span class="nav-count">{{ agents_count }}</span>
+                    {% endif %}
+                </a>
 
-                {% if permissions.can_access_enquiries() %}
                 <a href="{{ url_for('enquiries.enquiry_list') }}" class="nav-item {% if request.blueprint == 'enquiries' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-inbox-fill"></i></span>
                     <span>Enquiries</span>
                     <span class="nav-count">{{ sidebar_enquiries_count }}</span>
                 </a>
-                {% endif %}
                 
-               
-                {% if permissions.can_access_quotations() %}
                 <a href="{{ url_for('quotations.quotation_list') }}" class="nav-item {% if request.blueprint == 'quotations' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
                     <span>Quotations</span>
                 </a>
-                {% endif %}
 
-                {% if permissions.can_access_shipments() %}
                 <a href="{{ url_for('shipments.shipment_list') }}" class="nav-item {% if request.endpoint == 'shipments.shipment_list' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
                     <span>Shipments</span>
@@ -415,19 +346,17 @@
                     <span class="nav-icon"><i class="bi bi-geo-alt-fill"></i></span>
                     <span>Live Tracking</span>
                 </a>
-                {% endif %}
 
-                {% if permissions.can_access_tasks() %}
                 <a href="{{ url_for('tasks.task_list') }}" class="nav-item {% if request.endpoint and request.endpoint.startswith('tasks.') %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-check2-square"></i></span>
                     <span>Tasks & Follow-ups</span>
                 </a>
-                {% endif %}
             </nav>
         
             <!-- ==========================================
-                 SPECIAL ACCOUNTS (MANAGEMENT CLIENTS)
+                 SPECIAL ACCOUNTS (ADMIN ONLY)
                  ========================================== -->
+            {% if current_user.role == "admin" %}
             <div class="nav-label" style="color: #fca5a5; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; margin-top: 16px;">SPECIAL ACCOUNTS</div>
             <nav class="sidebar-nav">
                 <div class="nav-dropdown-group" id="mgmtClientsGroup">
@@ -452,15 +381,16 @@
                     </div>
                 </div>
             </nav>
+            {% endif %}
 
             <div class="nav-label">Intelligence</div>
             <nav class="sidebar-nav">
-                {% if permissions.can_access_reports() %}
-                <a href="{{ url_for('reports.dashboard') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
-                    <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
-                    <span>Reports</span>
-                </a>
-                {% endif %}
+               {% if current_user.role != "sales_executive" %}
+<a href="{{ url_for('reports.dashboard') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
+    <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
+    <span>Reports</span>
+</a>
+{% endif %}
 
                 <a href="{{ url_for('support.admin_list') }}" class="nav-item {% if request.endpoint == 'support.admin_list' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-headset"></i></span>
@@ -470,21 +400,15 @@
                     {% endif %}
                 </a>
 
-                {% if permissions.can_manage_users() %}
+                {% if current_user.role == "admin" %}
                 <a href="{{ url_for('users.user_list') }}" class="nav-item {% if request.blueprint == 'users' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-person-gear"></i></span>
                     <span>Users & Roles</span>
                 </a>
-                {% endif %}
-
-                {% if current_user.role == "admin" %}
                 <a href="{{ url_for('backup.index') }}" class="nav-item {% if request.blueprint == 'backup' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-database-fill"></i></span>
                     <span>Database Backup</span>
                 </a>
-                {% endif %}
-
-                {% if current_user.role == "admin" or permissions.can_access_settings() %}
                 <a href="{{ url_for('settings.index') }}" class="nav-item {% if request.blueprint == 'settings' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-gear-fill"></i></span>
                     <span>Settings</span>
@@ -494,8 +418,8 @@
         </div>
 
         <div class="sidebar-user" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px;">
-            <a href="{{ url_for('users.profile') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; overflow: hidden; flex-grow: 1;" title="Go to My Profile">
-                <div class="user-avatar" style="display:flex; align-items:center; justify-content:center; flex-shrink: 0;">{{ current_user.full_name[0]|upper }}</div>
+            <a href="{{ url_for('users.profile') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; overflow: hidden; flex-grow: 1;">
+                <div class="user-avatar">{{ current_user.full_name[0]|upper }}</div>
                 <div class="user-copy" style="overflow: hidden;">
                     <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ current_user.full_name }}</strong>
                     <span style="font-size: 11px; opacity: 0.8;">My Profile</span>
@@ -509,7 +433,6 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Main Content Area -->
     <main class="main-area">
         <header class="topbar">
             <div class="topbar-left">
@@ -530,7 +453,6 @@
                     {% endif %}
                 </a>
 
-                <!-- User Profile Dropdown Menu -->
                 <div class="top-user-menu" id="topUserMenu" style="position: relative;">
                     <button type="button" class="top-user-trigger" id="topUserTrigger" aria-expanded="false" aria-haspopup="true">
                         <div class="top-user-avatar">{{ current_user.full_name[0]|upper }}</div>
@@ -546,13 +468,10 @@
                             <strong>{{ current_user.full_name }}</strong>
                             <span>{{ current_user.email }}</span>
                         </div>
-
-                        <!-- My Profile Link Added Here -->
                         <a href="{{ url_for('users.profile') }}" class="top-user-dropdown-item">
                             <i class="bi bi-person-badge-fill"></i>
                             <span>My Profile</span>
                         </a>
-
                         <a href="{{ url_for('auth.change_password') }}" class="top-user-dropdown-item">
                             <i class="bi bi-shield-lock-fill"></i>
                             <span>Change Password</span>
@@ -567,7 +486,6 @@
             </div>
         </header>
 
-        <!-- Flash Messages & Page Section Container -->
         <section class="page-content">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -589,14 +507,12 @@
     </main>
 </div>
 
-<!-- Main Scripts & jQuery / Select2 JS CDN -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{{ url_for('static', filename='js/crm.js') }}"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Dynamic Active Highlighting & Auto-Open for Management Clients Dropdown
     const currentPath = window.location.pathname;
     const subItems = document.querySelectorAll("#mgmtSubMenu .nav-sub-item");
     let isMatched = false;
@@ -629,44 +545,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 trigger.setAttribute("aria-expanded", "false");
             }
         });
-
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape") {
-                menu.classList.remove("open");
-                trigger.setAttribute("aria-expanded", "false");
-            }
-        });
     }
-
-    const alertCloses = document.querySelectorAll(".alert-close");
-    alertCloses.forEach(button => {
-        button.addEventListener("click", function () {
-            const alertBox = this.closest(".app-alert");
-            if (alertBox) {
-                alertBox.style.opacity = "0";
-                alertBox.style.transform = "scale(0.95)";
-                setTimeout(() => alertBox.remove(), 200);
-            }
-        });
-    });
 });
 </script>
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register(
-            "/service-worker.js"
-        )
-            .then(registration => {
-                console.log('✅ Service Worker Registered:', registration.scope);
-            })
-            .catch(error => {
-                console.error('❌ Service Worker Registration Failed:', error);
-            });
-    });
-}
-</script>
 {% block extra_js %}{% endblock %}
-
 </body>
 </html>

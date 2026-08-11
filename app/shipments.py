@@ -74,6 +74,10 @@ def is_admin_user():
     return getattr(current_user, "role", None) == "admin"
 
 
+def is_sales_coordinator():
+    return getattr(current_user, "role", None) == "sales_coordinator"
+
+
 def is_sales_user():
     return getattr(current_user, "role", None) in {
         "sales",
@@ -83,10 +87,10 @@ def is_sales_user():
 
 def can_view_shipment(shipment):
     """
-    Admin sees every shipment.
+    Admin & Sales Coordinator see every shipment.
     Sales sees shipments belonging to clients assigned to them.
     """
-    if is_admin_user():
+    if is_admin_user() or is_sales_coordinator():
         return True
 
     if is_sales_user():
@@ -121,7 +125,7 @@ def require_shipment_write_access():
     print("Role:", current_user.role)
     print("Is Admin:", is_admin_user())
 
-    if not is_admin_user():
+    if not is_admin_user() and not is_sales_coordinator():
         from flask import abort
         abort(403)
 
@@ -274,10 +278,6 @@ from openpyxl.utils import get_column_letter
 # SHIPMENT LIST 
 # =========================================================
 
-# =========================================================
-# SHIPMENT LIST 
-# =========================================================
-
 @shipments_bp.route("/")
 @login_required
 def shipment_list():
@@ -291,7 +291,7 @@ def shipment_list():
 
     if is_sales_user():
         query = query.join(Client, Shipment.client_id == Client.id).where(Client.assigned_to_id == current_user.id)
-    elif not is_admin_user():
+    elif not is_admin_user() and not is_sales_coordinator():
         from flask import abort
         abort(403)
 
@@ -346,8 +346,9 @@ def shipment_list():
         selected_client_id=selected_client_id,
         selected_handled_by_id=selected_handled_by_id
     )
+
 # =========================================================
-# EXPORT EXCEL (రౌట్ మార్పు)
+# EXPORT EXCEL
 # =========================================================
 
 @shipments_bp.route("/export-excel")
@@ -363,7 +364,7 @@ def export_shipments_excel():
 
     if is_sales_user():
         query = query.join(Client, Shipment.client_id == Client.id).where(Client.assigned_to_id == current_user.id)
-    elif not is_admin_user():
+    elif not is_admin_user() and not is_sales_coordinator():
         from flask import abort
         abort(403)
 
@@ -450,8 +451,6 @@ def export_shipments_excel():
 
 # =========================================================
 # CONVERT APPROVED QUOTATION TO SHIPMENT
-# URL: /shipments/convert/<quotation_id>
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -684,7 +683,6 @@ def convert_from_quotation(quotation_id):
 
 # =========================================================
 # VIEW SHIPMENT
-# URL: /shipments/<shipment_id>
 # =========================================================
 
 @shipments_bp.route(
@@ -789,8 +787,6 @@ def view_shipment(shipment_id):
 
 # =========================================================
 # UPDATE SHIPMENT DOCUMENT STATUS
-# URL: /shipments/<shipment_id>/documents/<document_id>/status
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -821,7 +817,7 @@ def update_document_status(
     .scalars()
     .all()
 )
-    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+    if shipment_is_closed(shipment.id) and not is_admin_user() and not is_sales_coordinator():
 
         flash(
             "Closed shipments can be modified only by an Admin.",
@@ -939,8 +935,6 @@ def update_document_status(
 
 # =========================================================
 # CREATE / UPDATE CUSTOMS CLEARANCE
-# URL: /shipments/<shipment_id>/customs-clearance
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -956,7 +950,7 @@ def update_customs_clearance(shipment_id):
         shipment_id
     )
 
-    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+    if shipment_is_closed(shipment.id) and not is_admin_user() and not is_sales_coordinator():
 
         flash(
             "Closed shipments can be modified only by an Admin.",
@@ -1206,8 +1200,6 @@ def update_customs_clearance(shipment_id):
 
 # =========================================================
 # CLOSE SHIPMENT
-# URL: /shipments/<shipment_id>/close
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -1228,7 +1220,8 @@ def close_shipment(shipment_id):
 
     if (
         existing_closure is not None
-        and current_user.role != "admin"
+        and not is_admin_user()
+        and not is_sales_coordinator()
     ):
 
         flash(
@@ -1736,7 +1729,8 @@ def edit_shipment(shipment_id):
 
     if (
         shipment_is_closed(shipment.id)
-        and current_user.role != "admin"
+        and not is_admin_user()
+        and not is_sales_coordinator()
     ):
         flash("Closed shipments can be edited only by an Admin.", "warning")
         return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
@@ -1828,7 +1822,8 @@ def undo_last_stage(shipment_id):
 
     if (
         existing_closure is not None
-        and current_user.role != "admin"
+        and not is_admin_user()
+        and not is_sales_coordinator()
     ):
 
         flash(
@@ -1968,7 +1963,6 @@ def undo_last_stage(shipment_id):
 
 # =========================================================
 # GLOBAL PUBLIC TRACKING INTERFACE
-# URL: /shipments/track
 # =========================================================
 
 @shipments_bp.route("/track", methods=["GET", "POST"])
@@ -2022,7 +2016,6 @@ def track_shipment():
 
 # =========================================================
 # DOWNLOAD INDIVIDUAL SHIPMENT DOCUMENT ROUTE
-# URL: /shipments/<shipment_id>/documents/<int:document_id>/download
 # =========================================================
 
 @shipments_bp.route(
@@ -2057,8 +2050,6 @@ def download_shipment_document(shipment_id, document_id):
 
 # =========================================================
 # DELETE INDIVIDUAL SHIPMENT DOCUMENT FILE
-# URL: /shipments/<shipment_id>/documents/<int:document_id>/delete-file
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -2071,7 +2062,7 @@ def delete_shipment_document_file(shipment_id, document_id):
 
     shipment = get_visible_shipment_or_404(shipment_id)
 
-    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+    if shipment_is_closed(shipment.id) and not is_admin_user() and not is_sales_coordinator():
         flash("Closed shipments can be modified only by an Admin.", "warning")
         return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
@@ -2108,8 +2099,6 @@ def delete_shipment_document_file(shipment_id, document_id):
 
 # =========================================================
 # UPLOAD INDIVIDUAL SHIPMENT DOCUMENT
-# URL: /shipments/<shipment_id>/documents/<int:document_id>/upload-individual
-# POST only
 # =========================================================
 
 @shipments_bp.route(
@@ -2123,7 +2112,7 @@ def upload_individual_shipment_document(shipment_id, document_id):
 
     shipment = get_visible_shipment_or_404(shipment_id)
 
-    if shipment_is_closed(shipment.id) and current_user.role != "admin":
+    if shipment_is_closed(shipment.id) and not is_admin_user() and not is_sales_coordinator():
         flash("Closed shipments can be modified only by an Admin.", "warning")
         return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
@@ -2165,7 +2154,6 @@ def upload_individual_shipment_document(shipment_id, document_id):
         file_path = os.path.join(upload_folder, unique_filename)
         file.save(file_path)
 
-        # ఇక్కడ ఫైల్ పాత్ మరియు ఒరిజినల్ నేమ్ క్లియర్‌గా సేవ్ అవుతాయి
         document.file_path = f"static/uploads/shipments/{shipment.id}/{unique_filename}"
         document.original_filename = original_filename
         document.status = "received"
@@ -2214,7 +2202,6 @@ def create_direct_shipment():
         volume = request.form.get("volume", "").strip()
         handled_by_id = request.form.get("handled_by_id")
 
-        # Party details
         agent_name = request.form.get("agent_name", "").strip()
         agent_country = request.form.get("agent_country", "").strip()
         agent_contact_person = request.form.get("agent_contact_person", "").strip()
@@ -2368,7 +2355,6 @@ def delete_shipment(shipment_id):
     require_shipment_write_access()
     shipment = get_visible_shipment_or_404(shipment_id)
     
-    # Kevalam shipment status cancelled unte ne delete avtundi
     if shipment.shipment_status != "cancelled":
         flash("Only cancelled shipments can be deleted.", "warning")
         return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
@@ -2400,7 +2386,6 @@ from app.models import Shipment
 def download_shipment_pdf(shipment_id):
     shipment = Shipment.query.get_or_404(shipment_id)
     
-    # ఇక్కడ నేరుగా డేటాబేస్ నుంచి మైలురాళ్లు మరియు డాక్యుమెంట్లు క్వెరీ చేస్తున్నాం
     milestones = db.session.execute(
         db.select(ShipmentMilestone)
         .where(ShipmentMilestone.shipment_id == shipment.id)
@@ -2424,7 +2409,6 @@ def download_shipment_pdf(shipment_id):
     
     closure = get_shipment_closure(shipment.id)
 
-    # లోగోల అబ్సల్యూట్ పాత్స్
     logo_path = os.path.join(current_app.root_path, 'static', 'images', 'logo.png')
     logo_url = f"file:///{logo_path.replace('\\', '/')}"
 
@@ -2469,9 +2453,3 @@ def download_shipment_pdf(shipment_id):
     response.headers["Content-Disposition"] = f'attachment; filename=Shipment_{shipment.shipment_reference}.pdf'
 
     return response
-
-import io
-import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from openpyxl.utils import get_column_letter
-

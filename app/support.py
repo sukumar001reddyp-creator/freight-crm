@@ -8,12 +8,13 @@ from flask import (
     abort,
 )
 
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app import db
 from app.models import (
     SupportTicket,
     SupportMessage,
+    Client,
 )
 
 support_bp = Blueprint(
@@ -26,26 +27,33 @@ support_bp = Blueprint(
 @support_bp.route("/")
 @login_required
 def admin_list():
-    tickets = (
-        SupportTicket.query
-        .order_by(
-            SupportTicket.created_at.desc()
-        )
-        .all()
-    )
+    query = db.select(SupportTicket)
+    
+    # ఒకవేళ లాగిన్ అయిన యూజర్ 'sales_executive' అయితే, కేవలం వాళ్ళ అసైన్ అయిన క్లయింట్స్ టికెట్స్ మాత్రమే ఫిల్టర్ అవ్వాలి
+    if getattr(current_user, "role", None) == "sales_executive":
+        query = query.join(Client, SupportTicket.client_id == Client.id).where(Client.assigned_to_id == current_user.id)
+    
+    tickets = db.session.execute(query.order_by(SupportTicket.created_at.desc())).scalars().all()
 
-    open_count = (
-        SupportTicket.query
-        .filter(
-            SupportTicket.status.in_(["waiting_admin", "open"])
+    # ఓపెన్ టికెట్స్ కౌంట్ (సేల్స్ ఎగ్జిక్యూటివ్‌కి వాళ్ళవి మాత్రమే, మిగతావాళ్ళకి టోటల్ ఓపెన్ కౌంట్)
+    if getattr(current_user, "role", None) == "sales_executive":
+        open_count = sum(1 for t in tickets if t.status in ["waiting_admin", "open"])
+        sidebar_support_count = open_count
+    else:
+        open_count = (
+            SupportTicket.query
+            .filter(
+                SupportTicket.status.in_(["waiting_admin", "open"])
+            )
+            .count()
         )
-        .count()
-    )
+        sidebar_support_count = open_count
 
     return render_template(
         "support/index.html",
         tickets=tickets,
         open_count=open_count,
+        sidebar_support_count=sidebar_support_count,
     )
 
 
