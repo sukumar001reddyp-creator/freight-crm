@@ -400,7 +400,8 @@ def export_shipments_excel():
         top=Side(style='thin', color='CBD5E1'), bottom=Side(style='thin', color='CBD5E1')
     )
 
-    headers = ["Shipment Ref", "Client", "Route", "Mode", "Status", "Handled By", "Created Date"]
+    # ఇక్కడ ETD మరియు ETA హెడర్స్ యాడ్ చేయబడ్డాయి
+    headers = ["Shipment Ref", "Client", "Route", "Mode", "Status", "ETD", "ETA", "Handled By", "Created Date"]
     ws.append(headers)
 
     for col_num in range(1, len(headers) + 1):
@@ -417,10 +418,16 @@ def export_shipments_excel():
         route = f"{s.origin} -> {s.destination}"
         mode = s.mode_of_shipment.replace("_", " ").title() if s.mode_of_shipment else "-"
         status_val = s.shipment_status.replace("_", " ").title() if s.shipment_status else "-"
+        
+        # ETD మరియు ETA ఫార్మాటింగ్
+        etd_str = s.etd.strftime("%d %b %Y") if s.etd else "-"
+        eta_str = s.eta.strftime("%d %b %Y") if s.eta else "-"
+        
         handled_by = s.handled_by.full_name if s.handled_by else "-"
         created_at = s.created_at.strftime("%d %b %Y") if s.created_at else "-"
 
-        row_data = [s.shipment_reference, client_name, route, mode, status_val, handled_by, created_at]
+        # రో డేటాలో ETD మరియు ETA ఇన్‌సర్ట్ చేయడం
+        row_data = [s.shipment_reference, client_name, route, mode, status_val, etd_str, eta_str, handled_by, created_at]
         ws.append(row_data)
 
         for col_idx in range(1, len(row_data) + 1):
@@ -447,8 +454,6 @@ def export_shipments_excel():
         download_name=filename,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-
 # =========================================================
 # CONVERT APPROVED QUOTATION TO SHIPMENT
 # =========================================================
