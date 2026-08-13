@@ -6,25 +6,26 @@
 
 {% block content %}
 
-<div class="clients-page">
+<div class="clients-page" style="max-width: 1350px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px;">
 
-    <section class="clients-hero">
-        <div class="clients-hero-copy">
-            <span class="panel-eyebrow">
+    <!-- PAGE HERO -->
+    <section style="display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 20px 24px; border-radius: 10px; background: linear-gradient(135deg, #7f1d1d, #b91c1c); color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);">
+        <div>
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #fca5a5 !important;">
                 SPECIAL ACCOUNTS • MANAGEMENT
             </span>
 
-            <h2>{{ category_name }}</h2>
+            <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff !important; letter-spacing: -0.01em;">{{ category_name }}</h2>
 
-            <p>
+            <p style="margin: 0; max-width: 600px; font-size: 13px; line-height: 1.45; color: #f1f5f9 !important; opacity: 0.95;">
                 Manage and track specialized records categorized under {{ category_name }}.
             </p>
         </div>
 
-        <div class="client-header-actions">
+        <div>
             <a
                 href="{{ url_for('management_clients.add_client', category=category_name) }}"
-                class="btn btn-primary-red"
+                style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: #b91c1c; color: #ffffff; text-decoration: none; font-size: 12.5px; font-weight: 600; border: none; white-space: nowrap;"
             >
                 <i class="bi bi-person-plus-fill"></i>
                 Add {{ category_name }}
@@ -32,63 +33,73 @@
         </div>  
     </section>
 
-    <section class="client-table-card">
-        <div class="client-table-head">
-            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--surface-dark);">{{ category_name }} Records</h3>
-            <span class="record-count-pill">{{ clients|length }} Results</span>
+    <!-- TABLE CARD -->
+    <section style="border: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04); padding: 18px 20px; border-radius: 10px;">
+        
+        <!-- SEARCH BOX TOP -->
+        <div style="position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 16px;">
+            <i class="bi bi-search" style="position: absolute; left: 12px; color: #64748b; font-size: 13px;"></i>
+            <input
+                type="search"
+                id="managementSearch"
+                placeholder="Search by Company, Contact Person, Email..."
+                style="width: 100%; height: 38px; padding: 0 14px 0 38px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; outline: none; background: #ffffff; color: #1e293b;"
+            >
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
+            <span style="padding: 3px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 11px; font-weight: 600; color: #64748b;">{{ clients|length }} Results</span>
         </div>
 
         {% if clients %}
-        <div class="client-table-scroll">
-            <table class="client-data-table">
+        <div style="width: 100%; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                 <thead>
-                    <tr>
-                        <th>Client</th>
-                        <th>Status</th>
-                        <th>Contact Person</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th style="text-align: right;">Actions</th>
+                    <tr style="background: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0;">
+                        <th style="padding: 11px 14px;">Client</th>
+                        <th style="padding: 11px 14px;">Status</th>
+                        <th style="padding: 11px 14px;">Contact Person</th>
+                        <th style="padding: 11px 14px;">Email</th>
+                        <th style="padding: 11px 14px;">Phone</th>
+                        <th style="padding: 11px 14px; text-align: right; width: 160px;">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {% for client in clients %}
-                    <tr>
-                        <td>
-                            <div class="client-company-cell">
-                                <span class="client-avatar">{{ client.company_name[:1]|upper }}</span>
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px 14px; vertical-align: middle;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #fee2e2; color: #b91c1c; font-weight: 700; font-size: 12px; flex-shrink: 0;">{{ client.company_name[:1]|upper }}</span>
                                 <div>
-                                    <a href="{{ url_for('management_clients.view_client', client_id=client.id) }}" class="client-company-name">{{ client.company_name }}</a>
-                                    <small>{{ category_name }}</small>
+                                    <a href="{{ url_for('management_clients.view_client', client_id=client.id) }}" style="color: #b91c1c; text-decoration: none; font-weight: 700;">{{ client.company_name }}</a>
+                                    <small style="display: block; color: #64748b; font-size: 11px;">{{ category_name }}</small>
                                 </div>
                             </div>
                         </td>
 
-                        <td>
-                            <span class="client-status-badge status-{{ client.status }}">
-                                <span class="status-dot"></span>{{ client.status_label|default(client.status)|title }}
+                        <td style="padding: 12px 14px; vertical-align: middle;">
+                            <span class="client-status-badge status-{{ client.status }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; text-transform: uppercase;">
+                                <span class="status-dot" style="width: 6px; height: 6px; border-radius: 50%;"></span>{{ client.status_label|default(client.status)|title }}
                             </span>
                         </td>
 
-                        <td>
-                            <div class="client-contact-cell">
-                                <strong>{{ client.contact_person_name or '-' }}</strong>
-                            </div>
+                        <td style="padding: 12px 14px; vertical-align: middle;">
+                            <strong>{{ client.contact_person_name or '-' }}</strong>
                         </td>
 
-                        <td>
-                            <span class="sub-text">{{ client.email or '-' }}</span>
+                        <td style="padding: 12px 14px; vertical-align: middle;">
+                            <span style="font-size: 12px; color: #64748b; white-space: nowrap;">{{ client.email or '-' }}</span>
                         </td>
 
-                        <td>
-                            <span class="sub-text">{{ client.primary_phone or '-' }}</span>
+                        <td style="padding: 12px 14px; vertical-align: middle;">
+                            <span style="font-size: 12px; color: #64748b; white-space: nowrap;">{{ client.primary_phone or '-' }}</span>
                         </td>
 
-                        <td style="text-align: right;">
-                            <div class="client-row-actions" style="justify-content: flex-end;">
-                                <a href="{{ url_for('management_clients.view_client', client_id=client.id) }}" class="row-action-btn" title="View"><i class="bi bi-eye"></i></a>
-                                <a href="{{ url_for('management_clients.edit_client', client_id=client.id) }}" class="row-action-btn" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                        <td style="padding: 12px 14px; text-align: right; vertical-align: middle; white-space: nowrap;">
+                            <div style="display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 8px !important; width: 100% !important;">
+                                <a href="{{ url_for('management_clients.view_client', client_id=client.id) }}" style="height: 30px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; padding: 0 10px !important; border-radius: 6px !important; font-size: 11.5px !important; font-weight: 600 !important; text-decoration: none !important; background: #f1f5f9 !important; color: #334155 !important; border: 1px solid #cbd5e1 !important;" title="View"><i class="bi bi-eye"></i> View</a>
+                                <a href="{{ url_for('management_clients.edit_client', client_id=client.id) }}" style="height: 30px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; padding: 0 10px !important; border-radius: 6px !important; font-size: 11.5px !important; font-weight: 600 !important; text-decoration: none !important; background: #f1f5f9 !important; color: #334155 !important; border: 1px solid #cbd5e1 !important;" title="Edit"><i class="bi bi-pencil-square"></i> Edit</a>
                             </div>
                         </td>
                     </tr>
@@ -97,14 +108,30 @@
             </table>
         </div>
         {% else %}
-        <div class="client-empty-state">
-            <span class="client-empty-icon"><i class="bi bi-people"></i></span>
-            <h3>No records found</h3>
-            <p>There are no accounts currently categorized under {{ category_name }}.</p>
-            <a href="{{ url_for('management_clients.add_client', category=category_name) }}" class="btn btn-primary-red" style="margin-top: 10px;">Add {{ category_name }}</a>
+        <div style="padding: 40px 20px; text-align: center;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%; background: #f8fafc; border: 1px solid #e2e8f0; color: #b91c1c; font-size: 20px;"><i class="bi bi-people"></i></span>
+            <h3 style="margin: 0 0 4px; font-size: 15px; color: #0f172a; font-weight: 600;">No records found</h3>
+            <p style="max-width: 400px; margin: 0 auto 14px; color: #64748b; font-size: 12.5px; line-height: 1.5;">There are no accounts currently categorized under {{ category_name }}.</p>
+            <a href="{{ url_for('management_clients.add_client', category=category_name) }}" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: #b91c1c; color: #ffffff; text-decoration: none; font-size: 12.5px; font-weight: 600;">Add {{ category_name }}</a>
         </div>
         {% endif %}
     </section>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const search = document.getElementById("managementSearch");
+    if (!search) return;
+
+    search.addEventListener("keyup", function () {
+        const keyword = this.value.toLowerCase();
+        document.querySelectorAll("tbody tr").forEach(function(row){
+            row.style.display = row.innerText.toLowerCase().includes(keyword) ? "" : "none";
+        });
+    });
+});
+</script>
 {% endblock %}

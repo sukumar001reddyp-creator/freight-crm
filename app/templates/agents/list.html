@@ -5,70 +5,105 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px;">
 
-    <!-- HERO HEADER -->
-    <div style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #7f1d1d, #b91c1c); padding: 20px 24px; border-radius: 10px; color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);">
+<div class="agents-page" style="max-width: 1350px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px;">
+
+    <!-- ==========================================
+         PAGE HEADER
+         ========================================== -->
+    <section style="display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 20px 24px; border-radius: 10px; background: linear-gradient(135deg, #7f1d1d, #b91c1c); color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);">
         <div>
-            <span style="font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #fca5a5;">CRM • AGENT MANAGEMENT</span>
-            <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff;">Agents Directory</h2>
-            <p style="margin: 0; font-size: 13px; color: #f1f5f9; opacity: 0.95;">Manage international partners for multi-country freight enquiries.</p>
-        </div>
-        <a href="{{ url_for('agents.add_agent') }}" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: #ffffff; color: #b91c1c; text-decoration: none; font-size: 12.5px; font-weight: 700; white-space: nowrap;">
-            <i class="bi bi-plus-lg"></i> Add New Agent
-        </a>
-    </div>
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #fca5a5 !important;">
+                CRM • AGENT MANAGEMENT
+            </span>
 
-    <!-- TABLE CARD -->
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
-            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">Registered Partners</h3>
-            <span style="padding: 3px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 11px; font-weight: 600; color: #64748b;">{{ agents|length }} Agents</span>
+            <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff !important; letter-spacing: -0.01em;">Agents Directory</h2>
+
+            <p style="margin: 0; max-width: 600px; font-size: 13px; line-height: 1.45; color: #f1f5f9 !important; opacity: 0.95;">
+                Manage international partners for multi-country freight enquiries.
+            </p>
         </div>
 
-        <!-- SEARCH -->
-        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; margin-bottom: 14px;">
-            <i class="bi bi-search" style="color: #64748b;"></i>
-            <input type="text" id="agentSearch" placeholder="Search by Country, Name, Email..." style="flex: 1; border: none; outline: none; font-size: 13px; background: transparent; color: #1e293b;">
+        <div>
+            <a href="{{ url_for('agents.add_agent') }}" class="btn btn-primary-red" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: #b91c1c; color: #ffffff; text-decoration: none; font-size: 12.5px; font-weight: 600; border: none; white-space: nowrap;">
+                <i class="bi bi-plus-lg"></i> Add New Agent
+            </a>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SEARCH & TABLE CARD
+         ========================================== -->
+    <section style="border: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04); padding: 18px 20px; border-radius: 10px;">
+        
+        <!-- SEARCH BOX TOP -->
+        <div style="position: relative; display: flex; align-items: center; width: 100%; margin-bottom: 16px;">
+            <i class="bi bi-search" style="position: absolute; left: 12px; color: #64748b; font-size: 13px;"></i>
+            <input
+                type="search"
+                id="agentSearch"
+                placeholder="Search by Country, Name, Email..."
+                style="width: 100%; height: 38px; padding: 0 14px 0 38px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; outline: none; background: #ffffff; color: #1e293b;"
+            >
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
+            <span style="padding: 3px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 11px; font-weight: 600; color: #64748b;">{{ agents|length }} Results</span>
         </div>
 
         {% if agents %}
+
             <div style="width: 100%; overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                     <thead>
-                        <tr style="background: #f8fafc; color: #64748b; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;">
-                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Country</th>
-                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Agent Name</th>
-                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Email Address</th>
-                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0;">Added Date</th>
-                            <th style="padding: 11px 14px; border-bottom: 1px solid #e2e8f0; text-align: right;">Actions</th>
+                        <tr style="background: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0;">
+                            <th style="padding: 11px 14px;">Country</th>
+                            <th style="padding: 11px 14px;">Agent Name</th>
+                            <th style="padding: 11px 14px;">Email Address</th>
+                            <th style="padding: 11px 14px;">Added Date</th>
+                            <th style="padding: 11px 14px; text-align: right; width: 180px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for agent in agents %}
                             <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 12px 14px;">
-                                    <span style="padding: 4px 10px; background: #f1f5f9; border-radius: 6px; font-weight: 700; color: #0f172a;">
+                                <!-- COUNTRY -->
+                                <td style="padding: 12px 14px; vertical-align: middle;">
+                                    <span style="padding: 4px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-weight: 700; color: #0f172a; font-size: 12px;">
                                         🌍 {{ agent.country }}
                                     </span>
                                 </td>
-                                <td style="padding: 12px 14px; font-weight: 600; color: #0f172a;">{{ agent.name }}</td>
-                                <td style="padding: 12px 14px;">
+
+                                <!-- NAME -->
+                                <td style="padding: 12px 14px; vertical-align: middle;">
+                                    <strong style="color: #0f172a; font-weight: 600;">{{ agent.name }}</strong>
+                                </td>
+
+                                <!-- EMAIL -->
+                                <td style="padding: 12px 14px; vertical-align: middle;">
                                     <a href="mailto:{{ agent.email }}" style="color: #b91c1c; text-decoration: none; font-weight: 600;">
-                                        <i class="bi bi-envelope-at"></i> {{ agent.email }}
+                                        <i class="bi bi-envelope-at-fill"></i> {{ agent.email }}
                                     </a>
                                 </td>
-                                <td style="padding: 12px 14px; color: #64748b;">{{ agent.created_at.strftime("%d %b %Y") if agent.created_at else "N/A" }}</td>
-                                <td style="padding: 12px 14px; text-align: right;">
-                                    <div style="display: inline-flex; gap: 8px; align-items: center;">
+
+                                <!-- CREATED DATE -->
+                                <td style="padding: 12px 14px; vertical-align: middle;">
+                                    <span style="font-size: 12px; color: #64748b; white-space: nowrap;">
+                                        {{ agent.created_at.strftime("%d %b %Y") if agent.created_at else "N/A" }}
+                                    </span>
+                                </td>
+
+                                <!-- ACTIONS (FIXED FLEX CONTAINER) -->
+                                <td style="padding: 12px 14px; text-align: right; vertical-align: middle; white-space: nowrap;">
+                                    <div style="display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 8px !important; width: 100% !important;">
                                         <!-- Edit Button -->
-                                        <a href="{{ url_for('agents.edit_agent', id=agent.id) }}" style="padding: 5px 10px; background: #e0f2fe; color: #0369a1; border-radius: 6px; text-decoration: none; font-size: 11.5px; font-weight: 600;">
-                                            <i class="bi bi-pencil"></i> Edit
+                                        <a href="{{ url_for('agents.edit_agent', id=agent.id) }}" style="height: 30px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; padding: 0 10px !important; border-radius: 6px !important; font-size: 11.5px !important; font-weight: 600 !important; text-decoration: none !important; white-space: nowrap !important; background: #f1f5f9 !important; color: #334155 !important; border: 1px solid #cbd5e1 !important; margin: 0 !important;">
+                                            <i class="bi bi-pencil-square"></i> Edit
                                         </a>
                                         <!-- Delete Button Form -->
-                                        <form action="{{ url_for('agents.delete_agent', id=agent.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete {{ agent.name }}?');">
-                                            <button type="submit" style="padding: 5px 10px; background: #fee2e2; color: #b91c1c; border: none; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer;">
-                                                <i class="bi bi-trash"></i> Delete
+                                        <form action="{{ url_for('agents.delete_agent', id=agent.id) }}" method="POST" style="display: inline-block !important; margin: 0 !important; padding: 0 !important;" onsubmit="return confirm('Are you sure you want to delete {{ agent.name }}?');">
+                                            <button type="submit" style="height: 30px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; padding: 0 10px !important; border-radius: 6px !important; font-size: 11.5px !important; font-weight: 600 !important; text-decoration: none !important; white-space: nowrap !important; background: #fef2f2 !important; color: #b91c1c !important; border: 1px solid #fecaca !important; cursor: pointer !important; margin: 0 !important;">
+                                                <i class="bi bi-trash-fill"></i> Delete
                                             </button>
                                         </form>
                                     </div>
@@ -78,22 +113,30 @@
                     </tbody>
                 </table>
             </div>
+
         {% else %}
+
+            <!-- EMPTY STATE -->
             <div style="padding: 40px 20px; text-align: center;">
-                <div style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%; background: #f8fafc; border: 1px solid #e2e8f0; color: #b91c1c; font-size: 20px;">
+                <span style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%; background: #f8fafc; border: 1px solid #e2e8f0; color: #b91c1c; font-size: 20px;">
                     <i class="bi bi-people"></i>
-                </div>
+                </span>
                 <h3 style="margin: 0 0 4px; font-size: 15px; color: #0f172a; font-weight: 600;">No agents found</h3>
-                <p style="margin: 0 auto 16px; color: #64748b; font-size: 12.5px;">Add international partners to handle multi-country enquiries.</p>
-                <a href="{{ url_for('agents.add_agent') }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; height: 38px; background: #b91c1c; color: #ffffff; border-radius: 8px; text-decoration: none; font-size: 12.5px; font-weight: 600;">
+                <p style="max-width: 400px; margin: 0 auto 14px; color: #64748b; font-size: 12.5px; line-height: 1.5;">Add international partners to handle multi-country enquiries.</p>
+                <a href="{{ url_for('agents.add_agent') }}" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: #b91c1c; color: #ffffff; text-decoration: none; font-size: 12.5px; font-weight: 600; border: none; white-space: nowrap;">
                     <i class="bi bi-plus-lg"></i> Add Agent
                 </a>
             </div>
+
         {% endif %}
-    </div>
+
+    </section>
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const search = document.getElementById("agentSearch");

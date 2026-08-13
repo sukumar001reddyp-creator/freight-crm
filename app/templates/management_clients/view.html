@@ -6,42 +6,42 @@
 
 {% block content %}
 
-<div class="client-profile-page" style="max-width: 1100px; margin: 0 auto;">
+<div class="client-profile-page" style="max-width: 1350px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px;">
 
     <!-- PROFILE HERO -->
-    <section class="profile-hero-card">
-        <div class="profile-identity">
-            <div class="profile-main-avatar">
+    <section style="display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 20px 24px; border-radius: 10px; background: linear-gradient(135deg, #7f1d1d, #b91c1c); color: #ffffff; box-shadow: 0 6px 16px -3px rgba(127, 29, 29, 0.18);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(255,255,255,0.2); color: #ffffff; font-weight: 800; font-size: 22px; flex-shrink: 0;">
                 {{ client.company_name[:1]|upper }}
             </div>
-            <div class="profile-main-copy">
-                <span class="panel-eyebrow">
+            <div>
+                <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #fca5a5 !important;">
                     SPECIAL ACCOUNTS • PROFILE
                 </span>
-                <h2>
+                <h2 style="margin: 2px 0 4px; font-size: 22px; font-weight: 700; color: #ffffff !important;">
                     {{ client.company_name }}
                 </h2>
-                <p>
+                <p style="margin: 0; font-size: 13px; color: #f1f5f9 !important; opacity: 0.95;">
                     {{ client.contact_person_name }} • {{ client.email }}
                 </p>
-                <div class="profile-badge-row">
-                    <span class="category-pill">
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                    <span style="padding: 3px 9px; background: rgba(255,255,255,0.15); border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff;">
                         {{ client.category }}
                     </span>
-                    <span class="client-status-badge status-{{ client.status }}">
-                        <span class="status-dot"></span>
+                    <span class="client-status-badge status-{{ client.status }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                        <span class="status-dot" style="width: 6px; height: 6px; border-radius: 50%;"></span>
                         {{ client.status_label|default(client.status)|title }}
                     </span>
                 </div>
             </div>
         </div>
 
-        <div class="profile-action-row">
-            <a href="{{ url_for('management_clients.view_category', category_name=client.category) }}" class="btn btn-secondary-soft">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="{{ url_for('management_clients.view_category', category_name=client.category) }}" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; text-decoration: none; font-size: 12.5px; font-weight: 600;">
                 <i class="bi bi-arrow-left"></i>
                 Back
             </a>
-            <a href="{{ url_for('management_clients.edit_client', client_id=client.id) }}" class="btn btn-secondary-soft">
+            <a href="{{ url_for('management_clients.edit_client', client_id=client.id) }}" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; text-decoration: none; font-size: 12.5px; font-weight: 600;">
                 <i class="bi bi-pencil-square"></i>
                 Edit Record
             </a>
@@ -49,36 +49,36 @@
     </section>
 
     <!-- QUICK INFO -->
-    <section class="profile-quick-grid">
-        <article class="profile-quick-card">
-            <span><i class="bi bi-envelope"></i></span>
+    <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+        <article style="border: 1px solid #e2e8f0; background: #ffffff; padding: 16px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+            <span style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #eff6ff; color: #1e3a8a; font-size: 17px;"><i class="bi bi-envelope"></i></span>
             <div>
-                <small>Email</small>
-                <strong>{{ client.email }}</strong>
+                <small style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b;">Email</small>
+                <strong style="font-size: 13px; color: #0f172a; word-break: break-all;">{{ client.email }}</strong>
             </div>
         </article>
 
-        <article class="profile-quick-card">
-            <span><i class="bi bi-telephone"></i></span>
+        <article style="border: 1px solid #e2e8f0; background: #ffffff; padding: 16px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+            <span style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #fffbeb; color: #d97706; font-size: 17px;"><i class="bi bi-telephone"></i></span>
             <div>
-                <small>Primary Phone</small>
-                <strong>{{ client.primary_phone or 'Not Set' }}</strong>
+                <small style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b;">Primary Phone</small>
+                <strong style="font-size: 13px; color: #0f172a;">{{ client.primary_phone or 'Not Set' }}</strong>
             </div>
         </article>
 
-        <article class="profile-quick-card">
-            <span><i class="bi bi-geo-alt"></i></span>
+        <article style="border: 1px solid #e2e8f0; background: #ffffff; padding: 16px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+            <span style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #dcfce7; color: #16a34a; font-size: 17px;"><i class="bi bi-geo-alt"></i></span>
             <div>
-                <small>Address</small>
-                <strong>{{ client.address_line_1 or 'Not Set' }}</strong>
+                <small style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b;">Address</small>
+                <strong style="font-size: 13px; color: #0f172a;">{{ client.address_line_1 or 'Not Set' }}</strong>
             </div>
         </article>
 
-        <article class="profile-quick-card">
-            <span><i class="bi bi-shield-check"></i></span>
+        <article style="border: 1px solid #e2e8f0; background: #ffffff; padding: 16px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+            <span style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #f5f3ff; color: #7c3aed; font-size: 17px;"><i class="bi bi-shield-check"></i></span>
             <div>
-                <small>Account Type</small>
-                <strong>Special Account</strong>
+                <small style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #64748b;">Account Type</small>
+                <strong style="font-size: 13px; color: #0f172a;">Special Account</strong>
             </div>
         </article>
     </section>
