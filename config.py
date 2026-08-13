@@ -72,6 +72,13 @@ class Config:
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    SQLALCHEMY_ENGINE_OPTIONS = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
+
+    
+
     # === BACKUP SCHEDULER SETTINGS ===
     BACKUP_ENABLED = True
     BACKUP_TIME = "00:00"
