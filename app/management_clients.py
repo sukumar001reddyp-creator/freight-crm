@@ -32,7 +32,7 @@ def view_category(category_name):
         clients=clients,
         category_name=category_name
     )
-
+    
 @management_clients_bp.route("/add", methods=["GET", "POST"])
 @login_required
 def add_client():
@@ -97,3 +97,19 @@ def edit_client(client_id):
 def view_client(client_id):
     client = db.get_or_404(Client, client_id)
     return render_template("management_clients/view.html", client=client)
+
+@management_clients_bp.route("/<int:client_id>/delete", methods=["POST"])
+@login_required
+def delete_client(client_id):
+    client = db.get_or_404(Client, client_id) 
+    category_name = client.category
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash("Record deleted successfully.", "success")
+    except Exception:
+        db.session.rollback()
+        flash("Unable to delete record.", "danger")
+        
+    return redirect(url_for('management_clients.view_category', category_name=category_name))

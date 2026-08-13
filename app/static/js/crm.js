@@ -97,5 +97,52 @@ document.addEventListener(
                 );
             }
         );
+
+        const mgmtToggle =
+            document.getElementById(
+                "mgmtDropdownToggle"
+            );
+
+        const mgmtGroup =
+            document.getElementById(
+                "mgmtClientsGroup"
+            );
+
+        function toggleMgmtGroup(event) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            if (!mgmtGroup || !mgmtToggle) return;
+
+            const isOpen =
+                mgmtGroup.classList.toggle(
+                    "open"
+                );
+
+            mgmtToggle.setAttribute(
+                "aria-expanded",
+                isOpen ? "true" : "false"
+            );
+        }
+
+        if (mgmtToggle) {
+            mgmtToggle.addEventListener(
+                "click",
+                toggleMgmtGroup
+            );
+
+            mgmtToggle.addEventListener(
+                "keydown",
+                function (event) {
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
+                        toggleMgmtGroup(event);
+                    }
+                }
+            );
+        }
     }
 );

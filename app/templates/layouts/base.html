@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#7f1d1d">
+    <meta name="color-scheme" content="light">
     <title>{% block title %}Freight CRM{% endblock %}</title>
 
     <!-- Fonts & Icons -->
@@ -12,6 +13,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
+    <style>
+        /* Reduce the small browser navigation flash without hiding the page. */
+        @view-transition {
+            navigation: auto;
+        }
+
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation-duration: 0s !important;
+        }
+    </style>
+
     <!-- Base CRM Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/crm.css', v='20260706-2') }}">
 
@@ -21,6 +34,17 @@
     {% block extra_css %}{% endblock %}
 
 <style>
+html {
+    background-color: #f8fafc !important;
+}
+body {
+    background-color: #f8fafc !important; 
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light;
+}
 :root {
     --primary: #7f1d1d;
     --primary-light: #fef2f2;
@@ -34,14 +58,13 @@
     --radius-xl: 16px;
     --radius-lg: 12px;
     --radius-md: 8px;
-    --transition-bounce: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .topbar {
-    background: rgba(236, 253, 245, 0.85) !important;
+    background: rgba(254, 242, 242, 0.85) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid #d1fae5;
+    border-bottom: 1px solid rgba(127, 29, 29, 0.15);
     padding: 14px 24px;
 }
 
@@ -72,17 +95,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: var(--transition-bounce);
     position: relative;
     text-decoration: none;
 }
 
 .top-action-btn:hover {
-    background: #ecfdf5;
-    color: #047857;
-    border-color: rgba(4, 120, 87, 0.2);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: rgba(127, 29, 29, 0.2);
 }
 
 .notification-dot {
@@ -106,7 +126,6 @@
     padding: 6px 14px 6px 8px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
 }
 
 .top-user-avatar {
@@ -145,7 +164,6 @@
     margin-left: 10px;
     color: #94a3b8;
     font-size: 12px;
-    transition: transform 0.2s ease;
 }
 
 .top-user-dropdown {
@@ -162,7 +180,7 @@
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    transition: var(--transition-bounce);
+    transition: all 0.2s ease;
 }
 
 .top-user-menu.open .top-user-dropdown {
@@ -175,19 +193,19 @@
     display: grid;
     gap: 2px;
     padding: 12px;
-    background: #ecfdf5;
+    background: var(--primary-light);
     border-radius: var(--radius-lg);
     margin-bottom: 6px;
 }
 
 .top-user-dropdown-head strong {
-    color: #047857;
+    color: var(--primary);
     font-size: 13px;
     font-weight: 700;
 }
 
 .top-user-dropdown-head span {
-    color: #065f46;
+    color: #991b1b;
     font-size: 11px;
     opacity: 0.8;
 }
@@ -203,12 +221,11 @@
     font-size: 13px;
     font-weight: 500;
     text-decoration: none;
-    transition: all 0.15s ease;
 }
 
 .top-user-dropdown-item:hover {
-    background: #ecfdf5;
-    color: #047857;
+    background: var(--primary-light);
+    color: var(--primary);
     padding-left: 18px;
 }
 
@@ -230,29 +247,67 @@
     padding: 16px;
 }
 
-#mgmtClientsGroup .nav-sub-menu {
+/* మోడ్రన్ అండ్ క్లీన్ అకార్డియన్ స్టైల్ (మేనేజ్‌మెంట్ క్లయింట్స్ కోసం) */
+
+.special-accounts-label {
+    font-size: 10px !important;
+}
+
+.mgmt-toggle-btn {
+    font-size: 13px !important;
+}
+
+.nav-sub-item {
+    font-size: 13px !important;
+}
+
+.mgmt-dropdown-container {
+    margin-top: 16px;
+}
+
+.mgmt-toggle-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    color: #fca5a5 !important;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 8px 10px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+.mgmt-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.mgmt-toggle-btn .mgmt-chevron {
+    margin-left: auto;
+    font-size: 10px;
+    transition: transform 0.25s ease;
+}
+
+.mgmt-dropdown-menu {
     display: none;
     flex-direction: column;
-    padding-left: 16px;
-    padding-right: 8px;
-    gap: 3px;
-    margin: 6px 0 10px;
-    border-left: 2px solid rgba(255, 255, 255, 0.15);
-    margin-left: 18px;
+    padding-left: 12px;
+    margin-top: 4px;
+    gap: 2px;
+    border-left: 2px solid rgba(252, 165, 165, 0.2);
+    margin-left: 14px;
 }
 
-#mgmtClientsGroup.open #mgmtSubMenu {
-    display: flex !important;
-    animation: fadeInMenu 0.2s ease-in-out;
+.mgmt-dropdown-container.open .mgmt-dropdown-menu {
+    display: flex;
 }
 
-#mgmtClientsGroup.open .mgmt-chevron {
+.mgmt-dropdown-container.open .mgmt-chevron {
     transform: rotate(180deg);
-}
-
-@keyframes fadeInMenu {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .nav-sub-item {
@@ -262,9 +317,9 @@
     text-decoration: none;
     padding: 6px 10px;
     border-radius: 6px;
-    transition: all 0.15s ease;
     display: flex;
     align-items: center;
+    -webkit-font-smoothing: antialiased;
 }
 
 .nav-sub-item:hover {
@@ -278,10 +333,17 @@
     color: #ffffff !important;
     font-weight: 700 !important;
 }
+
+/* సైడ్‌బార్ జంప్‌ని పూర్తిగా లాక్ చేయడానికి ఈ ప్రాపర్టీస్ చాలా ముఖ్యం */
+.sidebar-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-anchor: none;
+    overflow-anchor: none;
+}
 </style>
 
 <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-<meta name="theme-color" content="#7f1d1d">
 </head>
 
 <body>
@@ -304,7 +366,7 @@
             </button>
         </div>
 
-        <div class="sidebar-scroll">
+        <div class="sidebar-scroll" id="sidebarScroll">
             <div class="nav-label">Workspace</div>
             <nav class="sidebar-nav">
                 <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
@@ -315,7 +377,9 @@
                 <a href="{{ url_for('clients.client_list') }}" class="nav-item {% if request.blueprint == 'clients' and not request.args.get('category') %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
                     <span>Clients</span>
+                    {% if sidebar_clients_count is defined and sidebar_clients_count > 0 %}
                     <span class="nav-count">{{ sidebar_clients_count }}</span>
+                    {% endif %}
                 </a>
 
                 <a href="{{ url_for('agents.agent_list') }}" class="nav-item {% if request.blueprint == 'agents' %}active{% endif %}">
@@ -329,7 +393,9 @@
                 <a href="{{ url_for('enquiries.enquiry_list') }}" class="nav-item {% if request.blueprint == 'enquiries' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-inbox-fill"></i></span>
                     <span>Enquiries</span>
+                    {% if sidebar_enquiries_count is defined and sidebar_enquiries_count > 0 %}
                     <span class="nav-count">{{ sidebar_enquiries_count }}</span>
+                    {% endif %}
                 </a>
                 
                 <a href="{{ url_for('quotations.quotation_list') }}" class="nav-item {% if request.blueprint == 'quotations' %}active{% endif %}">
@@ -357,33 +423,38 @@
                  SPECIAL ACCOUNTS (ADMIN ONLY)
                  ========================================== -->
             {% if current_user.role == "admin" %}
-            <div class="nav-label" style="color: #fca5a5; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; margin-top: 16px;">SPECIAL ACCOUNTS</div>
-            <nav class="sidebar-nav">
-                <div class="nav-dropdown-group" id="mgmtClientsGroup">
-                    <a href="#" class="nav-item nav-dropdown-toggle" onclick="document.getElementById('mgmtClientsGroup').classList.toggle('open'); return false;">
-                        <span class="nav-icon"><i class="bi bi-folder-fill"></i></span>
-                        <span>Management Clients</span>
-                        <i class="bi bi-chevron-down mgmt-chevron" style="margin-left: auto; font-size: 10px; transition: transform 0.2s ease;"></i>
-                    </a>
-                    
-                    <div class="nav-sub-menu" id="mgmtSubMenu">
-                        <a href="{{ url_for('management_clients.view_category', category_name='Embassies') }}" class="nav-sub-item">Embassies</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Government Ministries') }}" class="nav-sub-item">Government Ministries</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Government Projects') }}" class="nav-sub-item">Government Projects</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Diplomatic Missions') }}" class="nav-sub-item">Diplomatic Missions</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='UN & International Orgs') }}" class="nav-sub-item">UN & International Orgs</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='NGOs') }}" class="nav-sub-item">NGOs</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='State-Owned Enterprises') }}" class="nav-sub-item">State-Owned Enterprises</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Military / Defense') }}" class="nav-sub-item">Military / Defense</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Public Sector Tenders') }}" class="nav-sub-item">Public Sector Tenders</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Municipalities') }}" class="nav-sub-item">Municipalities</a>
-                        <a href="{{ url_for('management_clients.view_category', category_name='Semi-Government Authorities') }}" class="nav-sub-item">Semi-Government Authorities</a>
-                    </div>
-                </div>
-            </nav>
+            {% set is_mgmt_active = '/management-clients' in request.path %}
+
+            <!-- SPECIAL ACCOUNTS: non-clickable section heading -->
+            <div class="nav-label special-accounts-label" style="margin-top: 16px;">
+                SPECIAL ACCOUNTS
+            </div>
+
+            <!-- Management Clients: clickable accordion -->
+            <div class="mgmt-dropdown-container {% if is_mgmt_active %}open{% endif %}" id="mgmtContainer">
+                <button type="button" class="mgmt-toggle-btn" onclick="document.getElementById('mgmtContainer').classList.toggle('open');">
+                    <i class="bi bi-folder-fill" style="margin-right: 8px;"></i>
+                    <span>Management Clients</span>
+                    <i class="bi bi-chevron-down mgmt-chevron"></i>
+                </button>
+
+                <nav class="mgmt-dropdown-menu" id="mgmtSubMenu">
+                    <a href="{{ url_for('management_clients.view_category', category_name='Embassies') }}" class="nav-sub-item {% if 'Embassies' in request.path %}active-sub{% endif %}">Embassies</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Government Ministries') }}" class="nav-sub-item {% if 'Government%20Ministries' in request.path or 'Government Ministries' in request.path %}active-sub{% endif %}">Government Ministries</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Government Projects') }}" class="nav-sub-item {% if 'Government%20Projects' in request.path or 'Government Projects' in request.path %}active-sub{% endif %}">Government Projects</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Diplomatic Missions') }}" class="nav-sub-item {% if 'Diplomatic%20Missions' in request.path or 'Diplomatic Missions' in request.path %}active-sub{% endif %}">Diplomatic Missions</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='UN & International Orgs') }}" class="nav-sub-item {% if 'UN' in request.path %}active-sub{% endif %}">UN & International Orgs</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='NGOs') }}" class="nav-sub-item {% if 'NGOs' in request.path %}active-sub{% endif %}">NGOs</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='State-Owned Enterprises') }}" class="nav-sub-item {% if 'State-Owned' in request.path %}active-sub{% endif %}">State-Owned Enterprises</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Military / Defense') }}" class="nav-sub-item {% if 'Military' in request.path %}active-sub{% endif %}">Military / Defense</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Public Sector Tenders') }}" class="nav-sub-item {% if 'Public%20Sector' in request.path or 'Public Sector' in request.path %}active-sub{% endif %}">Public Sector Tenders</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Municipalities') }}" class="nav-sub-item {% if 'Municipalities' in request.path %}active-sub{% endif %}">Municipalities</a>
+                    <a href="{{ url_for('management_clients.view_category', category_name='Semi-Government Authorities') }}" class="nav-sub-item {% if 'Semi-Government' in request.path %}active-sub{% endif %}">Semi-Government Authorities</a>
+                </nav>
+            </div>
             {% endif %}
 
-            <div class="nav-label">Intelligence</div>
+            <div class="nav-label" style="margin-top: 16px;">Intelligence</div>
             <nav class="sidebar-nav">
                {% if current_user.role != "sales_executive" %}
 <a href="{{ url_for('reports.dashboard') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
@@ -395,7 +466,7 @@
                 <a href="{{ url_for('support.admin_list') }}" class="nav-item {% if request.endpoint == 'support.admin_list' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-headset"></i></span>
                     <span>Support Tickets</span>
-                    {% if sidebar_support_count > 0 %}
+                    {% if sidebar_support_count is defined and sidebar_support_count > 0 %}
                     <span class="nav-count">{{ sidebar_support_count }}</span>
                     {% endif %}
                 </a>
@@ -431,6 +502,18 @@
         </div>
     </aside>
 
+    <script>
+        // Restore sidebar position immediately, before the browser paints the main content.
+        (function () {
+            const sidebar = document.getElementById('sidebarScroll');
+            const saved = sessionStorage.getItem('sidebarScrollPos');
+
+            if (sidebar && saved !== null) {
+                sidebar.scrollTop = parseInt(saved, 10) || 0;
+            }
+        })();
+    </script>
+
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <main class="main-area">
@@ -448,7 +531,7 @@
             <div class="topbar-actions" style="display: flex; align-items: center;">
                 <a href="{{ url_for('support.admin_list') }}" class="top-action-btn notification-btn" title="View Support Tickets">
                     <i class="bi bi-bell"></i>
-                    {% if sidebar_support_count > 0 %}
+                    {% if sidebar_support_count is defined and sidebar_support_count > 0 %}
                     <span class="notification-dot"></span>
                     {% endif %}
                 </a>
@@ -507,36 +590,329 @@
     </main>
 </div>
 
+
+<script>
+(function () {
+    'use strict';
+
+    const MAIN_SELECTOR = '.main-area';
+    const SIDEBAR_KEY = 'sidebarScrollPos';
+    const AJAX_HEADER = 'X-CRM-Navigation';
+
+    function sidebar() {
+        return document.getElementById('sidebarScroll');
+    }
+
+    function saveSidebar() {
+        const el = sidebar();
+        if (el) {
+            sessionStorage.setItem(SIDEBAR_KEY, String(el.scrollTop));
+        }
+    }
+
+    function restoreSidebar() {
+        const el = sidebar();
+        const saved = sessionStorage.getItem(SIDEBAR_KEY);
+
+        if (el && saved !== null) {
+            el.scrollTop = parseInt(saved, 10) || 0;
+        }
+    }
+    function updateActiveSidebarItem() {
+    const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
+
+    document.querySelectorAll('#sidebarScroll a.nav-item, #sidebarScroll a.nav-sub-item').forEach(function (link) {
+        const linkUrl = new URL(link.href, window.location.origin);
+
+        const isActive =
+            linkUrl.pathname === currentPath &&
+            linkUrl.search === currentSearch;
+
+        link.classList.toggle('active', isActive);
+        link.classList.toggle('active-sub', isActive);
+    });
+}
+    function eligible(link, event) {
+        if (!link || !link.href) return false;
+        if (event.button !== 0 || event.ctrlKey || event.metaKey ||
+            event.shiftKey || event.altKey) return false;
+        if (link.target && link.target !== '_self') return false;
+        if (link.hasAttribute('download')) return false;
+        if (link.dataset.noAjax !== undefined) return false;
+
+        const url = new URL(link.href, location.href);
+
+        if (url.origin !== location.origin) return false;
+        if (url.protocol !== location.protocol) return false;
+
+        // Don't hijack anchors, javascript links, mail/tel links.
+        if (link.getAttribute('href').startsWith('#')) return false;
+
+        // Only normal GET page navigation.
+        return true;
+    }
+
+    function copyPageAssets(nextDoc) {
+        /*
+         * Keep page-specific CSS from the page template head.
+         * Base styles already exist and are not duplicated.
+         */
+        const currentHead = document.head;
+        const currentKeys = new Set();
+
+        currentHead.querySelectorAll('link[rel="stylesheet"], style[data-crm-page-style]')
+            .forEach(function (node) {
+                currentKeys.add(
+                    node.tagName === 'LINK'
+                        ? 'link:' + node.href
+                        : 'style:' + node.textContent
+                );
+            });
+
+        nextDoc.head.querySelectorAll('link[rel="stylesheet"], style')
+            .forEach(function (node) {
+                const key = node.tagName === 'LINK'
+                    ? 'link:' + node.href
+                    : 'style:' + node.textContent;
+
+                if (currentKeys.has(key)) return;
+
+                // Don't duplicate the global CRM stylesheet or CDN Select2 CSS.
+                if (
+                    node.tagName === 'LINK' &&
+                    (
+                        node.href.includes('/static/css/crm.css') ||
+                        node.href.includes('select2.min.css')
+                    )
+                ) {
+                    return;
+                }
+
+                const clone = document.createElement(node.tagName.toLowerCase());
+
+                for (const attr of node.attributes) {
+                    clone.setAttribute(attr.name, attr.value);
+                }
+
+                if (node.tagName === 'STYLE') {
+                    clone.textContent = node.textContent;
+                    clone.dataset.crmPageStyle = 'true';
+                }
+
+                currentHead.appendChild(clone);
+            });
+    }
+
+    function runPageScripts(nextDoc) {
+        /*
+         * extra_js is rendered near the end of <body>.
+         * Global jquery/select2/crm.js are NOT executed again.
+         * Only inline page scripts and page-specific external scripts are run.
+         */
+        const scripts = Array.from(nextDoc.querySelectorAll('script'));
+
+        scripts.forEach(function (oldScript) {
+            const src = oldScript.getAttribute('src');
+
+            if (src) {
+                if (
+                    src.includes('code.jquery.com/jquery') ||
+                    src.includes('select2.min.js') ||
+                    src.includes('/static/js/crm.js')
+                ) {
+                    return;
+                }
+
+                // Avoid loading the same external page script twice.
+                if (document.querySelector('script[data-crm-page-src="' + src + '"]')) {
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = false;
+                script.dataset.crmPageSrc = src;
+                document.body.appendChild(script);
+                return;
+            }
+
+            const code = oldScript.textContent || '';
+
+            // Skip the global base navigation script itself.
+            if (
+                code.includes('Smooth internal navigation:') ||
+                code.includes('const MAIN_SELECTOR =')
+            ) {
+                return;
+            }
+
+            if (!code.trim()) return;
+
+            const script = document.createElement('script');
+            script.textContent = code;
+            script.dataset.crmPageScript = 'true';
+            document.body.appendChild(script);
+        });
+    }
+
+    async function navigate(url, push) {
+        const main = document.querySelector(MAIN_SELECTOR);
+
+        if (!main) {
+            location.href = url;
+            return;
+        }
+        saveSidebar();
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    [AJAX_HEADER]: '1'
+                }
+            });
+
+            if (!response.ok) {
+                location.href = url;
+                return;
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const nextDoc = parser.parseFromString(html, 'text/html');
+            const nextMain = nextDoc.querySelector(MAIN_SELECTOR);
+
+            if (!nextMain) {
+                location.href = url;
+                return;
+            }
+
+            /*
+             * Important order:
+             * 1. Fetch everything first while current page remains visible.
+             * 2. Load page-specific head assets.
+             * 3. Replace only main-area.
+             * 4. Re-run page scripts.
+             *
+             * There is no blank overlay and no opacity animation.
+             */
+            copyPageAssets(nextDoc);
+
+            main.replaceWith(nextMain);
+
+            if (nextDoc.title) {
+                document.title = nextDoc.title;
+            }
+
+            if (push) {
+                history.pushState({ crmNavigation: true }, '', url);
+            }
+
+            restoreSidebar();
+            updateActiveSidebarItem();
+
+            // Let existing page code know that a soft navigation completed.
+            document.dispatchEvent(
+                new CustomEvent('crm:navigation-complete', {
+                    detail: { url: url }
+                })
+            );
+
+            runPageScripts(nextDoc);
+
+            restoreSidebar();
+
+        } catch (error) {
+            console.warn('CRM soft navigation failed; using normal navigation.', error);
+            location.href = url;
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        const link = event.target.closest('a[href]');
+
+        if (!eligible(link, event)) return;
+
+        const url = new URL(link.href, location.href);
+
+        if (
+            url.origin === location.origin &&
+            url.pathname === location.pathname &&
+            url.search === location.search &&
+            url.hash
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        navigate(url.href, true);
+    }, true);
+
+    window.addEventListener('popstate', function () {
+        navigate(location.href, false);
+    });
+
+    document.addEventListener('scroll', function (event) {
+        if (event.target && event.target.id === 'sidebarScroll') {
+            saveSidebar();
+        }
+    }, true);
+
+    window.addEventListener('pageshow', function () {
+        restoreSidebar();
+        updateActiveSidebarItem();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        restoreSidebar();
+        updateActiveSidebarItem();
+    });
+})();
+</script>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{{ url_for('static', filename='js/crm.js') }}"></script>
 
 <script>
+// Keep browser from restoring the main document to an old position.
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-    const currentPath = window.location.pathname;
-    const subItems = document.querySelectorAll("#mgmtSubMenu .nav-sub-item");
-    let isMatched = false;
+    const sidebarScroll = document.getElementById('sidebarScroll');
 
-    subItems.forEach(item => {
-        if (item.getAttribute("href") === currentPath) {
-            item.classList.add("active-sub");
-            isMatched = true;
-        }
-    });
-
-    if (isMatched) {
-        const group = document.getElementById("mgmtClientsGroup");
-        if (group) group.classList.add("open");
+    if (sidebarScroll) {
+        // Save position before navigating.
+        // The position itself is restored immediately after the sidebar is parsed.
+        sidebarScroll.querySelectorAll('a[href]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                sessionStorage.setItem(
+                    'sidebarScrollPos',
+                    sidebarScroll.scrollTop
+                );
+            });
+        });
     }
 
+    // --- TOP USER PROFILE DROPDOWN ---
     const menu = document.getElementById("topUserMenu");
     const trigger = document.getElementById("topUserTrigger");
 
     if (menu && trigger) {
         trigger.addEventListener("click", function (event) {
             event.stopPropagation();
+
             const isOpen = menu.classList.toggle("open");
-            trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+            trigger.setAttribute(
+                "aria-expanded",
+                isOpen ? "true" : "false"
+            );
         });
 
         document.addEventListener("click", function (event) {
