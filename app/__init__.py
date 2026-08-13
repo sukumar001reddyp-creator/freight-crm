@@ -5,6 +5,7 @@ from flask import (
     url_for,
     render_template,
     send_from_directory,
+    jsonify,
 )
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_sqlalchemy import SQLAlchemy
@@ -392,6 +393,17 @@ def create_app():
     # ==========================================
     from app.backup import init_backup_scheduler
     init_backup_scheduler(app)
+
+    # ==========================================
+    # LIGHTWEIGHT HEALTH CHECK
+    # ==========================================
+    # This endpoint intentionally does NOT touch PostgreSQL.
+    # It is safe for Render health checks and avoids creating
+    # unnecessary database connections.
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "ok"}), 200
+
 
     @app.route("/service-worker.js")
     def service_worker():
