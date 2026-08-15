@@ -67,12 +67,10 @@ def login():
 
             next_page = request.args.get("next")
 
-            if next_page and next_page.startswith('/'):
+            if next_page and next_page != url_for("auth.logout"):
                 return redirect(next_page)
 
-            return redirect(
-                url_for("dashboard")
-            )
+            return redirect(url_for("dashboard"))
 
         flash(
             "Invalid email or password.",
