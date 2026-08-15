@@ -90,12 +90,12 @@
             </div>
         </a>
 
-        <!-- CLOSED -->
-        <a href="{{ url_for('enquiries.enquiry_list', status='closed') }}" class="quotation-stat-card stat-rejected {% if selected_status == 'closed' %}active-card{% endif %}">
-            <span class="quotation-stat-icon"><i class="bi bi-x-circle-fill"></i></span>
+        <!-- CONVERTED (CLOSED బదులుగా మార్చబడింది) -->
+        <a href="{{ url_for('enquiries.enquiry_list', status='converted') }}" class="quotation-stat-card stat-rejected {% if selected_status == 'converted' %}active-card{% endif %}">
+            <span class="quotation-stat-icon"><i class="bi bi-check2-all"></i></span>
             <div>
-                <small>Closed</small>
-                <strong>{{ closed_count|default(0) }}</strong>
+                <small>Converted</small>
+                <strong>{{ converted_count|default(0) }}</strong>
             </div>
         </a>
 
@@ -122,16 +122,16 @@
             <div class="enquiry-filter-bottom-row">
                 <div class="enquiry-filter-grid">
                     
-                    <!-- Status Filter (Included Converted & Closed) -->
+                    <!-- Status Filter -->
                     <select name="status">
-    <option value="">All Statuses</option>
-    <option value="dashboard_open" {% if selected_status == 'dashboard_open' %}selected{% endif %}>Dashboard Active / Pending</option>
-    <option value="open" {% if selected_status == 'open' %}selected{% endif %}>Open</option>
-    <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option>
-    <option value="quoted" {% if selected_status == 'quoted' %}selected{% endif %}>Quoted</option>
-    <option value="converted" {% if selected_status == 'converted' %}selected{% endif %}>Converted</option>
-    <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Closed</option>
-</select>
+                        <option value="">All Statuses</option>
+                        <option value="dashboard_open" {% if selected_status == 'dashboard_open' %}selected{% endif %}>Dashboard Active / Pending</option>
+                        <option value="open" {% if selected_status == 'open' %}selected{% endif %}>Open</option>
+                        <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="quoted" {% if selected_status == 'quoted' %}selected{% endif %}>Quoted</option>
+                        <option value="converted" {% if selected_status == 'converted' %}selected{% endif %}>Converted</option>
+                        <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
 
                     <!-- Mode Filter -->
                     <select name="mode">
@@ -461,63 +461,6 @@
     font-size: 12px;
 }
 
-/* Summary Cards Grid */
-.enquiry-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-}
-.enquiry-stat-card {
-    border: 1px solid var(--border-light);
-    background: var(--bg-card);
-    box-shadow: var(--shadow-subtle);
-    padding: 16px 18px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.enquiry-stat-icon {
-    width: 38px;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-md);
-    background: #fee2e2;
-    color: var(--primary-red);
-    font-size: 17px;
-    flex-shrink: 0;
-}
-.enquiry-stat-card small {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-muted);
-}
-.enquiry-stat-card strong {
-    font-size: 21px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--surface-dark);
-}
-
-.stat-total { border-left: 4px solid #1e3a8a; }
-.stat-total .enquiry-stat-icon { background: #eff6ff; color: #1e3a8a; }
-
-.stat-open { border-left: 4px solid #d97706; }
-.stat-open .enquiry-stat-icon { background: #fffbeb; color: #d97706; }
-
-.stat-progress { border-left: 4px solid #2563eb; }
-.stat-progress .enquiry-stat-icon { background: #eff6ff; color: #2563eb; }
-
-.stat-quoted { border-left: 4px solid #7c3aed; }
-.stat-quoted .enquiry-stat-icon { background: #f5f3ff; color: #7c3aed; }
-
-.stat-converted { border-left: 4px solid #16a34a; }
-.stat-converted .enquiry-stat-icon { background: #dcfce7; color: #16a34a; }
-
 /* Table Card Section */
 .enquiry-table-card {
     border: 1px solid var(--border-light);
@@ -632,8 +575,6 @@
     align-items: center;
     justify-content: center;
     width: 52px;
-    end: auto;
-    width: 52px;
     height: 52px;
     margin: 0 auto 10px;
     border-radius: 50%;
@@ -724,11 +665,11 @@
 .stat-approved { border-left: 4px solid #16a34a; }
 .stat-approved .quotation-stat-icon { background: #dcfce7; color: #16a34a; }
 
-.stat-rejected { border-left: 4px solid #dc2626; }
-.stat-rejected .quotation-stat-icon { background: #fee2e2; color: #dc2626; }
-
 .stat-converted { border-left: 4px solid #7c3aed; }
 .stat-converted .quotation-stat-icon { background: #f5f3ff; color: #7c3aed; }
+
+.stat-rejected { border-left: 4px solid #16a34a; }
+.stat-rejected .quotation-stat-icon { background: #dcfce7; color: #16a34a; }
 
 @media (max-width: 1100px) {
     .quotation-stat-grid {

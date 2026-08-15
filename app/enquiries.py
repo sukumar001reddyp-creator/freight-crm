@@ -877,7 +877,7 @@ def enquiry_list():
     open_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status.notin_(["closed", "cancelled", "converted"])).subquery())).scalar() or 0
     in_progress_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "in_progress").subquery())).scalar() or 0
     quoted_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "quoted").subquery())).scalar() or 0
-    closed_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "closed").subquery())).scalar() or 0
+    converted_count = db.session.execute(db.select(db.func.count()).select_from(all_stats_query.where(Enquiry.status == "converted").subquery())).scalar() or 0
 
     query = base_query
 
@@ -943,13 +943,14 @@ def enquiry_list():
         open_count=open_count,
         in_progress_count=in_progress_count,
         quoted_count=quoted_count,
-        closed_count=closed_count,
+        converted_count=converted_count,
         selected_search=selected_search,
         selected_status=selected_status,
         selected_mode=selected_mode,
         selected_client_id=selected_client_id,
         selected_handled_by_id=selected_handled_by_id
     )
+
 # =========================================================
 # EXPORT EXCEL 
 # =========================================================

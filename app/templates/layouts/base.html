@@ -883,12 +883,10 @@ if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+function initCRMUserDropdown() {
     const sidebarScroll = document.getElementById('sidebarScroll');
 
     if (sidebarScroll) {
-        // Save position before navigating.
-        // The position itself is restored immediately after the sidebar is parsed.
         sidebarScroll.querySelectorAll('a[href]').forEach(function (link) {
             link.addEventListener('click', function () {
                 sessionStorage.setItem(
@@ -899,28 +897,41 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- TOP USER PROFILE DROPDOWN ---
+    // --- టాప్ యూజర్ ప్రొఫైల్ డ్రాప్‌డౌన్ (సెస్షన్ మారినా పనిచేసేలా) ---
     const menu = document.getElementById("topUserMenu");
     const trigger = document.getElementById("topUserTrigger");
 
     if (menu && trigger) {
-        trigger.addEventListener("click", function (event) {
+        // పాత ఈవెంట్స్ డూప్లికేట్ అవ్వకుండా క్లోన్ చేయడం
+        const newTrigger = trigger.cloneNode(true);
+        trigger.parentNode.replaceChild(newTrigger, trigger);
+
+        const freshMenu = document.getElementById("topUserMenu");
+        const freshTrigger = document.getElementById("topUserTrigger");
+
+        freshTrigger.addEventListener("click", function (event) {
             event.stopPropagation();
-
-            const isOpen = menu.classList.toggle("open");
-
-            trigger.setAttribute(
-                "aria-expanded",
-                isOpen ? "true" : "false"
-            );
+            const isOpen = freshMenu.classList.toggle("open");
+            freshTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
         });
+    }
+}
 
-        document.addEventListener("click", function (event) {
-            if (!menu.contains(event.target)) {
-                menu.classList.remove("open");
-                trigger.setAttribute("aria-expanded", "false");
-            }
-        });
+// పేజీ ఫస్ట్ టైమ్ లోడ్ అయినప్పుడు
+document.addEventListener("DOMContentLoaded", initCRMUserDropdown);
+
+// ఎజాక్స్ (AJAX) ద్వారా పేజీ మారిన ప్రతీసారీ ప్రొఫైల్ డ్రాప్‌డౌన్ మళ్లీ ఆక్టివేట్ అవ్వడానికి
+document.addEventListener("crm:navigation-complete", initCRMUserDropdown);
+
+// డాక్యుమెంట్ ఎక్కడైనా క్లిక్ చేస్తే డ్రాప్‌డౌన్ క్లోజ్ అవ్వడం
+document.addEventListener("click", function (event) {
+    const menu = document.getElementById("topUserMenu");
+    const trigger = document.getElementById("topUserTrigger");
+    if (menu && !menu.contains(event.target)) {
+        menu.classList.remove("open");
+        if (trigger) {
+            trigger.setAttribute("aria-expanded", "false");
+        }
     }
 });
 </script>
