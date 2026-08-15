@@ -1,9 +1,14 @@
 import os
-
+from werkzeug.middleware.proxy_fix import ProxyFix
 from app import create_app, db
 from app.models import User
 
 app = create_app()
+
+# Render / క్లౌడ్ ప్రాక్సీ హెడ్డర్స్ సరిగ్గా పనిచేయడానికి ఇది ముఖ్యం
+app.wsgi_app = ProxyFix(
+    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
 
 # Create default admin if it doesn't exist and synchronize database columns
 with app.app_context():
