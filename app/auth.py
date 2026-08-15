@@ -67,7 +67,7 @@ def login():
 
             next_page = request.args.get("next")
 
-            if next_page:
+            if next_page and next_page.startswith('/'):
                 return redirect(next_page)
 
             return redirect(
@@ -82,6 +82,8 @@ def login():
     return render_template(
         "auth/login.html"
     )
+
+
 @auth_bp.route(
     "/change-password",
     methods=["GET", "POST"]
@@ -185,6 +187,8 @@ def change_password():
     return render_template(
         "auth/change_password.html"
     )
+
+
 @auth_bp.route("/logout")
 @login_required
 def logout():
@@ -198,5 +202,3 @@ def logout():
     return redirect(
         url_for("auth.login")
     )
-
-    #hi
