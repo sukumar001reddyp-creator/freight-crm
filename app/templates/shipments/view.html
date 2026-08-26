@@ -1880,22 +1880,25 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const tabButtons = document.querySelectorAll(".tab-btn");
-    const tabs = document.querySelectorAll(".tracking-tab");
-
-    tabButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const targetTabId = button.dataset.tab;
+function initShipmentViewPage() {
+    // Delegation for Tab Buttons (works even if DOM re-renders)
+    document.body.onclick = function(event) {
+        const tabBtn = event.target.closest('.tab-btn');
+        if (tabBtn) {
+            const targetTabId = tabBtn.dataset.tab;
+            const container = tabBtn.closest('.enquiry-view-page') || document;
+            
+            const tabButtons = container.querySelectorAll('.tab-btn');
+            const tabs = container.querySelectorAll('.tracking-tab');
 
             tabButtons.forEach((item) => item.classList.remove("active"));
             tabs.forEach((tab) => tab.classList.remove("active"));
 
-            button.classList.add("active");
+            tabBtn.classList.add("active");
             const targetTab = document.getElementById(targetTabId);
             if (targetTab) targetTab.classList.add("active");
-        });
-    });
+        }
+    };
 
     const customsForm = document.getElementById("customsClearanceForm");
     const customsSummary = document.getElementById("customsSummaryView");
@@ -1914,26 +1917,41 @@ document.addEventListener("DOMContentLoaded", () => {
         if (clearanceDate) clearanceDate.required = Boolean(isRequired && status && status.value === "cleared");
     }
 
-    requiredInputs.forEach((input) => input.addEventListener("change", updateCustomsFields));
-    if (status) status.addEventListener("change", updateCustomsFields);
+    requiredInputs.forEach((input) => {
+        input.onchange = updateCustomsFields;
+    });
+    if (status) status.onchange = updateCustomsFields;
 
     if (editButton && customsForm) {
-        editButton.addEventListener("click", () => {
+        editButton.onclick = () => {
             customsForm.classList.remove("is-edit-hidden");
             if (customsSummary) customsSummary.style.display = "none";
             updateCustomsFields();
-        });
+        };
     }
 
     if (cancelButton && customsForm) {
-        cancelButton.addEventListener("click", () => {
+        cancelButton.onclick = () => {
             customsForm.classList.add("is-edit-hidden");
             if (customsSummary) customsSummary.style.display = "";
-        });
+        };
     }
 
     updateCustomsFields();
-});
+
+    const fileInput = document.getElementById("individualFileField");
+    const selectedFileDiv = document.getElementById("selectedIndividualFileName");
+
+    if (fileInput && selectedFileDiv) {
+        fileInput.onchange = function() {
+            if (!this.files.length) {
+                selectedFileDiv.textContent = "No file selected";
+                return;
+            }
+            selectedFileDiv.textContent = this.files[0].name;
+        };
+    }
+}
 
 function openIndividualUploadModal(docId, docName) {
     const modal = document.getElementById("individualDocumentModal");
@@ -1956,28 +1974,11 @@ function closeIndividualUploadModal() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const fileInput = document.getElementById("individualFileField");
-    const selectedFileDiv = document.getElementById("selectedIndividualFileName");
-
-    if (fileInput && selectedFileDiv) {
-        fileInput.addEventListener("change", function () {
-            if (!this.files.length) {
-                selectedFileDiv.textContent = "No file selected";
-                return;
-            }
-            selectedFileDiv.textContent = this.files[0].name;
-        });
-    }
-
-    const modal = document.getElementById("individualDocumentModal");
-    if (modal) {
-        modal.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                closeIndividualUploadModal();
-            }
-        });
-    }
-});
+// Multi-trigger support to prevent cache/navigation issues
+document.addEventListener("DOMContentLoaded", initShipmentViewPage);
+window.addEventListener("pageshow", initShipmentViewPage);
+if (document.readyState === "complete" || document.readyState === "interactive") {
+    initShipmentViewPage();
+}
 </script>
 {% endblock %}

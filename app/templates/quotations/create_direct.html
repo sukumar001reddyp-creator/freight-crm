@@ -51,9 +51,7 @@
                     </select>
                 </div>
 
-                <!-- న్యూ క్లయింట్ కోసం పేరు, ఈమెైిల్, ఫోన్ మరియు అడ్రస్ ఫీల్డ్స్ -->
-                
-                    <div class="form-field-full" id="otherClientBox" style="display: none; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-field-full" id="otherClientBox" style="display: none; grid-template-columns: 1fr 1fr; gap: 14px;">
                     <div class="form-field">
                         <label>New Client / Company Name <span>*</span></label>
                         <input type="text" id="otherClientName" name="other_client_name" placeholder="Enter Client Name">
@@ -218,32 +216,38 @@
         </div>
     </form>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-    const costFields = ['ocean_air_freight', 'origin_charges', 'destination_charges', 'insurance_charges', 'other_surcharges'];
-    const totalField = document.querySelector('input[name="quotation_amount"]');
+    function initQuotationPage() {
+        const costFields = ['ocean_air_freight', 'origin_charges', 'destination_charges', 'insurance_charges', 'other_surcharges'];
+        const totalField = document.querySelector('input[name="quotation_amount"]');
 
-    function calculateTotal() {
-        let total = 0;
+        function calculateTotal() {
+            let total = 0;
+            costFields.forEach(field => {
+                const input = document.querySelector(`input[name="${field}"]`);
+                if (input) {
+                    total += parseFloat(input.value) || 0;
+                }
+            });
+            if (totalField) {
+                totalField.value = total.toFixed(2);
+            }
+        }
+
         costFields.forEach(field => {
             const input = document.querySelector(`input[name="${field}"]`);
             if (input) {
-                total += parseFloat(input.value) || 0;
+                input.addEventListener('input', calculateTotal);
+                input.addEventListener('keyup', calculateTotal);
+                input.addEventListener('change', calculateTotal);
             }
         });
-        if (totalField) {
-            totalField.value = total.toFixed(2);
-        }
-    }
 
-    costFields.forEach(field => {
-        const input = document.querySelector(`input[name="${field}"]`);
-        if (input) {
-            input.addEventListener('input', calculateTotal);
-            input.addEventListener('keyup', calculateTotal);
-            input.addEventListener('change', calculateTotal);
-        }
-    });
+        calculateTotal();
+    }
 
     function toggleClientType(type) {
         const existingDiv = document.getElementById("existingClientDiv");
@@ -270,7 +274,12 @@
         }
     }
 
-    calculateTotal();
+    document.addEventListener("DOMContentLoaded", initQuotationPage);
+    window.addEventListener("pageshow", (event) => {
+        if (event.persisted) {
+            initQuotationPage();
+        }
+    });
 </script>
 {% endblock %}
 

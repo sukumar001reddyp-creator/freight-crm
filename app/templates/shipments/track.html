@@ -228,27 +228,34 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabs = document.querySelectorAll('.tracking-tab');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetId = button.getAttribute('data-tab');
+function initLiveTrackingPage() {
+    // Delegation for Tracking Tabs
+    document.body.onclick = function(event) {
+        const tabButton = event.target.closest('.tab-button');
+        if (tabButton) {
+            const targetId = tabButton.getAttribute('data-tab');
+            const container = tabButton.closest('.live-tracking') || document;
             
-            // Remove active class from all buttons and tabs
+            const tabButtons = container.querySelectorAll('.tab-button');
+            const tabs = container.querySelectorAll('.tracking-tab');
+
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabs.forEach(tab => tab.classList.remove('active'));
 
-            // Add active class to clicked button and target tab
-            button.classList.add('active');
+            tabButton.classList.add('active');
             const targetTab = document.getElementById(targetId);
             if (targetTab) {
                 targetTab.classList.add('active');
             }
-        });
-    });
-});
+        }
+    };
+}
+
+// Multi-trigger support for instant execution without refresh
+document.addEventListener('DOMContentLoaded', initLiveTrackingPage);
+window.addEventListener('pageshow', initLiveTrackingPage);
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initLiveTrackingPage();
+}
 </script>
 {% endblock %}
-#
