@@ -1787,5 +1787,6 @@ def export_clients_excel():
         output,
         as_attachment=True,
         download_name="clients_export.xlsx",
+     
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )

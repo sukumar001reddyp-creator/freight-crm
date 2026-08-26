@@ -1884,28 +1884,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const tabButtons = document.querySelectorAll(".tab-btn");
     const tabs = document.querySelectorAll(".tracking-tab");
 
-    const savedTab = sessionStorage.getItem("shipment_active_tab");
-    if (savedTab) {
-        tabButtons.forEach((btn) => {
-            if (btn.dataset.tab === savedTab) {
-                btn.classList.add("active");
-            } else {
-                btn.classList.remove("active");
-            }
-        });
-        tabs.forEach((tab) => {
-            if (tab.id === savedTab) {
-                tab.classList.add("active");
-            } else {
-                tab.classList.remove("active");
-            }
-        });
-    }
-
     tabButtons.forEach((button) => {
         button.addEventListener("click", () => {
             const targetTabId = button.dataset.tab;
-            sessionStorage.setItem("shipment_active_tab", targetTabId);
 
             tabButtons.forEach((item) => item.classList.remove("active"));
             tabs.forEach((tab) => tab.classList.remove("active"));
