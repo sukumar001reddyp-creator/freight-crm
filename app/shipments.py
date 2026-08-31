@@ -5,7 +5,7 @@
 # Approved Quotation -> Shipment
 # =========================================================
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
 
 
 from decimal import Decimal
@@ -33,8 +33,10 @@ from app.models import (
     ShipmentDocument,
     ShipmentCustomsClearance,
     ShipmentClosure,
+    ShipmentPartyDetails,
     Client,
     User,
+    Notification,
 )
 
 
@@ -653,6 +655,27 @@ def convert_from_quotation(quotation_id):
             )
 
         db.session.commit()
+
+        # --- షిప్‌మెంట్ కన్వర్ట్ అయినప్పుడు నోటిఫికేషన్ (Handled By తో సహా) ---
+        threshold = datetime.now(timezone.utc) - timedelta(days=30)
+        Notification.query.filter(Notification.created_at < threshold).delete()
+
+        if Notification.query.count() >= 50:
+            oldest = Notification.query.order_by(Notification.created_at.asc()).first()
+            if oldest:
+                db.session.delete(oldest)
+
+        
+        handler_name = shipment.handled_by.full_name if shipment.handled_by else "Unassigned"
+
+        db.session.add(Notification(
+            title="New Shipment Created",
+            message=f"Shipment {shipment.shipment_reference} has been created. <b>Handled By: {handler_name}</b>",
+            target_url=url_for('shipments.view_shipment', shipment_id=shipment.id),
+            is_read=False
+        ))
+        db.session.commit()
+        # --------------------------------------------------------------------
 
     except Exception:
         db.session.rollback()
@@ -2328,12 +2351,40 @@ def create_direct_shipment():
                 ))
 
             db.session.commit()
+
+            # --- డైరెక్ట్ షిప్‌మెంట్ క్రియేట్ అయినప్పుడు నోటిఫికేషన్ (Handled By తో సహా) ---
+            threshold = datetime.now(timezone.utc) - timedelta(days=30)
+            Notification.query.filter(Notification.created_at < threshold).delete()
+
+            if Notification.query.count() >= 50:
+                oldest = Notification.query.order_by(Notification.created_at.asc()).first()
+                if oldest:
+                    db.session.delete(oldest)
+
+            handler_name = shipment.handled_by.full_name if shipment.handled_by else "Unassigned"
+
+            db.session.add(Notification(
+                title="New Shipment Created",
+                message=f"Direct Shipment {shipment.shipment_reference} has been created. <b>Handled By: {handler_name}</b>",
+                target_url=url_for('shipments.view_shipment', shipment_id=shipment.id),
+                is_read=False
+            ))
+            db.session.commit()
+            # ---------------------------------------------------------------------------
+
             flash(f"Direct Shipment {shipment.shipment_reference} created successfully.", "success")
             return redirect(url_for("shipments.view_shipment", shipment_id=shipment.id))
 
         except Exception as e:
             db.session.rollback()
-            flash("Unable to create direct shipment.", "danger")
+            # ఎర్రర్ టెర్మినల్‌లో ప్రింట్ అయ్యేలా చూద్దాం
+            import traceback
+            traceback.print_exc()
+            print("=" * 80)
+            print("DIRECT SHIPMENT ERROR:", repr(e))
+            print("=" * 80)
+            
+            flash(f"Unable to create direct shipment: {str(e)}", "danger")
 
     return render_template("shipments/create_direct.html", clients_list=clients_list, users_list=users_list)
 

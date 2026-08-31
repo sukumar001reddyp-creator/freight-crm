@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <style>
-        /* Reduce the small browser navigation flash without hiding the page. */
         @view-transition {
             navigation: auto;
         }
@@ -183,7 +182,8 @@ body {
     transition: all 0.2s ease;
 }
 
-.top-user-menu.open .top-user-dropdown {
+.top-user-menu.open .top-user-dropdown,
+.notification-menu.open .top-user-dropdown {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -246,8 +246,6 @@ body {
     border-radius: var(--radius-md);
     padding: 16px;
 }
-
-/* మోడ్రన్ అండ్ క్లీన్ అకార్డియన్ స్టైల్ (మేనేజ్‌మెంట్ క్లయింట్స్ కోసం) */
 
 .special-accounts-label {
     font-size: 10px !important;
@@ -334,7 +332,6 @@ body {
     font-weight: 700 !important;
 }
 
-/* సైడ్‌బార్ జంప్‌ని పూర్తిగా లాక్ చేయడానికి ఈ ప్రాపర్టీస్ చాలా ముఖ్యం */
 .sidebar-scroll {
     overflow-y: auto;
     overflow-x: hidden;
@@ -419,18 +416,13 @@ body {
                 </a>
             </nav>
         
-            <!-- ==========================================
-                 SPECIAL ACCOUNTS (ADMIN ONLY)
-                 ========================================== -->
             {% if current_user.role == "admin" %}
             {% set is_mgmt_active = '/management-clients' in request.path %}
 
-            <!-- SPECIAL ACCOUNTS: non-clickable section heading -->
             <div class="nav-label special-accounts-label" style="margin-top: 16px;">
                 SPECIAL ACCOUNTS
             </div>
 
-            <!-- Management Clients: clickable accordion -->
             <div class="mgmt-dropdown-container {% if is_mgmt_active %}open{% endif %}" id="mgmtContainer">
                 <button type="button" class="mgmt-toggle-btn" onclick="document.getElementById('mgmtContainer').classList.toggle('open');">
                     <i class="bi bi-folder-fill" style="margin-right: 8px;"></i>
@@ -457,11 +449,11 @@ body {
             <div class="nav-label" style="margin-top: 16px;">Intelligence</div>
             <nav class="sidebar-nav">
                {% if current_user.role != "sales_executive" %}
-<a href="{{ url_for('reports.dashboard') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
-    <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
-    <span>Reports</span>
-</a>
-{% endif %}
+                <a href="{{ url_for('reports.dashboard') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
+                    <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
+                    <span>Reports</span>
+                </a>
+                {% endif %}
 
                 <a href="{{ url_for('support.admin_list') }}" class="nav-item {% if request.endpoint == 'support.admin_list' %}active{% endif %}">
                     <span class="nav-icon"><i class="bi bi-headset"></i></span>
@@ -503,7 +495,6 @@ body {
     </aside>
 
     <script>
-        // Restore sidebar position immediately, before the browser paints the main content.
         (function () {
             const sidebar = document.getElementById('sidebarScroll');
             const saved = sessionStorage.getItem('sidebarScrollPos');
@@ -529,12 +520,43 @@ body {
             </div>
 
             <div class="topbar-actions" style="display: flex; align-items: center;">
-                <a href="{{ url_for('support.admin_list') }}" class="top-action-btn notification-btn" title="View Support Tickets">
-                    <i class="bi bi-bell"></i>
-                    {% if sidebar_support_count is defined and sidebar_support_count > 0 %}
-                    <span class="notification-dot"></span>
-                    {% endif %}
-                </a>
+                <!-- Database-Driven Notification Bell Dropdown -->
+                <div class="top-user-menu notification-menu" id="notificationMenu" style="position: relative;">
+                    <button type="button" class="top-action-btn notification-btn" id="notificationTrigger" title="View Notifications" style="background: var(--bg-card); cursor: pointer;">
+                        <i class="bi bi-bell"></i>
+                        {% if unread_notifications_exist %}
+                        <span class="notification-dot" style="display: block;"></span>
+                        {% endif %}
+                    </button>
+
+                    <div class="top-user-dropdown" id="notificationDropdown" style="width: 320px; padding: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
+                            <strong style="font-size: 12px; color: #0f172a; text-transform: uppercase;">Notifications</strong>
+                            <span style="font-size: 10px; color: #b91c1c; font-weight: 700;">Recent Feed</span>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+    {% if header_notifications %}
+        {% for notif in header_notifications[:4] %}
+            <a href="{{ notif.target_url }}" class="header-notif-link" data-id="{{ notif.id }}" style="display: block; padding: 9px 10px; background: {% if not notif.is_read %}#fef2f2{% else %}#f8fafc{% endif %}; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none;">
+                <div style="font-size: 11.5px; font-weight: 700; color: #0f172a;">{{ notif.title }}</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">{{ notif.message | safe }}</div>
+            </a>
+        {% endfor %}
+    {% else %}
+        <div style="font-size: 12px; color: #64748b; text-align: center; padding: 10px 0;">
+            No recent notifications
+        </div>
+    {% endif %}
+</div>
+
+                        <div style="border-top: 1px solid #e2e8f0; margin-top: 10px; padding-top: 8px; text-align: center;">
+                            <a href="{{ url_for('notifications.notification_list') }}" style="font-size: 11.5px; font-weight: 700; color: #7f1d1d; text-decoration: none;">
+                                View All Notifications <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="top-user-menu" id="topUserMenu" style="position: relative;">
                     <button type="button" class="top-user-trigger" id="topUserTrigger" aria-expanded="false" aria-haspopup="true">
@@ -590,7 +612,6 @@ body {
     </main>
 </div>
 
-
 <script>
 (function () {
     'use strict';
@@ -618,21 +639,23 @@ body {
             el.scrollTop = parseInt(saved, 10) || 0;
         }
     }
+    
     function updateActiveSidebarItem() {
-    const currentPath = window.location.pathname;
-    const currentSearch = window.location.search;
+        const currentPath = window.location.pathname;
+        const currentSearch = window.location.search;
 
-    document.querySelectorAll('#sidebarScroll a.nav-item, #sidebarScroll a.nav-sub-item').forEach(function (link) {
-        const linkUrl = new URL(link.href, window.location.origin);
+        document.querySelectorAll('#sidebarScroll a.nav-item, #sidebarScroll a.nav-sub-item').forEach(function (link) {
+            const linkUrl = new URL(link.href, window.location.origin);
 
-        const isActive =
-            linkUrl.pathname === currentPath &&
-            linkUrl.search === currentSearch;
+            const isActive =
+                linkUrl.pathname === currentPath &&
+                linkUrl.search === currentSearch;
 
-        link.classList.toggle('active', isActive);
-        link.classList.toggle('active-sub', isActive);
-    });
-}
+            link.classList.toggle('active', isActive);
+            link.classList.toggle('active-sub', isActive);
+        });
+    }
+
     function eligible(link, event) {
         if (!link || !link.href) return false;
         if (event.button !== 0 || event.ctrlKey || event.metaKey ||
@@ -645,19 +668,12 @@ body {
 
         if (url.origin !== location.origin) return false;
         if (url.protocol !== location.protocol) return false;
-
-        // Don't hijack anchors, javascript links, mail/tel links.
         if (link.getAttribute('href').startsWith('#')) return false;
 
-        // Only normal GET page navigation.
         return true;
     }
 
     function copyPageAssets(nextDoc) {
-        /*
-         * Keep page-specific CSS from the page template head.
-         * Base styles already exist and are not duplicated.
-         */
         const currentHead = document.head;
         const currentKeys = new Set();
 
@@ -678,7 +694,6 @@ body {
 
                 if (currentKeys.has(key)) return;
 
-                // Don't duplicate the global CRM stylesheet or CDN Select2 CSS.
                 if (
                     node.tagName === 'LINK' &&
                     (
@@ -705,11 +720,6 @@ body {
     }
 
     function runPageScripts(nextDoc) {
-        /*
-         * extra_js is rendered near the end of <body>.
-         * Global jquery/select2/crm.js are NOT executed again.
-         * Only inline page scripts and page-specific external scripts are run.
-         */
         const scripts = Array.from(nextDoc.querySelectorAll('script'));
 
         scripts.forEach(function (oldScript) {
@@ -724,7 +734,6 @@ body {
                     return;
                 }
 
-                // Avoid loading the same external page script twice.
                 if (document.querySelector('script[data-crm-page-src="' + src + '"]')) {
                     return;
                 }
@@ -739,7 +748,6 @@ body {
 
             const code = oldScript.textContent || '';
 
-            // Skip the global base navigation script itself.
             if (
                 code.includes('Smooth internal navigation:') ||
                 code.includes('const MAIN_SELECTOR =')
@@ -790,17 +798,7 @@ body {
                 return;
             }
 
-            /*
-             * Important order:
-             * 1. Fetch everything first while current page remains visible.
-             * 2. Load page-specific head assets.
-             * 3. Replace only main-area.
-             * 4. Re-run page scripts.
-             *
-             * There is no blank overlay and no opacity animation.
-             */
             copyPageAssets(nextDoc);
-
             main.replaceWith(nextMain);
 
             if (nextDoc.title) {
@@ -814,7 +812,6 @@ body {
             restoreSidebar();
             updateActiveSidebarItem();
 
-            // Let existing page code know that a soft navigation completed.
             document.dispatchEvent(
                 new CustomEvent('crm:navigation-complete', {
                     detail: { url: url }
@@ -822,7 +819,6 @@ body {
             );
 
             runPageScripts(nextDoc);
-
             restoreSidebar();
 
         } catch (error) {
@@ -878,60 +874,81 @@ body {
 <script src="{{ url_for('static', filename='js/crm.js') }}"></script>
 
 <script>
-// Keep browser from restoring the main document to an old position.
 if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
 }
 
-function initCRMUserDropdown() {
+function initCRMDropdowns() {
+    // 1. Sidebar Scroll Restoration
     const sidebarScroll = document.getElementById('sidebarScroll');
-
     if (sidebarScroll) {
         sidebarScroll.querySelectorAll('a[href]').forEach(function (link) {
             link.addEventListener('click', function () {
-                sessionStorage.setItem(
-                    'sidebarScrollPos',
-                    sidebarScroll.scrollTop
-                );
+                sessionStorage.setItem('sidebarScrollPos', sidebarScroll.scrollTop);
             });
         });
     }
 
-    // --- టాప్ యూజర్ ప్రొఫైల్ డ్రాప్‌డౌన్ (సెస్షన్ మారినా పనిచేసేలా) ---
-    const menu = document.getElementById("topUserMenu");
-    const trigger = document.getElementById("topUserTrigger");
+    // 2. User Profile Dropdown Toggle
+    const userMenu = document.getElementById("topUserMenu");
+    const userTrigger = document.getElementById("topUserTrigger");
 
-    if (menu && trigger) {
-        // పాత ఈవెంట్స్ డూప్లికేట్ అవ్వకుండా క్లోన్ చేయడం
-        const newTrigger = trigger.cloneNode(true);
-        trigger.parentNode.replaceChild(newTrigger, trigger);
+    if (userMenu && userTrigger) {
+        const newTrigger = userTrigger.cloneNode(true);
+        userTrigger.parentNode.replaceChild(newTrigger, userTrigger);
 
-        const freshMenu = document.getElementById("topUserMenu");
         const freshTrigger = document.getElementById("topUserTrigger");
-
         freshTrigger.addEventListener("click", function (event) {
             event.stopPropagation();
-            const isOpen = freshMenu.classList.toggle("open");
+            const isOpen = userMenu.classList.toggle("open");
             freshTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+    }
+
+    // 3. Notification Dropdown Toggle & Mark as Read
+    const notifMenu = document.getElementById("notificationMenu");
+    const notifTrigger = document.getElementById("notificationTrigger");
+
+    document.querySelectorAll('.header-notif-link').forEach(link => {
+        link.addEventListener('click', function() {
+            const notifId = this.getAttribute('data-id');
+            fetch(`/notifications/${notifId}/read`, { method: 'POST' });
+        });
+    });
+
+    if (notifMenu && notifTrigger) {
+        const newNotifTrigger = notifTrigger.cloneNode(true);
+        notifTrigger.parentNode.replaceChild(newNotifTrigger, notifTrigger);
+
+        const freshNotifTrigger = document.getElementById("notificationTrigger");
+        freshNotifTrigger.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            notifMenu.classList.toggle("open");
         });
     }
 }
 
-// పేజీ ఫస్ట్ టైమ్ లోడ్ అయినప్పుడు
-document.addEventListener("DOMContentLoaded", initCRMUserDropdown);
+// Event Listeners for initialization and AJAX navigation support
+document.addEventListener("DOMContentLoaded", initCRMDropdowns);
+document.addEventListener("crm:navigation-complete", initCRMDropdowns);
 
-// ఎజాక్స్ (AJAX) ద్వారా పేజీ మారిన ప్రతీసారీ ప్రొఫైల్ డ్రాప్‌డౌన్ మళ్లీ ఆక్టివేట్ అవ్వడానికి
-document.addEventListener("crm:navigation-complete", initCRMUserDropdown);
-
-// డాక్యుమెంట్ ఎక్కడైనా క్లిక్ చేస్తే డ్రాప్‌డౌన్ క్లోజ్ అవ్వడం
+// Global click listener to close dropdowns when clicking outside
 document.addEventListener("click", function (event) {
-    const menu = document.getElementById("topUserMenu");
-    const trigger = document.getElementById("topUserTrigger");
-    if (menu && !menu.contains(event.target)) {
-        menu.classList.remove("open");
-        if (trigger) {
-            trigger.setAttribute("aria-expanded", "false");
+    // User menu close
+    const userMenu = document.getElementById("topUserMenu");
+    const userTrigger = document.getElementById("topUserTrigger");
+    if (userMenu && !userMenu.contains(event.target)) {
+        userMenu.classList.remove("open");
+        if (userTrigger) {
+            userTrigger.setAttribute("aria-expanded", "false");
         }
+    }
+
+    // Notification menu close
+    const notifMenu = document.getElementById("notificationMenu");
+    if (notifMenu && !notifMenu.contains(event.target)) {
+        notifMenu.classList.remove("open");
     }
 });
 </script>

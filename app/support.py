@@ -77,7 +77,11 @@ def view_ticket(ticket_id):
             ticket.status = "waiting_client"
 
             db.session.commit()
-
+            create_notification(
+                title="New Support Ticket",
+                message=f"Support Ticket #{ticket.id} has been created.",
+                target_url=url_for('support.view_ticket', ticket_id=ticket.id)
+            )
             flash(
                 "Reply sent successfully.",
                 "success"

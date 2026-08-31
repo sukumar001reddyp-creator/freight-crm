@@ -60,7 +60,8 @@ def fix_postgres_sequences():
             'support_messages', 
             'backup_logs', 
             'shipment_tasks', 
-            'settings'
+            'settings',
+            'notifications'
         ]
         
         with db.engine.begin() as conn:
@@ -161,6 +162,9 @@ def create_app():
     from app.management_clients import management_clients_bp
     app.register_blueprint(management_clients_bp)
     
+    from app.notifications_bp import notifications_bp
+    app.register_blueprint(notifications_bp)
+
     # ==========================================
     # IMPORT MODELS
     # ==========================================
@@ -169,7 +173,7 @@ def create_app():
 
 
     # ==========================================
-    # GLOBAL SIDEBAR COUNTS
+    # GLOBAL SIDEBAR & NOTIFICATION COUNTS
     # ==========================================
 
     @app.context_processor
@@ -179,6 +183,7 @@ def create_app():
             Client,
             Enquiry,
             SupportTicket,
+            Notification,
         )
         from flask_login import current_user
 
@@ -212,35 +217,39 @@ def create_app():
                 SupportTicket.status.in_(["waiting_admin", "open"])
             ).count()
 
+            header_notifications = []
+            unread_exists = False
+            if current_user.is_authenticated:
+                header_notifications = Notification.query.order_by(Notification.created_at.desc()).limit(5).all()
+                unread_exists = Notification.query.filter_by(is_read=False).first() is not None
+
         except Exception:
             sidebar_clients_count = 0
             sidebar_enquiries_count = 0
             sidebar_support_count = 0
+            header_notifications = []
+            unread_exists = False
 
         return {
             "sidebar_clients_count": sidebar_clients_count,
             "sidebar_enquiries_count": sidebar_enquiries_count,
             "sidebar_support_count": sidebar_support_count,
+            "header_notifications": header_notifications,
+            "unread_notifications_exist": unread_exists,
         }
 
 
     # ==========================================
-    # HOME
+    # HOME & DASHBOARD
     # ==========================================
 
     @app.route("/")
     def home():
         return redirect(url_for("dashboard"))
 
-
-    # ==========================================
-    # DASHBOARD WITH GLOBAL SEARCH (TASK 1)
-    # ==========================================
-
     @app.route("/dashboard")
     @login_required
     def dashboard():
-
         from app.models import (
             Client,
             Enquiry,
@@ -279,18 +288,15 @@ def create_app():
                         (Client.email.ilike(f"%{search_q}%")) |
                         (Client.client_reference.ilike(f"%{search_q}%"))
                     ).limit(5).all(),
-
                     "enquiries": enquiry_scope.filter(
                         (Enquiry.enquiry_reference.ilike(f"%{search_q}%")) |
                         (Enquiry.cargo_description.ilike(f"%{search_q}%")) |
                         (Client.company_name.ilike(f"%{search_q}%"))
                     ).limit(5).all(),
-
                     "quotations": quotation_scope.filter(
                         (Quotation.quotation_number.ilike(f"%{search_q}%")) |
                         (Client.company_name.ilike(f"%{search_q}%"))
                     ).limit(5).all(),
-                    
                     "shipments": shipment_scope.filter(
                         (Shipment.shipment_reference.ilike(f"%{search_q}%")) |
                         (Client.company_name.ilike(f"%{search_q}%"))
@@ -378,32 +384,18 @@ def create_app():
             search_q=search_q
         )
 
-    # ==========================================
-    # PERMISSIONS
-    # ==========================================
-
     @app.context_processor
     def inject_permissions():
         return {
             "permissions": permissions
         }
 
-    # ==========================================
-    # BACKUP SCHEDULER (00:00 IST)
-    # ==========================================
     from app.backup import init_backup_scheduler
     init_backup_scheduler(app)
 
-    # ==========================================
-    # LIGHTWEIGHT HEALTH CHECK
-    # ==========================================
-    # This endpoint intentionally does NOT touch PostgreSQL.
-    # It is safe for Render health checks and avoids creating
-    # unnecessary database connections.
     @app.route("/health")
     def health():
         return jsonify({"status": "ok"}), 200
-
 
     @app.route("/service-worker.js")
     def service_worker():

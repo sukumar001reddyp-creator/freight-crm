@@ -105,7 +105,7 @@
                 </div>
             </div>
 
-            <!-- Shipper Details (Checkbox Removed) -->
+            <!-- Shipper Details -->
             <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h4 style="margin: 0; font-size: 12px; text-transform: uppercase; font-weight: 800; color: #1e293b;"><i class="bi bi-box-seam-fill"></i> Shipper Details</h4>
@@ -269,28 +269,28 @@
                 
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Ocean / Air Freight <span style="color: #b91c1c;">*</span></label>
-                    <input type="number" name="ocean_air_freight" step="0.01" value="0.00" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="number" name="ocean_air_freight" id="ocean_air_freight" step="0.01" value="0.00" required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
 
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Origin Charges</label>
-                    <input type="number" name="origin_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="number" name="origin_charges" id="origin_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Destination Charges</label>
-                    <input type="number" name="destination_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="number" name="destination_charges" id="destination_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Insurance Charges</label>
-                    <input type="number" name="insurance_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="number" name="insurance_charges" id="insurance_charges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field form-field-full" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Other Surcharges</label>
-                    <input type="number" name="other_surcharges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
+                    <input type="number" name="other_surcharges" id="other_surcharges" step="0.01" value="0.00" style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Selling Price / Amount <span style="color: #b91c1c;">*</span> <small style="color: #6b7280; font-weight: normal;">(Auto-calculated)</small></label>
-                    <input type="number" name="quotation_amount" step="0.01" value="0.00" readonly required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background-color: #f3f4f6; cursor: not-allowed; font-weight: 800; color: #7f1d1d;">
+                    <input type="number" name="quotation_amount" id="quotation_amount" step="0.01" value="0.00" readonly required style="width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background-color: #f3f4f6; cursor: not-allowed; font-weight: 800; color: #7f1d1d;">
                 </div>
                 <div class="form-field" style="display: flex; flex-direction: column; gap: 7px;">
                     <label style="color: #374151; font-size: 13px; font-weight: 700;">Currency <span style="color: #b91c1c;">*</span></label>
@@ -313,12 +313,12 @@
 
 <script>
     const costFields = ['ocean_air_freight', 'origin_charges', 'destination_charges', 'insurance_charges', 'other_surcharges'];
-    const totalField = document.querySelector('input[name="quotation_amount"]');
+    const totalField = document.getElementById("quotation_amount");
 
     function calculateTotal() {
         let total = 0;
         costFields.forEach(field => {
-            const input = document.querySelector(`input[name="${field}"]`);
+            const input = document.getElementById(field);
             if (input) {
                 total += parseFloat(input.value) || 0;
             }
@@ -329,7 +329,7 @@
     }
 
     costFields.forEach(field => {
-        const input = document.querySelector(`input[name="${field}"]`);
+        const input = document.getElementById(field);
         if (input) {
             input.addEventListener('input', calculateTotal);
             input.addEventListener('keyup', calculateTotal);
@@ -366,6 +366,7 @@
 
     function getSelectedClientData() {
         const select = document.getElementById("clientSelect");
+        if (!select || select.selectedIndex < 0) return { name: "", contact: "", phone: "", email: "", address: "" };
         const opt = select.options[select.selectedIndex];
         if (!opt || !opt.value) return { name: "", contact: "", phone: "", email: "", address: "" };
 
@@ -379,13 +380,15 @@
     }
 
     function onClientChange() {
-        if (document.getElementById("same_as_client_consignee").checked) {
+        const chk = document.getElementById('same_as_client_consignee');
+        if (chk && chk.checked) {
             toggleConsigneeClient();
         }
     }
 
     function onNewClientInput() {
-        if (document.getElementById("same_as_client_consignee").checked) {
+        const chk = document.getElementById('same_as_client_consignee');
+        if (chk && chk.checked) {
             toggleConsigneeClient();
         }
     }
@@ -398,14 +401,20 @@
         const emailEl = document.getElementById('consignee_email');
         const addressEl = document.getElementById('consignee_address');
 
+        if (!chk || !nameEl) return;
+
         if (chk.checked) {
-            const type = document.querySelector('input[name="client_type"]:checked').value;
+            const clientTypeRadio = document.querySelector('input[name="client_type"]:checked');
+            const type = clientTypeRadio ? clientTypeRadio.value : "existing";
             let data = { name: "", contact: "", phone: "", email: "", address: "" };
+            
             if (type === "existing") {
                 data = getSelectedClientData();
             } else {
-                data.name = document.getElementById("otherClientName").value;
+                const otherInput = document.getElementById("otherClientName");
+                data.name = otherInput ? otherInput.value : "";
             }
+            
             nameEl.value = data.name;
             contactEl.value = data.contact;
             phoneEl.value = data.phone;
@@ -413,10 +422,12 @@
             addressEl.value = data.address;
 
             [nameEl, contactEl, phoneEl, emailEl, addressEl].forEach(el => {
-                el.setAttribute('readonly', true);
-                el.style.backgroundColor = "#f1f5f9";
-                el.style.color = "#475569";
-                el.style.cursor = "not-allowed";
+                if(el) {
+                    el.setAttribute('readonly', true);
+                    el.style.backgroundColor = "#f1f5f9";
+                    el.style.color = "#475569";
+                    el.style.cursor = "not-allowed";
+                }
             });
         } else {
             nameEl.value = "";
@@ -426,10 +437,12 @@
             addressEl.value = "";
 
             [nameEl, contactEl, phoneEl, emailEl, addressEl].forEach(el => {
-                el.removeAttribute('readonly');
-                el.style.backgroundColor = "#ffffff";
-                el.style.color = "#0f172a";
-                el.style.cursor = "text";
+                if(el) {
+                    el.removeAttribute('readonly');
+                    el.style.backgroundColor = "#ffffff";
+                    el.style.color = "#0f172a";
+                    el.style.cursor = "text";
+                }
             });
         }
     }

@@ -2108,6 +2108,40 @@ Complete relationship, lifecycle and account workspace.
 </style>
 
 <script>
+// Tab Switching Fix for both Normal and AJAX Navigation
+function initClientProfileTabs() {
+    const tabButtons = document.querySelectorAll(".profile-tab");
+    const tabPanels = document.querySelectorAll(".profile-tab-panel");
+
+    if (tabButtons.length > 0) {
+        tabButtons.forEach((button) => {
+            // పాత ఈవెంట్స్ డూప్లికేట్ అవకుండా క్లియర్ చేయడం
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+        });
+
+        // ఫ్రెష్ ఈవెంట్ లిజినర్స్ యాడ్ చేయడం
+        document.querySelectorAll(".profile-tab").forEach((button) => {
+            button.addEventListener("click", () => {
+                const tabName = button.dataset.tab;
+                document.querySelectorAll(".profile-tab").forEach(item => item.classList.remove("active"));
+                document.querySelectorAll(".profile-tab-panel").forEach(panel => panel.classList.remove("active"));
+                
+                button.classList.add("active");
+                const targetPanel = document.getElementById("tab-" + tabName);
+                if (targetPanel) {
+                    targetPanel.classList.add("active");
+                }
+            });
+        });
+    }
+}
+
+// పేజీ లోడ్ అయినప్పుడు మరియు AJAX నావిగేషన్ కంప్లీట్ అయినప్పుడు రన్ అవ్వడానికి
+document.addEventListener("DOMContentLoaded", initClientProfileTabs);
+document.addEventListener("crm:navigation-complete", initClientProfileTabs);
+
+// మిగతా మోడల్ ఫంక్షన్స్
 function openPipelineModal() { document.getElementById("pipelineModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
 function closePipelineModal() { document.getElementById("pipelineModal")?.classList.remove("show"); document.body.style.overflow = ""; }
 function openConvertModal() { document.getElementById("convertModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
@@ -2128,16 +2162,6 @@ function openMergeModal() { document.getElementById("mergeModal")?.classList.add
 function closeMergeModal() { document.getElementById("mergeModal")?.classList.remove("show"); document.body.classList.remove("modal-open"); }
 function openPermanentDeleteModal() { document.getElementById("permanentDeleteModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
 function closePermanentDeleteModal() { document.getElementById("permanentDeleteModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-
-document.querySelectorAll(".profile-tab").forEach((button) => {
-    button.addEventListener("click", () => {
-        const tabName = button.dataset.tab;
-        document.querySelectorAll(".profile-tab").forEach(item => item.classList.remove("active"));
-        document.querySelectorAll(".profile-tab-panel").forEach(panel => panel.classList.remove("active"));
-        button.classList.add("active");
-        document.getElementById("tab-" + tabName)?.classList.add("active");
-    });
-});
 
 function syncPermanentDeleteState() {
     const input = document.getElementById("permanentDeleteConfirmation");
@@ -2161,21 +2185,17 @@ function confirmArchiveClient() {
 function confirmRestoreClient() {
     return window.confirm("Restore this archived client back to the active client list?");
 }
+
 function togglePortalCard() {
-
     const card = document.getElementById("portalAccountCard");
-
     if (!card) return;
-
     card.classList.toggle("show");
-
     if (card.classList.contains("show")) {
         card.scrollIntoView({
             behavior: "smooth",
             block: "start"
         });
     }
-
 }
 </script>
 

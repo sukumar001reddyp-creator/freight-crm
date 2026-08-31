@@ -3,7 +3,7 @@ from io import BytesIO
 import io
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from flask import (
     Blueprint,
@@ -61,6 +61,7 @@ from app.models import (
     Quotation,
     Shipment,
     ClientPortalUser,
+    Notification,
 )
 
 
@@ -919,6 +920,23 @@ def add_client():
 
         try:
             db.session.commit()
+
+            # --- కొత్త క్లయింట్ యాడ్ అయినప్పుడు Assigned To తో సహా నోటిఫికేషన్ సేవ్ చేయడం (గడచిన 7 రోజులు మాత్రమే) ---
+            seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+            Notification.query.filter(Notification.created_at < seven_days_ago).delete()
+
+            owner_name = client.assigned_to.full_name if client.assigned_to else "Unassigned"
+
+            db.session.add(Notification(
+                title="New Client Added",
+                message=f"{client.company_name} has been added successfully. <b>Assigned To: {owner_name}</b>",
+                target_url=url_for('clients.view_client', client_id=client.id),
+                is_read=False
+            ))
+            db.session.commit()
+            # -------------------------------------------------------------------
+           
+
             flash(
                 f"{client.company_name} saved with system designation ID {client.client_reference}.",
                 "success"
