@@ -3,7 +3,7 @@
 {% block title %}Notifications Hub | Freight CRM{% endblock %}
 
 {% block page_title %}Notifications Hub{% endblock %}
-{% block page_subtitle %}All recent activities, added clients, shipments, and support tickets[cite: 2].{% endblock %}
+{% block page_subtitle %}All recent activities, added clients, shipments, and support tickets.[cite: 2]{% endblock %}
 
 {% block content %}
 <div class="notifications-page" style="max-width: 900px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
@@ -11,29 +11,36 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
         <h3 style="margin: 0; font-size: 16px; color: #0f172a;"><i class="bi bi-bell-fill" style="color: #7f1d1d; margin-right: 8px;"></i> Activity & Notification History </h3>
         
-        <form action="{{ url_for('notifications.clear_all') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear all notifications?');" style="margin: 0;">
-            <button type="submit" style="padding: 6px 12px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
-                <i class="bi bi-trash"></i> Clear History
-            </button>
-        </form>
+        
     </div>
 
-    <div id="fullNotificationList" style="display: flex; flex-direction: column; gap: 10px;">
-        {% if notifications %}
-            {% for notif in notifications %}
-                <a href="{{ notif.target_url }}" class="notif-item" data-id="{{ notif.id }}" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: {% if not notif.is_read %}#fef2f2{% else %}#f8fafc{% endif %}; border: 1px solid {% if not notif.is_read %}#fecaca{% else %}#e2e8f0{% endif %}; border-radius: 10px; text-decoration: none; transition: all 0.15s ease;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='{% if not notif.is_read %}#fef2f2{% else %}#f8fafc{% endif %}'">
-                    <div>
-                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">{{ notif.title }}</div>
-                        <!-- ఇక్కడ | safe ఫిల్టర్ వాడటం ద్వారా బోల్డ్ ట్యాగ్ వర్క్ అవుతుంది -->
-                        <div style="font-size: 11.5px; color: #334155; margin-top: 2px;">{{ notif.message | safe }}</div>
-                        <div style="font-size: 10px; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 6px;">
-                            <i class="bi bi-clock"></i> <span>{{ notif.created_at.strftime('%d %b %Y, %I:%M %p') }}</span>
-                        </div>
+    <div id="fullNotificationList" style="display: flex; flex-direction: column; gap: 20px;">
+        {% if grouped_notifications %}
+            {% for date_val, group in grouped_notifications %}
+                <div class="notification-date-section">
+                    <!-- డేట్ హెడర్ -->
+                    <div style="font-size: 12px; font-weight: 800; color: #7f1d1d; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-calendar3"></i> {{ date_val.strftime('%d %b %Y') }}
                     </div>
-                    <span style="font-size: 12px; font-weight: 700; color: #7f1d1d; display: inline-flex; align-items: center; gap: 4px;">
-                        View Page <i class="bi bi-arrow-right"></i>
-                    </span>
-                </a>
+
+                    <!-- ఆ తేదీకి సంబంధించిన నోటిఫికేషన్స్ -->
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for notif in group %}
+                            <a href="{{ notif.target_url }}" class="notif-item" data-id="{{ notif.id }}" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: {% if not notif.is_read %}#fef2f2{% else %}#f8fafc{% endif %}; border: 1px solid {% if not notif.is_read %}#fecaca{% else %}#e2e8f0{% endif %}; border-radius: 10px; text-decoration: none; transition: all 0.15s ease;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='{% if not notif.is_read %}#fef2f2{% else %}#f8fafc{% endif %}'">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #0f172a;">{{ notif.title }}</div>
+                                    <div style="font-size: 11.5px; color: #334155; margin-top: 2px;">{{ notif.message | safe }}</div>
+                                    <div style="font-size: 10px; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="bi bi-clock"></i> <span>{{ notif.created_at.strftime('%d %b %Y, %I:%M %p') }}</span>
+                                    </div>
+                                </div>
+                                <span style="font-size: 12px; font-weight: 700; color: #7f1d1d; display: inline-flex; align-items: center; gap: 4px;">
+                                    View Page <i class="bi bi-arrow-right"></i>
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
             {% endfor %}
         {% else %}
             <div style="text-align: center; color: #64748b; padding: 30px 0; font-size: 13px;">
@@ -45,7 +52,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Mark as read when clicking any notification item
     document.querySelectorAll('.notif-item').forEach(link => {
         link.addEventListener('click', function() {
             const notifId = this.getAttribute('data-id');

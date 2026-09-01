@@ -7,18 +7,30 @@ notifications_bp = Blueprint("notifications", __name__, url_prefix="/notificatio
 
 from datetime import datetime, timezone, timedelta
 
+from collections import defaultdict
+
 @notifications_bp.route("/")
 @login_required
 def notification_list():
-    # సరిగ్గా గడచిన 7 రోజులలో వచ్చిన నోటిఫికేషన్లను మాత్రమే ఫిల్టర్ చేయడం
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     
     notifications = Notification.query.filter(
         Notification.created_at >= seven_days_ago
     ).order_by(Notification.created_at.desc()).all()
     
-    return render_template("notifications/list.html", notifications=notifications)
+    # డేట్ల వారీగా గ్రూప్ చేయడం
+    grouped_dict = defaultdict(list)
+    for notif in notifications:
+        if notif.created_at:
+            d = notif.created_at.date()
+        else:
+            d = datetime.now().date()
+        grouped_dict[d].append(notif)
+        
+    # తేదీల వారీగా సాట్ చేయడం (లేటెస్ట్ డేట్ ముందు వచ్చేలా)
+    grouped_notifications = sorted(grouped_dict.items(), key=lambda x: x[0], reverse=True)
     
+    return render_template("notifications/list.html", grouped_notifications=grouped_notifications)
 @notifications_bp.route("/<int:notif_id>/read", methods=["POST"])
 @login_required
 def mark_as_read(notif_id):
