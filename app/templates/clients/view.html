@@ -2108,95 +2108,156 @@ Complete relationship, lifecycle and account workspace.
 </style>
 
 <script>
-// Tab Switching Fix for both Normal and AJAX Navigation
-function initClientProfileTabs() {
-    const tabButtons = document.querySelectorAll(".profile-tab");
-    const tabPanels = document.querySelectorAll(".profile-tab-panel");
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Import Modal Handling
+    const modal = document.getElementById("customClientImportModal");
+    const openBtn = document.getElementById("openImportModalBtnManual");
+    const closeSpan = document.getElementById("closeImportModalManual");
 
-    if (tabButtons.length > 0) {
-        tabButtons.forEach((button) => {
-            // పాత ఈవెంట్స్ డూప్లికేట్ అవకుండా క్లియర్ చేయడం
-            const newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
+    if (openBtn && modal) {
+        openBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            modal.style.display = "flex"; 
+            document.body.style.overflow = "hidden";
         });
+    }
+    if (closeSpan && modal) {
+        closeSpan.addEventListener("click", function(e) {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+        });
+    }
+    window.addEventListener("click", function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+    });
 
-        // ఫ్రెష్ ఈవెంట్ లిజినర్స్ యాడ్ చేయడం
-        document.querySelectorAll(".profile-tab").forEach((button) => {
-            button.addEventListener("click", () => {
-                const tabName = button.dataset.tab;
-                document.querySelectorAll(".profile-tab").forEach(item => item.classList.remove("active"));
-                document.querySelectorAll(".profile-tab-panel").forEach(panel => panel.classList.remove("active"));
-                
-                button.classList.add("active");
-                const targetPanel = document.getElementById("tab-" + tabName);
-                if (targetPanel) {
-                    targetPanel.classList.add("active");
-                }
+    {% if current_user.role == "admin" %}
+    // 2. Bulk Actions Handling
+    const form = document.getElementById("bulkClientForm");
+    const selectAll = document.getElementById("selectAllClients");
+    const rowCheckboxes = Array.from(document.querySelectorAll(".client-row-checkbox"));
+    const ownerSelect = document.getElementById("bulkOwnerSelect");
+    const submitBtn = document.getElementById("bulkReassignBtn");
+    const selectedCount = document.getElementById("bulkSelectedCount");
+    const bulkToolbar = document.getElementById("bulkActionToolbar");
+    const exportForm = document.getElementById("bulkExportForm");
+    const exportBtn = document.getElementById("bulkExportBtn");
+    const tagForm = document.getElementById("bulkTagForm");
+    const tagBtn = document.getElementById("bulkTagBtn");
+    const tagInput = document.getElementById("bulkTagInput");
+
+    if (form && ownerSelect && submitBtn && selectedCount) {
+        function syncBulkState() {
+            const checked = rowCheckboxes.filter(cb => cb.checked);
+            selectedCount.textContent = checked.length;
+            if (bulkToolbar) bulkToolbar.classList.toggle("has-selection", checked.length > 0);
+            submitBtn.disabled = !(checked.length > 0 && ownerSelect.value);
+            if (exportBtn) exportBtn.disabled = checked.length === 0;
+            if (tagBtn) tagBtn.disabled = !(checked.length > 0 && tagInput && tagInput.value.trim());
+            if (selectAll) {
+                selectAll.checked = (rowCheckboxes.length > 0 && checked.length === rowCheckboxes.length);
+                selectAll.indeterminate = (checked.length > 0 && checked.length < rowCheckboxes.length);
+            }
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener("change", function () {
+                rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
+                syncBulkState();
             });
+        }
+        rowCheckboxes.forEach(cb => cb.addEventListener("change", syncBulkState));
+        ownerSelect.addEventListener("change", syncBulkState);
+        if (tagInput) tagInput.addEventListener("input", syncBulkState);
+
+        form.addEventListener("submit", function (event) {
+            const checkedCount = rowCheckboxes.filter(cb => cb.checked).length;
+            if (!checkedCount || !ownerSelect.value) { event.preventDefault(); return; }
+            const ownerName = ownerSelect.options[ownerSelect.selectedIndex].text.trim();
+            if (!window.confirm(`Reassign ${checkedCount} selected client(s) to ${ownerName}?`)) event.preventDefault();
         });
+
+        if (exportForm) {
+            exportForm.addEventListener("submit", function (event) {
+                exportForm.querySelectorAll('input[data-export-client-id="1"]').forEach(input => input.remove());
+                const checked = rowCheckboxes.filter(cb => cb.checked);
+                if (!checked.length) { event.preventDefault(); return; }
+                checked.forEach(cb => {
+                    const hiddenInput = document.createElement("input");
+                    hiddenInput.type = "hidden";
+                    hiddenInput.name = "client_ids";
+                    hiddenInput.value = cb.value;
+                    hiddenInput.dataset.exportClientId = "1";
+                    exportForm.appendChild(hiddenInput);
+                });
+            });
+        }
+
+        if (tagForm) {
+            tagForm.addEventListener("submit", function (event) {
+                tagForm.querySelectorAll('input[data-tag-client-id="1"]').forEach(input => input.remove());
+                const checked = rowCheckboxes.filter(cb => cb.checked);
+                if (!checked.length || !tagInput.value.trim()) { event.preventDefault(); return; }
+                checked.forEach(cb => {
+                    const hiddenInput = document.createElement("input");
+                    hiddenInput.type = "hidden";
+                    hiddenInput.name = "client_ids";
+                    hiddenInput.value = cb.value;
+                    hiddenInput.dataset.tagClientId = "1";
+                    tagForm.appendChild(hiddenInput);
+                });
+            });
+        }
+        syncBulkState();
     }
-}
+    {% endif %}
 
-// పేజీ లోడ్ అయినప్పుడు మరియు AJAX నావిగేషన్ కంప్లీట్ అయినప్పుడు రన్ అవ్వడానికి
-document.addEventListener("DOMContentLoaded", initClientProfileTabs);
-document.addEventListener("crm:navigation-complete", initClientProfileTabs);
+    // 3. Column Settings Panel Handling
+    const settingsBtn = document.getElementById("columnSettingsBtn");
+    const settingsPanel = document.getElementById("columnSettingsPanel");
+    const closeBtn = document.getElementById("closeColumnSettings");
+    const resetBtn = document.getElementById("resetColumnsBtn");
+    const toggles = Array.from(document.querySelectorAll("[data-column-toggle]"));
 
-// మిగతా మోడల్ ఫంక్షన్స్
-function openPipelineModal() { document.getElementById("pipelineModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closePipelineModal() { document.getElementById("pipelineModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openConvertModal() { document.getElementById("convertModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeConvertModal() { document.getElementById("convertModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openOwnerModal() { document.getElementById("ownerModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeOwnerModal() { document.getElementById("ownerModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openStatusModal() { document.getElementById("statusModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeStatusModal() { document.getElementById("statusModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openActivityModal() { document.getElementById("activityModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeActivityModal() { document.getElementById("activityModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openNoteModal() { document.getElementById("noteModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeNoteModal() { document.getElementById("noteModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openTaskModal() { document.getElementById("taskModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeTaskModal() { document.getElementById("taskModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openDocumentModal() { document.getElementById("documentModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closeDocumentModal() { document.getElementById("documentModal")?.classList.remove("show"); document.body.style.overflow = ""; }
-function openMergeModal() { document.getElementById("mergeModal")?.classList.add("show"); document.body.classList.add("modal-open"); }
-function closeMergeModal() { document.getElementById("mergeModal")?.classList.remove("show"); document.body.classList.remove("modal-open"); }
-function openPermanentDeleteModal() { document.getElementById("permanentDeleteModal")?.classList.add("show"); document.body.style.overflow = "hidden"; }
-function closePermanentDeleteModal() { document.getElementById("permanentDeleteModal")?.classList.remove("show"); document.body.style.overflow = ""; }
+    if (settingsBtn && settingsPanel && toggles.length > 0) {
+        const storageKey = "freight-crm-client-columns-user-{{ current_user.id }}";
+        const defaultColumns = toggles.map(t => t.dataset.columnToggle);
 
-function syncPermanentDeleteState() {
-    const input = document.getElementById("permanentDeleteConfirmation");
-    const button = document.getElementById("permanentDeleteSubmitBtn");
-    if (!input || !button) return;
-    const expectedName = {{ client.company_name|tojson }};
-    button.disabled = input.value !== expectedName;
-}
+        function readVisibleColumns() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(storageKey));
+                if (Array.isArray(saved)) return saved;
+            } catch (e) { console.warn("Unable to read saved columns", e); }
+            return defaultColumns;
+        }
 
-function confirmPermanentDeleteSubmit() {
-    const input = document.getElementById("permanentDeleteConfirmation");
-    const expectedName = {{ client.company_name|tojson }};
-    if (!input || input.value !== expectedName) return false;
-    return window.confirm("Permanently delete this archived client? This action cannot be undone.");
-}
+        function applyColumns(visibleColumns) {
+            toggles.forEach(toggle => {
+                const columnName = toggle.dataset.columnToggle;
+                const isVisible = visibleColumns.includes(columnName);
+                toggle.checked = isVisible;
+                document.querySelectorAll(`[data-column="${columnName}"]`).forEach(cell => cell.hidden = !isVisible);
+            });
+        }
 
-function confirmArchiveClient() {
-    return window.confirm("Archive this client? The record will be marked as archived.");
-}
+        function saveColumns() {
+            const visibleColumns = toggles.filter(t => t.checked).map(t => t.dataset.columnToggle);
+            localStorage.setItem(storageKey, JSON.stringify(visibleColumns));
+            applyColumns(visibleColumns);
+        }
 
-function confirmRestoreClient() {
-    return window.confirm("Restore this archived client back to the active client list?");
-}
+        settingsBtn.addEventListener("click", function () { settingsPanel.hidden = !settingsPanel.hidden; });
+        if (closeBtn) closeBtn.addEventListener("click", function () { settingsPanel.hidden = true; });
+        toggles.forEach(toggle => toggle.addEventListener("change", saveColumns));
+        if (resetBtn) resetBtn.addEventListener("click", function () { localStorage.removeItem(storageKey); applyColumns(defaultColumns); });
 
-function togglePortalCard() {
-    const card = document.getElementById("portalAccountCard");
-    if (!card) return;
-    card.classList.toggle("show");
-    if (card.classList.contains("show")) {
-        card.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+        applyColumns(readVisibleColumns());
     }
-}
+});
 </script>
 
 {% endblock %}

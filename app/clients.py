@@ -470,21 +470,19 @@ def client_list():
             )
         )
 
-    # సమ్మరీ కార్డ్స్ క్లిక్ చేసినప్పుడు లేదా డ్రాప్‌డౌన్ ఫిల్టర్ చేసినప్పుడు వర్తించే లాజిక్
-    if status:
+    
+    # సమ్మరీ కార్డ్స్ క్లిక్ చేసినప్పుడు లేదా డ్రాప్‌డౌన్ ఫిల్టర్ చేసినప్పుడు వర్తించే సరియైన లాజిక్
+    if status == "active":
+        query = query.filter(Client.status.in_(["active", "key", "reactivated"]))
+    elif status == "lead":
+        query = query.filter(Client.status.in_(["lead", "new"]))
+    elif status:
         query = query.filter(Client.status == status)
 
-    if category:
+    if category == "pipeline":
+        query = query.filter(Client.category == "pipeline")
+    elif category:
         query = query.filter(Client.category == category)
-
-    if assigned_to and not is_sales_user():
-        query = query.filter(Client.assigned_to_id == assigned_to)
-
-    if priority:
-        query = query.filter(Client.priority_level == priority)
-
-    if pipeline_stage:
-        query = query.filter(Client.pipeline_stage == pipeline_stage)
 
     if sort == "oldest":
         query = query.order_by(Client.date_added.asc())
