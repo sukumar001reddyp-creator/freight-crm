@@ -3,16 +3,6 @@
 {% block title %}
 {{ client.company_name }} | Freight CRM
 
-<script>
-function togglePortalCard(){
- const card=document.getElementById('portalAccountCard');
- if(!card)return;
- card.classList.toggle('show');
- if(card.classList.contains('show')){
-   card.scrollIntoView({behavior:'smooth',block:'start'});
- }
-}
-</script>
 
 {% endblock %}
 
@@ -2108,156 +2098,88 @@ Complete relationship, lifecycle and account workspace.
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // 1. Import Modal Handling
-    const modal = document.getElementById("customClientImportModal");
-    const openBtn = document.getElementById("openImportModalBtnManual");
-    const closeSpan = document.getElementById("closeImportModalManual");
-
-    if (openBtn && modal) {
-        openBtn.addEventListener("click", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            modal.style.display = "flex"; 
-            document.body.style.overflow = "hidden";
-        });
-    }
-    if (closeSpan && modal) {
-        closeSpan.addEventListener("click", function(e) {
-            modal.style.display = "none";
-            document.body.style.overflow = "auto";
-        });
-    }
-    window.addEventListener("click", function(event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
-            document.body.style.overflow = "auto";
+function initClientProfileTabs() {
+    // 1. URL లో Hash ఉంటే ఆటోమేటిక్‌గా ఆ ట్యాబ్‌ని ఓపెన్ చేయడం
+    const hash = window.location.hash;
+    if (hash) {
+        const tabName = hash.replace("#", "");
+        const matchingTab = document.querySelector(`.profile-tab[data-tab="${tabName}"]`);
+        const matchingPanel = document.getElementById("tab-" + tabName);
+        
+        if (matchingTab && matchingPanel) {
+            document.querySelectorAll(".profile-tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".profile-tab-panel").forEach(p => p.classList.remove("active"));
+            
+            matchingTab.classList.add("active");
+            matchingPanel.classList.add("active");
         }
-    });
+    }
 
-    {% if current_user.role == "admin" %}
-    // 2. Bulk Actions Handling
-    const form = document.getElementById("bulkClientForm");
-    const selectAll = document.getElementById("selectAllClients");
-    const rowCheckboxes = Array.from(document.querySelectorAll(".client-row-checkbox"));
-    const ownerSelect = document.getElementById("bulkOwnerSelect");
-    const submitBtn = document.getElementById("bulkReassignBtn");
-    const selectedCount = document.getElementById("bulkSelectedCount");
-    const bulkToolbar = document.getElementById("bulkActionToolbar");
-    const exportForm = document.getElementById("bulkExportForm");
-    const exportBtn = document.getElementById("bulkExportBtn");
-    const tagForm = document.getElementById("bulkTagForm");
-    const tagBtn = document.getElementById("bulkTagBtn");
-    const tagInput = document.getElementById("bulkTagInput");
+    // 2. ట్యాబ్స్ క్లిక్ చేసినప్పుడు మారే లాజిక్ (Event Delegation)
+    const tabsContainer = document.querySelector(".profile-tabs");
+    if (tabsContainer && !tabsContainer.dataset.initialized) {
+        tabsContainer.dataset.initialized = "true"; // డ్యూప్లికేట్ ఈవెంట్స్ కాకుండా ఉండటానికి
+        
+        tabsContainer.addEventListener("click", function (e) {
+            const tab = e.target.closest(".profile-tab");
+            if (!tab) return;
 
-    if (form && ownerSelect && submitBtn && selectedCount) {
-        function syncBulkState() {
-            const checked = rowCheckboxes.filter(cb => cb.checked);
-            selectedCount.textContent = checked.length;
-            if (bulkToolbar) bulkToolbar.classList.toggle("has-selection", checked.length > 0);
-            submitBtn.disabled = !(checked.length > 0 && ownerSelect.value);
-            if (exportBtn) exportBtn.disabled = checked.length === 0;
-            if (tagBtn) tagBtn.disabled = !(checked.length > 0 && tagInput && tagInput.value.trim());
-            if (selectAll) {
-                selectAll.checked = (rowCheckboxes.length > 0 && checked.length === rowCheckboxes.length);
-                selectAll.indeterminate = (checked.length > 0 && checked.length < rowCheckboxes.length);
+            const targetTab = tab.getAttribute("data-tab");
+            const tabs = document.querySelectorAll(".profile-tab");
+            const panels = document.querySelectorAll(".profile-tab-panel");
+
+            tabs.forEach(t => t.classList.remove("active"));
+            panels.forEach(p => p.classList.remove("active"));
+
+            tab.classList.add("active");
+            const targetPanel = document.getElementById("tab-" + targetTab);
+            if (targetPanel) {
+                targetPanel.classList.add("active");
             }
-        }
-
-        if (selectAll) {
-            selectAll.addEventListener("change", function () {
-                rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
-                syncBulkState();
-            });
-        }
-        rowCheckboxes.forEach(cb => cb.addEventListener("change", syncBulkState));
-        ownerSelect.addEventListener("change", syncBulkState);
-        if (tagInput) tagInput.addEventListener("input", syncBulkState);
-
-        form.addEventListener("submit", function (event) {
-            const checkedCount = rowCheckboxes.filter(cb => cb.checked).length;
-            if (!checkedCount || !ownerSelect.value) { event.preventDefault(); return; }
-            const ownerName = ownerSelect.options[ownerSelect.selectedIndex].text.trim();
-            if (!window.confirm(`Reassign ${checkedCount} selected client(s) to ${ownerName}?`)) event.preventDefault();
+            
+            history.replaceState(null, null, "#" + targetTab);
         });
-
-        if (exportForm) {
-            exportForm.addEventListener("submit", function (event) {
-                exportForm.querySelectorAll('input[data-export-client-id="1"]').forEach(input => input.remove());
-                const checked = rowCheckboxes.filter(cb => cb.checked);
-                if (!checked.length) { event.preventDefault(); return; }
-                checked.forEach(cb => {
-                    const hiddenInput = document.createElement("input");
-                    hiddenInput.type = "hidden";
-                    hiddenInput.name = "client_ids";
-                    hiddenInput.value = cb.value;
-                    hiddenInput.dataset.exportClientId = "1";
-                    exportForm.appendChild(hiddenInput);
-                });
-            });
-        }
-
-        if (tagForm) {
-            tagForm.addEventListener("submit", function (event) {
-                tagForm.querySelectorAll('input[data-tag-client-id="1"]').forEach(input => input.remove());
-                const checked = rowCheckboxes.filter(cb => cb.checked);
-                if (!checked.length || !tagInput.value.trim()) { event.preventDefault(); return; }
-                checked.forEach(cb => {
-                    const hiddenInput = document.createElement("input");
-                    hiddenInput.type = "hidden";
-                    hiddenInput.name = "client_ids";
-                    hiddenInput.value = cb.value;
-                    hiddenInput.dataset.tagClientId = "1";
-                    tagForm.appendChild(hiddenInput);
-                });
-            });
-        }
-        syncBulkState();
     }
-    {% endif %}
+}
 
-    // 3. Column Settings Panel Handling
-    const settingsBtn = document.getElementById("columnSettingsBtn");
-    const settingsPanel = document.getElementById("columnSettingsPanel");
-    const closeBtn = document.getElementById("closeColumnSettings");
-    const resetBtn = document.getElementById("resetColumnsBtn");
-    const toggles = Array.from(document.querySelectorAll("[data-column-toggle]"));
+// సాధారణ పేజీ లోడ్ అయినప్పుడు మరియు AJAX నావిగేషన్ ద్వారా ప్రొఫైల్ పేజీకి వచ్చినప్పుడు ఇది రన్ అవుతుంది
+document.addEventListener("DOMContentLoaded", initClientProfileTabs);
+document.addEventListener("crm:navigation-complete", initClientProfileTabs);
 
-    if (settingsBtn && settingsPanel && toggles.length > 0) {
-        const storageKey = "freight-crm-client-columns-user-{{ current_user.id }}";
-        const defaultColumns = toggles.map(t => t.dataset.columnToggle);
-
-        function readVisibleColumns() {
-            try {
-                const saved = JSON.parse(localStorage.getItem(storageKey));
-                if (Array.isArray(saved)) return saved;
-            } catch (e) { console.warn("Unable to read saved columns", e); }
-            return defaultColumns;
-        }
-
-        function applyColumns(visibleColumns) {
-            toggles.forEach(toggle => {
-                const columnName = toggle.dataset.columnToggle;
-                const isVisible = visibleColumns.includes(columnName);
-                toggle.checked = isVisible;
-                document.querySelectorAll(`[data-column="${columnName}"]`).forEach(cell => cell.hidden = !isVisible);
-            });
-        }
-
-        function saveColumns() {
-            const visibleColumns = toggles.filter(t => t.checked).map(t => t.dataset.columnToggle);
-            localStorage.setItem(storageKey, JSON.stringify(visibleColumns));
-            applyColumns(visibleColumns);
-        }
-
-        settingsBtn.addEventListener("click", function () { settingsPanel.hidden = !settingsPanel.hidden; });
-        if (closeBtn) closeBtn.addEventListener("click", function () { settingsPanel.hidden = true; });
-        toggles.forEach(toggle => toggle.addEventListener("change", saveColumns));
-        if (resetBtn) resetBtn.addEventListener("click", function () { localStorage.removeItem(storageKey); applyColumns(defaultColumns); });
-
-        applyColumns(readVisibleColumns());
+// Portal Card Toggle Function
+function togglePortalCard(){
+    const card = document.getElementById('portalAccountCard');
+    if(!card) return;
+    card.classList.toggle('show');
+    if(card.classList.contains('show')){
+        card.scrollIntoView({behavior:'smooth', block:'start'});
     }
-});
+}
+function openConvertModal() {
+    const modal = document.getElementById('convertModal');
+    if (modal) modal.style.display = 'flex';
+}
+function closeConvertModal() {
+    const modal = document.getElementById('convertModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function openOwnerModal() {
+    const modal = document.getElementById('ownerModal');
+    if (modal) modal.style.display = 'flex';
+}
+function closeOwnerModal() {
+    const modal = document.getElementById('ownerModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function openStatusModal() {
+    const modal = document.getElementById('statusModal');
+    if (modal) modal.style.display = 'flex';
+}
+function closeStatusModal() {
+    const modal = document.getElementById('statusModal');
+    if (modal) modal.style.display = 'none';
+}
 </script>
-
 {% endblock %}
